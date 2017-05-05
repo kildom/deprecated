@@ -172,7 +172,7 @@ function $class()
             else if (obj.__$dynamicPrivate)
                 return th.__$private[obj.__$dynamicPrivate];
             else
-                return obj;
+                return th;
         }
         
         // Initialize each ancestor on this object (from oldest)
@@ -305,30 +305,6 @@ $class._mergeAncestors = function(args)
     else
     {
         return [];
-    }
-}
-
-
-$class._getPr = function(obj)
-{
-    return obj.__$protected;
-}
-
-
-$class._buildGetPr = function()
-{
-    return function(obj)
-    {
-        return obj.__$protected;
-    }
-}
-
-
-$class._buildGetPv = function(id)
-{
-    return function(obj)
-    {
-        return obj.__$private[id];
     }
 }
 

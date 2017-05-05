@@ -295,3 +295,69 @@ TEST_CASE('dynamic members from static context', function()
 	
 });
 
+
+
+TEST_CASE('dynamic members from other object', function()
+{
+	var Class = $class(function(st, pr, pv)
+	{
+		return function(th, pr, pv)
+		{
+			pv.Private = 'Private';
+			pr.Protected = 'Protected';
+			th.Public1 = 'Public1';
+			th.Public2 = 'Public2';
+			
+			pv.prv = function() { return pv.Private; }
+			pr.pro = function() { return pr.Protected; }
+			th.pub1 = function() { return th.Public1; }
+			th.pub2 = function() { return th.Public2; }
+			
+			th.testInner = function()
+			{
+				EXPECT_EQ(pv.Private, 'Private');
+				EXPECT_EQ(pr.Protected, 'Protected');
+				EXPECT_EQ(th.Public1, 'Public1');
+				EXPECT_EQ(th.Public2, 'Public2');
+				
+				EXPECT_EQ(pv.prv(), 'Private');
+				EXPECT_EQ(pr.pro(), 'Protected');
+				EXPECT_EQ(th.pub1(), 'Public1');
+				EXPECT_EQ(th.pub2(), 'Public2');
+			}
+			
+			th.changeValues = function(obj)
+			{
+				obj.$(pv).Private = 'pv';
+				obj.$(pr).Protected = 'pr';
+				obj.$(th).Public1 = 'th1';
+				obj.Public2 = 'th2';
+			}
+			
+			th.testInnerAfterChange = function()
+			{
+				EXPECT_EQ(pv.Private, 'pv');
+				EXPECT_EQ(pr.Protected, 'pr');
+				EXPECT_EQ(th.Public1, 'th1');
+				EXPECT_EQ(th.Public2, 'th2');
+				
+				EXPECT_EQ(pv.prv(), 'pv');
+				EXPECT_EQ(pr.pro(), 'pr');
+				EXPECT_EQ(th.pub1(), 'th1');
+				EXPECT_EQ(th.pub2(), 'th2');
+			}
+		};
+	});
+	
+	var obj1 = new Class();
+	var obj2 = new Class();
+	
+	obj1.testInner();
+	obj2.testInner();
+	
+	obj2.changeValues(obj1);
+	
+	obj1.testInnerAfterChange();
+	obj2.testInner();
+
+});

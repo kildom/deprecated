@@ -90,6 +90,8 @@ body
 	margin: 0px 0px 0px 60px;
 	font-family: 'Courier New', monospace;
 	font-size: 8pt;
+	color: #FFF;
+	margin-top: 5px;
 }
 
 .Log
@@ -97,6 +99,7 @@ body
 	margin: 0px 0px 0px 60px;
 	font-family: 'Courier New', monospace;
 	font-size: 8pt;
+	margin-top: 5px;
 }
 
 </style>
@@ -116,6 +119,55 @@ Util.totalErrors = 0;
 Util.unhandledExceptions = 0;
 Util.assertException = { isAssert : true };
 
+
+Util.Pretty = function()
+{
+	var th = this;
+	
+	th.all = [];
+	
+	th.part = function (v, name, ind)
+	{
+		var result = '';
+		
+		switch(typeof(v))
+		{
+		case 'undefined':
+			result += (ind + name + ' = undefined' + '\n');
+			break;
+		case 'object':
+		case 'function':
+			var p = th.all.indexOf(v);
+			if (p < 0)
+			{
+				result += (ind + name + ' = ' + typeof(v) + ' [' + th.all.length + '] {' + '\n');
+				th.all.push(v);
+				for (var i in v)
+				{
+					result += th.part(v[i], i, ind + '    ');
+				}
+				result += (ind + '}' + '\n');
+			}
+			else
+			{
+				result += (ind + name + ' = ' + typeof(v) + ' [' + p + '] <<< ' + '\n');
+			}
+			break;
+		default:
+			result += (ind + name + ' = ' + JSON.stringify(v) + '\n');
+			break;
+		}
+		
+		return result;
+	}
+	
+	th.convert = function(data, indent)
+	{
+		if (typeof(indent) == 'undefined') indent = '';
+		return th.part(data, '', indent);
+	}
+}
+
 Util.htmlSpecialChars = function(text)
 {
 	return text.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
@@ -132,17 +184,31 @@ Util.printError = function(text)
 		if (line && line.search(/Util\.printError/) < 0 && line.search(/API\._TEST_SUITE_/) < 0 && line.search(/^Error$/) < 0)
 			stack += '    ' + line + '\n';
 	}
-	$("#log").append('<pre class="Error">' + Util.htmlSpecialChars(text + '\n' + stack) + '</pre>');
+	if (arguments.length > 1)
+	{
+		var pretty = new Util.Pretty();
+		for (var i = 1; i < arguments.length; i++)
+		{
+			text += '\n  ' + i + ' ' + pretty.convert(arguments[i], '    ').trim();
+		}
+	}
+	text += '\n  Back trace:\n' + stack;
+	$("#log").append('<pre class="Error">' + Util.htmlSpecialChars(text) + '</pre>');
 	Util.testCaseErrors++;
 	return Util.assertException;
 }
 
-Util.printLog = function()
+Util.printLog = function(text)
 {
-	for (var i = 0; i < arguments.length; i++)
+	if (arguments.length > 1)
 	{
-		$("#log").append('<pre class="Log">' + Util.htmlSpecialChars('' + arguments[i]) + '</pre>');
+		var pretty = new Util.Pretty();
+		for (var i = 1; i < arguments.length; i++)
+		{
+			text += '\n  ' + i + ' ' + pretty.convert(arguments[i], '    ').trim();
+		}
 	}
+	$("#log").append('<pre class="Log">' + Util.htmlSpecialChars(text) + '</pre>');
 }
 
 Util.setTimeout = function(time)
@@ -261,23 +327,23 @@ API.TEST_CASE = function(name, func)
 	Util.testCases.push({ name : name, func : func });
 };
 
-API.EXPECT_TRUE = function(a) { if (!a) Util.printError('EXPECT_TRUE'); }
-API.EXPECT_FALSE = function(a) { if (a) Util.printError('EXPECT_FALSE'); }
-API.EXPECT_EQ = function(a, b) { if (a !== b) Util.printError('EXPECT_EQ'); }
-API.EXPECT_NE = function(a, b) { if (a === b) Util.printError('EXPECT_NE'); }
-API.EXPECT_GT = function(a, b) { if (a <= b) Util.printError('EXPECT_GT'); }
-API.EXPECT_LT = function(a, b) { if (a >= b) Util.printError('EXPECT_LT'); }
-API.EXPECT_GE = function(a, b) { if (a < b) Util.printError('EXPECT_GE'); }
-API.EXPECT_LE = function(a, b) { if (a > b) Util.printError('EXPECT_LE'); }
+API.EXPECT_TRUE = function(a) { if (!a) Util.printError('EXPECT_TRUE', a); }
+API.EXPECT_FALSE = function(a) { if (a) Util.printError('EXPECT_FALSE', a); }
+API.EXPECT_EQ = function(a, b) { if (a !== b) Util.printError('EXPECT_EQ', a, b); }
+API.EXPECT_NE = function(a, b) { if (a === b) Util.printError('EXPECT_NE', a, b); }
+API.EXPECT_GT = function(a, b) { if (a <= b) Util.printError('EXPECT_GT', a, b); }
+API.EXPECT_LT = function(a, b) { if (a >= b) Util.printError('EXPECT_LT', a, b); }
+API.EXPECT_GE = function(a, b) { if (a < b) Util.printError('EXPECT_GE', a, b); }
+API.EXPECT_LE = function(a, b) { if (a > b) Util.printError('EXPECT_LE', a, b); }
 
-API.ASSERT_TRUE = function(a) { if (!a) throw Util.printError('ASSERT_TRUE'); }
-API.ASSERT_FALSE = function(a) { if (a) throw Util.printError('ASSERT_FALSE'); }
-API.ASSERT_EQ = function(a, b) { if (a !==b) throw Util.printError('ASSERT_EQ'); }
-API.ASSERT_NE = function(a, b) { if (a === b) throw Util.printError('ASSERT_NE'); }
-API.ASSERT_GT = function(a, b) { if (a <= b) throw Util.printError('ASSERT_GT'); }
-API.ASSERT_LT = function(a, b) { if (a >= b) throw Util.printError('ASSERT_LT'); }
-API.ASSERT_GE = function(a, b) { if (a < b) throw Util.printError('ASSERT_GE'); }
-API.ASSERT_LE = function(a, b) { if (a > b) throw Util.printError('ASSERT_LE'); }
+API.ASSERT_TRUE = function(a) { if (!a) throw Util.printError('ASSERT_TRUE', a); }
+API.ASSERT_FALSE = function(a) { if (a) throw Util.printError('ASSERT_FALSE', a); }
+API.ASSERT_EQ = function(a, b) { if (a !==b) throw Util.printError('ASSERT_EQ', a, b); }
+API.ASSERT_NE = function(a, b) { if (a === b) throw Util.printError('ASSERT_NE', a, b); }
+API.ASSERT_GT = function(a, b) { if (a <= b) throw Util.printError('ASSERT_GT', a, b); }
+API.ASSERT_LT = function(a, b) { if (a >= b) throw Util.printError('ASSERT_LT', a, b); }
+API.ASSERT_GE = function(a, b) { if (a < b) throw Util.printError('ASSERT_GE', a, b); }
+API.ASSERT_LE = function(a, b) { if (a > b) throw Util.printError('ASSERT_LE', a, b); }
 
 API.LOG = function() { Util.printLog.apply(Util, arguments); }
 
