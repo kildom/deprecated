@@ -361,3 +361,77 @@ TEST_CASE('dynamic members from other object', function()
 	obj2.testInner();
 
 });
+
+
+TEST_CASE('friend function', function()
+{
+	var Class = $class(function(st, pr, pv)
+	{
+		st.pv.staticPrivate = 'staticPrivate';
+		st.pr.staticProtected = 'staticProtected';
+		st.th.staticPublic = 'staticPublic';
+		
+		return function(th, pr, pv)
+		{
+			pv.Private = 'Private';
+			pr.Protected = 'Protected';
+			th.Public = 'Public';
+		}
+	});
+
+	func = Class.friend(function(st, pr, pv, arg1, arg2)
+	{
+		EXPECT_EQ(st.pv.staticPrivate, 'staticPrivate');
+		EXPECT_EQ(st.pr.staticProtected, 'staticProtected');
+		EXPECT_EQ(st.th.staticPublic, 'staticPublic');
+		var obj = new Class();
+		EXPECT_EQ(obj.$(pv).Private, 'Private');
+		EXPECT_EQ(obj.$(pr).Protected, 'Protected');
+		EXPECT_EQ(obj.Public, 'Public');
+		EXPECT_EQ(arg1, 'a');
+		EXPECT_EQ(arg2, 'b');
+	});
+	
+	func('a', 'b');
+});
+
+
+TEST_CASE('friend method', function()
+{
+	var Class1 = $class(function(st, pr, pv)
+	{
+		st.pv.staticPrivate = 'staticPrivate';
+		st.pr.staticProtected = 'staticProtected';
+		st.th.staticPublic = 'staticPublic';
+		
+		return function(th, pr, pv)
+		{
+			pv.Private = 'Private';
+			pr.Protected = 'Protected';
+			th.Public = 'Public';
+		}
+	});
+
+	var Class2 = $class(function(st, pr, pv)
+	{
+		return function(th, pr, pv)
+		{
+			th.func = Class1.friend(function(stClass1, prClass1, pvClass1, arg1, arg2)
+			{
+				EXPECT_EQ(stClass1.pv.staticPrivate, 'staticPrivate');
+				EXPECT_EQ(stClass1.pr.staticProtected, 'staticProtected');
+				EXPECT_EQ(stClass1.th.staticPublic, 'staticPublic');
+				var obj = new Class1();
+				EXPECT_EQ(obj.$(pvClass1).Private, 'Private');
+				EXPECT_EQ(obj.$(prClass1).Protected, 'Protected');
+				EXPECT_EQ(obj.Public, 'Public');
+				EXPECT_EQ(arg1, 'a');
+				EXPECT_EQ(arg2, 'b');
+			});
+		}
+	});
+
+	var obj2 = new Class2()
+	obj2.func('a', 'b');
+});
+

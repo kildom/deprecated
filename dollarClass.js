@@ -1,30 +1,30 @@
 /*
-	-------------------------------------------------------------------------------
+    -------------------------------------------------------------------------------
 
-	Copyright (c) 2017, Dominik Kilian
-	All rights reserved.
+    Copyright (c) 2017, Dominik Kilian
+    All rights reserved.
 
-	Redistribution  and  use  in  source  and  binary  forms,   with   or   without
-	modification,  are  permitted  provided  that the following conditions are met:
+    Redistribution  and  use  in  source  and  binary  forms,   with   or   without
+    modification,  are  permitted  provided  that the following conditions are met:
 
-	1. Redistributions of source code must retain the above copyright notice,  this
-	   list of conditions and the following disclaimer.
-	2. Redistributions  in  binary  form must reproduce the above copyright notice,
-	   this  list  of  conditions and the following disclaimer in the documentation
-	   and/or other materials provided with the distribution.
+    1. Redistributions of source code must retain the above copyright notice,  this
+       list of conditions and the following disclaimer.
+    2. Redistributions  in  binary  form must reproduce the above copyright notice,
+       this  list  of  conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-	ANY EXPRESS OR IMPLIED WARRANTIES,  INCLUDING,  BUT NOT LIMITED TO, THE IMPLIED
-	WARRANTIES  OF  MERCHANTABILITY  AND  FITNESS  FOR  A  PARTICULAR  PURPOSE  ARE
-	DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-	ANY DIRECT,  INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-	(INCLUDING,  BUT  NOT LIMITED TO,  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-	LOSS OF USE,  DATA,  OR PROFITS;  OR BUSINESS INTERRUPTION)  HOWEVER CAUSED AND
-	ON  ANY  THEORY OF LIABILITY,  WHETHER IN CONTRACT,  STRICT LIABILITY,  OR TORT
-	(INCLUDING  NEGLIGENCE OR OTHERWISE)  ARISING IN ANY WAY OUT OF THE USE OF THIS
-	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+    ANY EXPRESS OR IMPLIED WARRANTIES,  INCLUDING,  BUT NOT LIMITED TO, THE IMPLIED
+    WARRANTIES  OF  MERCHANTABILITY  AND  FITNESS  FOR  A  PARTICULAR  PURPOSE  ARE
+    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+    ANY DIRECT,  INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+    (INCLUDING,  BUT  NOT LIMITED TO,  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+    LOSS OF USE,  DATA,  OR PROFITS;  OR BUSINESS INTERRUPTION)  HOWEVER CAUSED AND
+    ON  ANY  THEORY OF LIABILITY,  WHETHER IN CONTRACT,  STRICT LIABILITY,  OR TORT
+    (INCLUDING  NEGLIGENCE OR OTHERWISE)  ARISING IN ANY WAY OUT OF THE USE OF THIS
+    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-	-------------------------------------------------------------------------------
+    -------------------------------------------------------------------------------
 */
 
 /*
@@ -220,8 +220,8 @@ function $class()
             return classObj.__$protected;
         else if (obj.__$staticPrivate) // Base.$(st.pv)
             return classObj.__$private;
-        else  // Base.$(st.th), Base.$(pv)
-            return obj;
+        else // Base.$(st.th)
+            return classObj;
     }
     
     // function checks if obj is this class or any of its children 
@@ -230,11 +230,27 @@ function $class()
         return (typeof(obj) == 'object') && (typeof(obj.__$class) == 'function') && (typeof(obj.__$class.__$classIdMap[classObj.__$id]) != 'undefined');
     }
     
+    classObj.friend = function(func)
+    {
+        return function()
+        {
+            var args = [ classObj.__$st, $class._prInStaticContext, classObj.__$pvInStaticContext ];
+            for (var i = 0; i < arguments.length; i++)
+            {
+                args.push(arguments[i]);
+            }
+            func.apply(this, args);
+        }
+    }
+    
+    classObj.__$st = { th : classObj, pr : classObj.__$protected, pv : classObj.__$private };
+    classObj.__$pvInStaticContext = { __$dynamicPrivate : classObj.__$id };
+    
     // Call class creator to create static part of class and get object creator
     classObj.__$creator = (arguments[arguments.length - 1])(
-            { th : classObj, pr : classObj.__$protected, pv : classObj.__$private },
-            { __$dynamicProtected : true },
-            { __$dynamicPrivate : classObj.__$id });
+            classObj.__$st,
+            $class._prInStaticContext,
+            classObj.__$pvInStaticContext);
     
     // In case of pure static classes object creator does not exists
     if (typeof(classObj.__$creator) == 'undefined')
@@ -246,6 +262,9 @@ function $class()
     // Return prepared class
     return classObj;
 }
+
+
+$class._prInStaticContext = { __$dynamicProtected : true };
 
 
 $class._lastId = '';
