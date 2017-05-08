@@ -189,6 +189,41 @@ TEST_CASE('dynamic members', function()
 });
 
 
+TEST_CASE('constructor', function()
+{
+	var Class = $class(function(st, pr, pv)
+	{
+		return function(th, pr, pv)
+		{
+			var a1;
+			var a2;
+			
+			pr.construct = function(arg1, arg2)
+			{
+				a1 = arg1;
+				a2 = arg2;
+			}
+						
+			th.pub1 = function()
+			{
+				return a1;
+			}
+			
+			th.pub2 = function()
+			{
+				return a2;
+			}
+		}
+	});
+	
+	var obj = new Class('aaa', 'bbb');
+	
+	EXPECT_EQ(obj.pub1(), 'aaa');
+	EXPECT_EQ(obj.pub2(), 'bbb');
+	
+});
+
+
 TEST_CASE('static members from dynamic context', function()
 {	
 	var Class = $class(function(st, pr, pv)
@@ -433,5 +468,48 @@ TEST_CASE('friend method', function()
 
 	var obj2 = new Class2()
 	obj2.func('a', 'b');
+});
+
+
+TEST_CASE('foreign object', function()
+{
+	var Class = $class(function(st, pr, pv)
+	{
+		return function(th, pr, pv)
+		{
+			var a1;
+			var a2;
+			
+			pr.construct = function(arg1, arg2)
+			{
+				a1 = arg1;
+				a2 = arg2;
+			}
+			
+			th.pub = function()
+			{
+				return th.foreign;
+			}
+			
+			th.pub1 = function()
+			{
+				return a1;
+			}
+			
+			th.pub2 = function()
+			{
+				return a2;
+			}
+		}
+	});
+	
+	var obj = { foreign : 'foreign value' };
+	
+	Class.construct(obj, 'aaa', 'bbb');
+	
+	EXPECT_EQ(obj.pub(), 'foreign value');
+	EXPECT_EQ(obj.pub1(), 'aaa');
+	EXPECT_EQ(obj.pub2(), 'bbb');
+	
 });
 

@@ -129,6 +129,13 @@ Cls.friend(Base.friend(function(stBase, prBase, pvBase, stCls, prCls, pvCls, ...
 {
 }));
 
+FOREIGN OBJECT. Construct on existsting object (e.g. to create object of some class from JSON data)
+	Cls.construct(thisObj, args...) 
+	e.g.
+		var obj = JSON.decode(...);
+		Cls.construct(obj);
+		obj->someMethod();
+
 multiple inheritance:
 
 NewClass = $class(D, F, ...
@@ -242,6 +249,16 @@ function $class()
             func.apply(this, args);
         }
     }
+	
+	classObj.construct = function(thisObj)
+	{
+		var args = [];
+		for (var i = 1; i < arguments.length; i++)
+		{
+			args.push(arguments[i]);
+		}
+		classObj.apply(thisObj, args);
+	}
     
     classObj.__$st = { th : classObj, pr : classObj.__$protected, pv : classObj.__$private };
     classObj.__$pvInStaticContext = { __$dynamicPrivate : classObj.__$id };
