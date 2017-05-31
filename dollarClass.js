@@ -252,6 +252,8 @@ function $class()
 	
 	classObj.construct = function(thisObj)
 	{
+	    if (thisObj == null)
+	        return null;
 		var args = [];
 		for (var i = 1; i < arguments.length; i++)
 		{
