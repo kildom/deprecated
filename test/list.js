@@ -28,5 +28,11 @@
 */
 
 var TESTS = [
-	'test_no_inheritance.js'
+    'test_no_inheritance.js'
 ];
+
+
+/* ==== ESLINT BEGIN ==== */
+/* global TESTS */
+/* exported TESTS */
+/* ==== ESLINT END ==== */

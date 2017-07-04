@@ -48,7 +48,7 @@ function $class()
             else
                 return th;
         }
-        
+
         // Initialize each ancestor on this object (from oldest)
         for (var i in classObj.__$ancestors)
         {
@@ -84,7 +84,7 @@ function $class()
     classObj.__$ancestors = $class._mergeAncestors(arguments);    // array of all ancestor (from oldest)
     // map with id of each ancestor (map[id] = true)
     classObj.__$classIdMap = $class._createAncestorsMap(classObj.__$ancestors, classObj.__$id);
-    
+
     // function for accessing original (not overriden by child) methods from this class
     classObj.$ = function(obj)
     {
@@ -97,13 +97,13 @@ function $class()
         else // Base.$(st.th)
             return classObj;
     }
-    
+
     // function checks if obj is this class or any of its children 
     classObj.isInstanceOfClass = function(obj)
     {
         return (typeof(obj) == 'object') && (typeof(obj.__$class) == 'function') && (typeof(obj.__$class.__$classIdMap[classObj.__$id]) != 'undefined');
     }
-    
+
     classObj.friend = function(func)
     {
         return function()
@@ -116,35 +116,35 @@ function $class()
             func.apply(this, args);
         }
     }
-	
-	classObj.construct = function(thisObj)
-	{
-	    if (thisObj == null)
-	        return null;
-		var args = [];
-		for (var i = 1; i < arguments.length; i++)
-		{
-			args.push(arguments[i]);
-		}
-		classObj.apply(thisObj, args);
-	}
-    
+
+    classObj.construct = function(thisObj)
+    {
+        if (thisObj == null)
+            return null;
+        var args = [];
+        for (var i = 1; i < arguments.length; i++)
+        {
+            args.push(arguments[i]);
+        }
+        classObj.apply(thisObj, args);
+    }
+
     classObj.__$st = { th : classObj, pr : classObj.__$protected, pv : classObj.__$private };
     classObj.__$pvInStaticContext = { __$dynamicPrivate : classObj.__$id };
-    
+
     // Call class creator to create static part of class and get object creator
     classObj.__$creator = (arguments[arguments.length - 1])(
-            classObj.__$st,
-            $class._prInStaticContext,
-            classObj.__$pvInStaticContext);
-    
+        classObj.__$st,
+        $class._prInStaticContext,
+        classObj.__$pvInStaticContext);
+
     // In case of pure static classes object creator does not exists
     if (typeof(classObj.__$creator) == 'undefined')
         classObj.__$creator = $class._emptyFunction;
-    
+
     // Call static constructor of this class
     classObj.__$protected.construct();
-    
+
     // Return prepared class
     return classObj;
 }
@@ -203,7 +203,7 @@ $class._mergeAncestors = function(args)
                 if (ancestors.indexOf(args[i].__$ancestors[k]) < 0)
                     ancestors.push(args[i].__$ancestors[k]);
             if (ancestors.indexOf(args[i]) < 0)
-                ancestors.push(args[i]);                
+                ancestors.push(args[i]);
         }
         return ancestors;
     }
