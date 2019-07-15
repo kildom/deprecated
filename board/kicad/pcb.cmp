@@ -1,0 +1,129 @@
+Cmp-Mod V01 Created by Cvpcb (20080715 date = 29/11/2008-01:45:36
+
+BeginCmp
+TimeStamp = /492F04AA;
+Reference = C1;
+ValeurCmp = 22p;
+IdModule  = _C150;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F047A;
+Reference = C2;
+ValeurCmp = 22p;
+IdModule  = _C150;
+EndCmp
+
+BeginCmp
+TimeStamp = /49306BED;
+Reference = C3;
+ValeurCmp = 4u7;
+IdModule  = _CP100;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F132E;
+Reference = D1;
+ValeurCmp = 3V6;
+IdModule  = _D400;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F131F;
+Reference = D2;
+ValeurCmp = 3V6;
+IdModule  = _D400;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F1422;
+Reference = D3;
+ValeurCmp = DIODE;
+IdModule  = _D400;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F142B;
+Reference = D4;
+ValeurCmp = DIODE;
+IdModule  = _D400;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F1714;
+Reference = DS1;
+ValeurCmp = LED;
+IdModule  = _DS100;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F0593;
+Reference = JP1;
+ValeurCmp = CONN_5X2;
+IdModule  = _HDR5X2;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F05B0;
+Reference = JP2;
+ValeurCmp = USB;
+IdModule  = _USB-B;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F1726;
+Reference = R2;
+ValeurCmp = 680;
+IdModule  = _R400;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F129C;
+Reference = R3;
+ValeurCmp = 680;
+IdModule  = _R400;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F12D5;
+Reference = R4;
+ValeurCmp = 68;
+IdModule  = _R400;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F12CC;
+Reference = R5;
+ValeurCmp = 68;
+IdModule  = _R400;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F13B2;
+Reference = R6;
+ValeurCmp = 2k2;
+IdModule  = _R400;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F0B80;
+Reference = SW1;
+ValeurCmp = DIPSWITCH;
+IdModule  = _dip8;
+EndCmp
+
+BeginCmp
+TimeStamp = /492F0309;
+Reference = U1;
+ValeurCmp = ATmega88;
+IdModule  = _DIP28;
+EndCmp
+
+BeginCmp
+TimeStamp = /49300735;
+Reference = X1;
+ValeurCmp = 12MHz;
+IdModule  = _XTAL4_88;
+EndCmp
+
+EndListe

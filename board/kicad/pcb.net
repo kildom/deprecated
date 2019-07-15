@@ -1,0 +1,273 @@
+# EESchema Netlist Version 1.1 created  12/12/2008-16:13:26
+(
+ ( /49306BED $noname  C3 4u7 {Lib=CAPAPOL}
+  (    1 VCC )
+  (    2 GND )
+ )
+ ( /49300735 $noname  X1 12MHz {Lib=CRYSTAL}
+  (    1 N-000020 )
+  (    2 N-000019 )
+ )
+ ( /492F1726 $noname  R2 680 {Lib=R}
+  (    1 N-000021 )
+  (    2 N-000001 )
+ )
+ ( /492F1714 $noname  DS1 LED {Lib=LED}
+  (    1 +5V )
+  (    2 N-000021 )
+ )
+ ( /492F142B $noname  D4 DIODE {Lib=DIODE}
+  (    1 N-000022 )
+  (    2 VCC )
+ )
+ ( /492F1422 $noname  D3 DIODE {Lib=DIODE}
+  (    1 +5V )
+  (    2 N-000022 )
+ )
+ ( /492F13B2 $noname  R6 1k5 {Lib=R}
+  (    1 N-000017 )
+  (    2 +5V )
+ )
+ ( /492F132E $noname  D1 3V6 {Lib=ZENER}
+  (    1 GND )
+  (    2 N-000017 )
+ )
+ ( /492F131F $noname  D2 3V6 {Lib=ZENER}
+  (    1 GND )
+  (    2 N-000013 )
+ )
+ ( /492F12D5 $noname  R4 68 {Lib=R}
+  (    1 N-000011 )
+  (    2 N-000013 )
+ )
+ ( /492F12CC $noname  R5 68 {Lib=R}
+  (    1 N-000002 )
+  (    2 N-000017 )
+ )
+ ( /492F129C $noname  R3 680 {Lib=R}
+  (    1 N-000016 )
+  (    2 N-000008 )
+ )
+ ( /492F0593 $noname  JP1 CONN_5X2 {Lib=CONN_5X2}
+  (    1 N-000015 )
+  (    2 N-000005 )
+  (    3  ? )
+  (    4 N-000016 )
+  (    5 N-000004 )
+  (    6 N-000009 )
+  (    7 N-000014 )
+  (    8 GND )
+  (    9 N-000010 )
+  (   10 GND )
+ )
+ ( /492F0B80 switch-copal-CHS-04A  SW1 DIPSWITCH {Lib=CHS-04A}
+  (    1 VCC )
+  (    2 VCC )
+  (    3 N-000012 )
+  (    4 GND )
+  (    5 N-000003 )
+  (    6 N-000004 )
+  (    7 +5V )
+  (    8 N-000005 )
+ )
+ ( /492F05B0 $noname  JP2 USB {Lib=USB}
+  (    1 +5V )
+  (    2 N-000017 )
+  (    3 N-000013 )
+  (    4 GND )
+  (    5 GND )
+  (    6 GND )
+ )
+ ( /492F04AA $noname  C1 22p {Lib=C}
+  (    1 N-000020 )
+  (    2 GND )
+ )
+ ( /492F047A $noname  C2 22p {Lib=C}
+  (    1 N-000019 )
+  (    2 GND )
+ )
+ ( /492F0309 atmel-1-DIL28-3  U1 ATmega88 {Lib=MEGA8-P}
+  (    1 N-000012 )
+  (    2 N-000009 )
+  (    3 N-000008 )
+  (    4 N-000011 )
+  (    5  ? )
+  (    6  ? )
+  (    7 VCC )
+  (    8 GND )
+  (    9 N-000020 )
+  (   10 N-000019 )
+  (   11 N-000003 )
+  (   12 N-000002 )
+  (   13  ? )
+  (   14 N-000004 )
+  (   15  ? )
+  (   16  ? )
+  (   17 N-000015 )
+  (   18 N-000010 )
+  (   19 N-000014 )
+  (   20 VCC )
+  (   21  ? )
+  (   22 GND )
+  (   23 N-000001 )
+  (   24  ? )
+  (   25  ? )
+  (   26  ? )
+  (   27  ? )
+  (   28  ? )
+ )
+)
+*
+{ Allowed footprints by component:
+$component C3
+ CP*
+ SM*
+$endlist
+$component R2
+ R?
+ SM0603
+ SM0805
+$endlist
+$component D4
+ D?
+ S*
+$endlist
+$component D3
+ D?
+ S*
+$endlist
+$component R6
+ R?
+ SM0603
+ SM0805
+$endlist
+$component D1
+ D?
+ SO*
+ SM*
+$endlist
+$component D2
+ D?
+ SO*
+ SM*
+$endlist
+$component R4
+ R?
+ SM0603
+ SM0805
+$endlist
+$component R5
+ R?
+ SM0603
+ SM0805
+$endlist
+$component R3
+ R?
+ SM0603
+ SM0805
+$endlist
+$component C1
+ SM*
+ C?
+ C1-1
+$endlist
+$component C2
+ SM*
+ C?
+ C1-1
+$endlist
+$endfootprintlist
+}
+{ Pin List by Nets
+Net 1 ""
+ U1 23
+ R2 2
+Net 2 ""
+ R5 1
+ U1 12
+Net 3 ""
+ SW1 5
+ U1 11
+Net 4 ""
+ U1 14
+ JP1 5
+ SW1 6
+Net 5 ""
+ SW1 8
+ JP1 2
+Net 6 "+5V"
+ JP2 1
+ R6 2
+ DS1 1
+ D3 1
+ SW1 7
+Net 7 "VCC"
+ SW1 2
+ U1 20
+ U1 7
+ D4 2
+ SW1 1
+ C3 1
+Net 8 ""
+ U1 3
+ R3 2
+Net 9 ""
+ JP1 6
+ U1 2
+Net 10 ""
+ JP1 9
+ U1 18
+Net 11 ""
+ R4 1
+ U1 4
+Net 12 ""
+ SW1 3
+ U1 1
+Net 13 ""
+ JP2 3
+ D2 2
+ R4 2
+Net 14 ""
+ U1 19
+ JP1 7
+Net 15 ""
+ U1 17
+ JP1 1
+Net 16 ""
+ JP1 4
+ R3 1
+Net 17 ""
+ R6 1
+ D1 2
+ JP2 2
+ R5 2
+Net 18 "GND"
+ U1 22
+ U1 8
+ JP1 10
+ JP1 8
+ C3 2
+ SW1 4
+ JP2 5
+ D2 1
+ JP2 6
+ JP2 4
+ D1 1
+ C1 2
+ C2 2
+Net 19 ""
+ C2 1
+ U1 10
+ X1 2
+Net 20 ""
+ U1 9
+ X1 1
+ C1 1
+Net 21 ""
+ R2 1
+ DS1 2
+Net 22 ""
+ D4 1
+ D3 2
+}
+#End

@@ -1,0 +1,19 @@
+VS_RUN_MODE=Firmware
+VS_ASRC+= .\usbdrv\usbdrvasm.S 
+VS_SRC+= .\usbdrv\usbdrv.c 
+VS_MCU=atmega88
+VS_F_CPU=12000000
+VS_OPT=s
+VS_EXTRAINCDIRS+= usbdrv
+VS_DEFS+= -DDEBUG_LEVEL=0 
+VS_AVRDUDE_PROGRAMMER=usbasp
+VS_AVRDUDE_PORT=usb
+VS_AVRDUDE_FUSE= -U lfuse:w:0xF7:m -U hfuse:w:0xDD:m
+VS_SRC+= .\usbcontrol.c 
+VS_SRC+= .\uart.c 
+VS_SRC+= .\main.c 
+VS_SRC+= .\led.c 
+VS_SRC+= .\isp.c 
+VS_SRC+= .\clock.c 
+VS_SRC+= .\buffers.c 
+VS_SRC+= .\asp.c 
