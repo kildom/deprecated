@@ -18,8 +18,8 @@ Features that it adds compared to USBasp:
 ## Board
 
 It runs on the original USBasp board,
-but can be also run on custom board.
-One example is can be bound in the repository.
+but it can be also flashed into custom board.
+One example is in the repository.
 It is very simple to build:
 one-sided, big elements, paths and spaces.
 
