@@ -7,3 +7,4 @@ List of projects added so far:
  - [dollarClass](https://github.com/kildom/deprecated/tree/dollarClass) - a JavaScript library that allows creating classes that behaves more like C#, Java and C++.
  - [tcplimit](https://github.com/kildom/deprecated/tree/tcplimit) - a simple tunneling application that limits the speed and divides it equally for each connection.
  - [Clicker](https://github.com/kildom/deprecated/tree/Clicker) - an application that allows creating and executing a sequence of movements and clicks of the mouse.
+ - [Gesty](https://github.com/kildom/deprecated/tree/Gesty) - an application that adds mouse gestures in places where they are not available by default.
