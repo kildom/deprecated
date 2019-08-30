@@ -21,6 +21,15 @@
 #define MS2T(msec) ((int32_t)(msec) / (int32_t)1)
 
 #define PRESSED (PINA & (1 << 4))
+#define CH0 (TODO)
+#define CH1 (TODO)
+
+int8_t swCounters[2] = { 0, 0 };
+uint8_t swState = 0;
+uint8_t swChange = 0;
+uint16_t onStateCounter = 0;
+uint8_t lastOnState = 1;
+uint8_t forcedState = 0;
 
 uint8_t state = IDLE;
 uint8_t op = OP_ALL;
@@ -48,6 +57,24 @@ void update_output()
 	}
 }
 
+void updateCounter(int8_t index, uint8_t st)
+{
+	uint8_t bit = 1 << index;
+	if (st)
+	{
+		if (swCounters[index] < 10)
+			swCounters[index]++;
+		else
+			swState |= bit;
+	}
+	else
+	{
+		if (swCounters[index] > -10)
+			swCounters[index]--;
+		else
+			swState &= ~bit;
+	}
+}
 
 int main(void)
 {
@@ -58,6 +85,29 @@ int main(void)
 	
     while (1)
     {
+		uint8_t old = swState;
+		updateCounter(0, CH0);
+		updateCounter(1, CH1);
+		swChange = old ^ swState;
+		
+		if (swChange || !swState)
+		{
+			onStateCounter = 0;
+		}
+		else if (onStateCounter < MS2T(2000))
+		{
+			onStateCounter++;
+		}
+		else
+		{
+			lastOnState = swState;
+		}
+		
+		if (swChange)
+		{
+			forcedState = 0;
+		}
+		
 		switch (state)
 		{
 			case IDLE:
