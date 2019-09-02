@@ -30,25 +30,41 @@ let garderoba = [
     [0, 190.6, 1],
     [0, 190.6, 1],
     [0, 190.5, 1],
-    [0, 190.5, 1]
+    [0, 190.5, 1] // 6,9,0,5,2,1,8,7,4,3
 ];
 
+let sypialnia2 = [
+    [97, 147.5, 1],
+    [0, 491.9, 1],
+    [0, 491.8, 1],
+    [0, 491.7, 1],
+    [0, 491.5, 1],
+    [0, 491.4, 1],
+    [0, 491.3, 1],
+    [0, 491.1, 1],
+    [0, 491.0, 1],
+    [0, 490.9, 1],
+    [0, 490.8, 1],
+].map(x => [x[0], x[1] - 1.5, x[2]]); // [9,4,10,5,2,8,3,0,6,1,7]
+
 let predefined;
-predefined = [6,9,0,5,2,1,8,7,4,3];
+//predefined = [6,9,0,5,2,1,8,7,4,3];
 
 
-let room = garderoba;
+let room = sypialnia2;
 
 let minX = Infinity;
 let maxX = -Infinity;
 
 const length = 129.2;
 const width = 32.6;
-const minPiece = 6;
-const minFirstDiff = 25;
-const minSecondDiff = 6;
+const minPiece = 10;
+const minFirstDiff = 36;
+const minSecondDiff = 25;
 const cutLength = 0.3;
-const oldLeft = 54.9000001;
+const bucket = ([28.000000001, 86.70000001, 97.600001]);
+const endings = []//[31.3];
+const oldLeft = bucket.shift();
 
 let room2 = [];
 let reorder = [];
@@ -106,6 +122,8 @@ function solveRoom(reorder)
 {
     let oldRoom = room;
     room = JSON.parse(JSON.stringify(room));
+    let bucket2 = JSON.parse(JSON.stringify(bucket));
+    let endings2 = JSON.parse(JSON.stringify(endings));
     let left = oldLeft;
     reorder = reorder.slice();
     let newOrder = [];
@@ -145,11 +163,22 @@ function solveRoom(reorder)
                 room = oldRoom;
                 return false;
             }
-            left = length - last - cutLength;
+            if (endings2.length > 0 && last <= endings2[0])
+            {
+                left = length;
+                endings2.shift();
+            }
+            else
+            {
+                left = length - last - cutLength;
+            }
         }
         if (left < minPiece)
         {
-            left = 0;
+            if (bucket2.length > 0)
+                left = bucket2.shift();
+            else
+                left = 0;
         }
     }
     room = oldRoom;
@@ -199,6 +228,8 @@ let leftIndex = 'X';
 let nextIndex = 1;
 let waist = 0;
 let counter = 0;
+let bucket2 = JSON.parse(JSON.stringify(bucket));
+let endings2 = JSON.parse(JSON.stringify(endings));
 
 for (let j = 0; j < reorder.length; j++)
 {
@@ -223,20 +254,32 @@ for (let j = 0; j < reorder.length; j++)
         counter++;
         leftIndex = nextIndex++;
         leftIndex = lineIndex;
-        line.pieces.push({length: last, index: leftIndex});
-        left = length - last - cutLength;
+        if (endings2.length > 0 && last <= endings2[0])
+        {
+            left = length;
+            endings2.shift();
+            line.pieces.push({length: last, index: `${leftIndex}E`});
+        }
+        else
+        {
+            left = length - last - cutLength;
+            line.pieces.push({length: last, index: leftIndex});
+        }
     }
-    if (left < minPiece)
+    if (left < minPiece || left == length)
     {
         console.log(`WAIST: ${left}`);
         waist += left;
-        left = 0;
         leftIndex = -1;
+        if (bucket2.length > 0)
+            left = bucket2.shift();
+        else
+            left = 0;
     }
 }
 
 console.log(`TOTAL WAIST: ${waist}`);
-console.log(`LEFT OVER: ${left}`);
+console.log(`LEFT OVER: ${left}    #${leftIndex}`);
 console.log(`COUNT: ${counter}`);
 
 let svg = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>`
