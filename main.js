@@ -34,24 +34,33 @@ let garderoba = [
 ];
 
 let sypialnia2 = [
-    [97, 147.5, 1],
-    [0, 491.9, 1],
-    [0, 491.8, 1],
-    [0, 491.7, 1],
-    [0, 491.5, 1],
-    [0, 491.4, 1],
-    [0, 491.3, 1],
-    [0, 491.1, 1],
-    [0, 491.0, 1],
-    [0, 490.9, 1],
     [0, 490.8, 1],
+    [0, 490.9, 1],
+    [0, 491.0, 1],
+    [0, 491.1, 1],
+    [0, 491.3, 1],
+    [0, 491.4, 1],
+    [0, 491.5, 1],
+    [0, 491.7, 1],
+    [0, 491.8, 1],
+    [0, 491.9, 1],
+    [248, 147.5, 1]
 ].map(x => [x[0], x[1] - 1.5, x[2]]); // [9,4,10,5,2,8,3,0,6,1,7]
 
+let polpietro = [
+    //[15.7, 85.5, 1],
+    [0, 108.2, 1],
+    [0, 107.9, 1],
+    [0, 107.3, 1],
+    [0, 106.8, 1]
+];
+
 let predefined;
-//predefined = [6,9,0,5,2,1,8,7,4,3];
+predefined = [2,0,3,1];
+predefined = [1,3,0,2];
 
 
-let room = sypialnia2;
+let room = polpietro;
 
 let minX = Infinity;
 let maxX = -Infinity;
@@ -59,11 +68,11 @@ let maxX = -Infinity;
 const length = 129.2;
 const width = 32.6;
 const minPiece = 10;
-const minFirstDiff = 36;
-const minSecondDiff = 25;
+const minFirstDiff = 20;
+const minSecondDiff = 10;
 const cutLength = 0.3;
-const bucket = ([28.000000001, 86.70000001, 97.600001]);
-const endings = []//[31.3];
+const bucket = ([12.200000001, 97.600001]);
+const endings = [31.3];
 const oldLeft = bucket.shift();
 
 let room2 = [];
@@ -88,14 +97,6 @@ function shuffle(a) {
     return a;
 }
 
-function shuffle1(a) {
-    for (let i = a.length - 1; i > 1; i--) {
-        const j = 1 + Math.floor(Math.random() * i);
-        [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-}
-
 room = room2;
 
 function checkDiff(lineIndex, cut, minDiff)
@@ -103,6 +104,8 @@ function checkDiff(lineIndex, cut, minDiff)
     if (lineIndex < 0 || lineIndex >= room.length) return true;
     let line = room[lineIndex];
     if (!('cut' in line)) return true;
+    while (cut > line.cut + length) cut -= length;
+    while (cut < line.cut - length) cut += length;
     let d = Math.abs(line.cut - cut);
     if (d > length / 2) d = length - d;
     return d >= minDiff;
@@ -173,7 +176,7 @@ function solveRoom(reorder)
                 left = length - last - cutLength;
             }
         }
-        if (left < minPiece)
+        if (left < minPiece || left == length)
         {
             if (bucket2.length > 0)
                 left = bucket2.shift();
@@ -204,24 +207,6 @@ if (!predefined) {
 }
 
 console.log(JSON.stringify(reorder));
-
-/*reorder = [3,1,5,14,11,10,12,7,8,4,0,13,2,9,6];
-reorder = solveRoom(reorder);
-if (reorder === false) throw Error('Invalid');*/
-
-/*
-let best = Infinity;
-
-for (let i = 0; i < 10000; i++)
-{
-    shuffle(reorder);
-    let unmatched = solveRoom(reorder);
-    //console.log(unmatched);
-    best = Math.min(best, unmatched);
-}
-
-console.log(`BEST: ${best}`);*/
-
 
 let left = oldLeft;
 let leftIndex = 'X';
