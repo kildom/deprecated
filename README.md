@@ -1,2 +1,3 @@
-# boiler-water-return-controller
-Boiler Water Return Controller
+# Boiler Water Return Controller
+
+ATmega8A based controller to stabilize water return temperature.
