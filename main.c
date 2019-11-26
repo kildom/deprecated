@@ -77,6 +77,7 @@ ISR(TIMER1_COMPA_vect)
 	uint8_t i;
 	uint8_t bits;
 	uint16_t btnStateCopy;
+	uint16_t btnStateOld;
 		
 	bank++;
 	if (bank > LED_BANK_OFF + 1)
@@ -86,7 +87,12 @@ ISR(TIMER1_COMPA_vect)
 	}
 	else if (bank >= LED_BANK_OFF)
 	{
-		return;
+		// TODO: instead main loop shold check below condition periodically
+		/*if (timerQueue && (int16_t)(timerQueue->fireTime - timer) <= 0)
+		{
+			QUEUE_PUSH_RAW(0x40);
+		}*/
+		return; // TODO: do not return, because also check buttons state
 	}
 	
 	bits = banks[bank];
@@ -114,21 +120,46 @@ ISR(TIMER1_COMPA_vect)
 			break;
 	}
 	
-	btnStateCopy = btnState;
-	btnStateCopy = (btnStateCopy << 1) & 0xEEE;
-	if (!(PIND & (1 << 7))) btnStateCopy |= 0x001;
-	if (!(PINB & (1 << 5))) btnStateCopy |= 0x010;
-	if (!(PINB & (1 << 2))) btnStateCopy |= 0x100;
-	btnState = btnStateCopy;
+	if (!(PIND & (1 << 7))) btn[0]++; else btn[0]--;
+	if (!(PINB & (1 << 5))) btn[1]++; else btn[1]--;
+	if (!(PINB & (1 << 2))) btn[2]++; else btn[2]--;
+	
+	for (i = 0; i < 3; i++)
+	{
+		data = 0;
+		switch (btn[i])
+		{
+		case OFF_MAX: // 5
+			data = i | 0x84; // PUSH
+			// no break
+		case ON_MAX: // 11
+			btn[i] = ON_MAX - 1;
+			break;
+		case ON_MIN: // 6
+			data = i | 0x80; // RELEASE
+			// no break
+		case OFF_MIN: // 0 - starting point - reset value
+			btn[i] = OFF_MIN + 1;
+			break;
+		}
+		if (data != 0)
+		{
+			QUEUE_PUSH_RAW(data);
+		}
+	}
 }
 
-uint16_t getTimer()
+uint32_t getTimer()
 {
+	static uint16_t lo = 0;
+	static uint16_t hi = 0;
 	uint16_t r;
 	cli();
 	r = timer;
 	sei();
-	return r;
+	if (r < lo) hi++;
+	lo = r;
+	return ((uint32_t)hi << 16) | (uint32_t)lo;
 }
 
 
