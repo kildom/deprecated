@@ -126,26 +126,68 @@ ISR(TIMER1_COMPA_vect)
 	
 	for (i = 0; i < 3; i++)
 	{
-		data = 0;
 		switch (btn[i])
 		{
 		case OFF_MAX: // 5
-			data = i | 0x84; // PUSH
+			btn_events[i]++; // PUSH
 			// no break
 		case ON_MAX: // 11
 			btn[i] = ON_MAX - 1;
 			break;
 		case ON_MIN: // 6
-			data = i | 0x80; // RELEASE
+			btn_events[i]++; // RELEASE
 			// no break
 		case OFF_MIN: // 0 - starting point - reset value
 			btn[i] = OFF_MIN + 1;
 			break;
 		}
-		if (data != 0)
-		{
-			QUEUE_PUSH_RAW(data);
-		}
+	}
+}
+
+static volatile uint8_t btn_events[3] = { 0, 0, 0 };
+
+uint8_t popBtnEvent(uint8_t i)
+{
+	uint8_t num_events;
+	uint8_t* ptr = &btn_events[i];
+	cli();
+	num_events = *ptr;
+	if (num_events > 0) ptr = num_events - 1;
+	sei();
+	return num_events > 0;
+}
+
+static uint8_t btn_last_state[3] = { 0, 0, 0 };
+
+typedef struct BtnTimer_tag
+{
+	Timer timer;
+	uint8_t button_index;
+} BtnTimer;
+
+static BtnTimer btn_timers[3] = { {TIMER_INIT_VALUE, 0}, {TIMER_INIT_VALUE, 1}, {TIMER_INIT_VALUE, 2} };
+
+void btnRepeated(Timer* t)
+{
+	uint8_t i = ((BtnTimer*)t)->button_index;
+	onKeyEvent(KEY_REPEATED, i);
+}
+
+void pollBtnEvents(uint8_t i)
+{
+	uint8_t event = popBtnEvent(i);
+	if (!event) return;
+	if (btn_last_state[i])
+	{
+		btn_last_state[i] = 0;
+		stopTimer(&btn_timers[i].timer);
+		onKeyEvent(KEY_RELEASED, i);
+	}
+	else
+	{
+		btn_last_state[i] = 1;
+		startInterval(&btn_timers[i].timer, btnRepeated, KEY_REPEAT_DELAY_TIME, KEY_REPEAT_TIME);
+		onKeyEvent(KEY_PRESSED, i);
 	}
 }
 
@@ -336,4 +378,28 @@ int main(void)
 		}*/
     }
 }
+
+extern void mainLoop();
+
+// Device inputs
+void measureTemp();
+uint16_t getTemp();
+uint8_t getInput();
+
+// Buttons input
+uint8_t getButtonPulse(uint8_t buttonIndex);
+
+// Device outputs
+void setRelay(uint8_t relayIndex, uint8_t state);
+
+// Display output
+void setDisplay(uint8_t charIndex, uint8_t content);
+void setBrightness(uint8_t value);
+
+// Time input
+uint32_t getTime();
+
+// NV mem
+void initConfig(void* ptr, uint16_t size);
+void saveConfig(uint16_t offset, uint8_t size);
 
