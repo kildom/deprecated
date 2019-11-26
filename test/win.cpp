@@ -5,13 +5,64 @@
 #include <windows.h>
 
 #include <stdio.h>
+#include <stdbool.h>
+
+#include "interface.h"
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+HANDLE thread;
+
+CRITICAL_SECTION cs;
+
+#define ENTER() EnterCriticalSection(&cs)
+#define LEAVE() LeaveCriticalSection(&cs)
+
+DWORD WINAPI threadStart(LPVOID data)
+{
+    mainLoop();
+    return 0;
+}
+
+uint64_t lastRealTime = 0;
+uint32_t lastSimuTime = 0;
+double simuSpeed = 1.0;
+double simuRemaining = 0.0;
+
+#define TICKS_PER_SECOND 1000.0
+
+uint32_t getTime()
+{
+    FILETIME t1, t2;
+    FILETIME kernel, user;
+    ULARGE_INTEGER conv;
+    ENTER();
+    double speed = simuSpeed;
+    LEAVE();
+    GetThreadTimes(thread, &t1, &t2, &kernel, &user);
+    conv.LowPart = user.dwLowDateTime;
+    conv.HighPart = user.dwHighDateTime;
+    uint64_t realTime = conv.QuadPart;
+    //conv.LowPart = kernel.dwLowDateTime;
+    //conv.HighPart = kernel.dwHighDateTime;
+    //realTime += conv.QuadPart;
+    if (lastRealTime == 0) lastRealTime = realTime;
+    if (lastRealTime == realTime) return lastSimuTime;
+    double realStep = realTime - lastRealTime;
+    lastRealTime = realTime;
+    double simuStep = realStep / 10000000.0 * TICKS_PER_SECOND * speed + simuRemaining;
+    uint32_t simuStepInt = simuStep;
+    simuRemaining = simuStep - (double)simuStepInt;
+    lastSimuTime += simuStep;
+    return lastSimuTime;
+}
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE res1, PWSTR pCmdLine, int nCmdShow)
 {
     // Register the window class.
     const wchar_t CLASS_NAME[]  = L"Sample Window Class";
+
+    InitializeCriticalSection(&cs);
     
     WNDCLASS wc = { };
 
@@ -47,6 +98,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE res1, PWSTR pCmdLine, int nCm
     ShowWindow(hwnd, nCmdShow);
 
     // Run the message loop.
+
+    thread = CreateThread(NULL, 0, threadStart, NULL, 0, NULL);
 
     MSG msg = { };
     while (GetMessage(&msg, NULL, 0, 0))
@@ -162,7 +215,7 @@ void paint(HWND hwnd)
     paintDigit(Memhdc, 90, 15, rand());
     paintIcons(Memhdc, rand());
     wchar_t buf[1024];
-    swprintf(buf, 1024, L"%c %c%c %0.1f%%", L'P', L'▲', L'▼', 45.3);
+    swprintf(buf, 1024, L"%c %C%C %0.1f%%", L'P', L'▲', L'▼', 45.3);
     RECT r;
     r.left = 10;
     r.top = 90;
@@ -173,6 +226,27 @@ void paint(HWND hwnd)
     DrawTextW(Memhdc, buf, -1, &r, DT_LEFT | DT_TOP |DT_SINGLELINE);
 	BitBlt(hdc, 0, 0, win_width, win_height, Memhdc, 0, 0, SRCCOPY);
 	EndPaint(hwnd, &ps);
+}
+
+static int keyPulses[] = {0,0,0};
+
+void updateKey(int i, bool pressed)
+{
+    static bool state[] = { false, false, false };
+    if (pressed == state[i]) return;
+    state[i] = pressed;
+    ENTER();
+    keyPulses[i]++;
+    LEAVE();
+}
+
+uint8_t getButtonPulse(uint8_t buttonIndex)
+{
+    ENTER();
+    uint8_t n = keyPulses[buttonIndex];
+    if (n > 0) keyPulses[buttonIndex]--;
+    LEAVE();
+    return n > 0;
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -188,15 +262,22 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return 0;
 
     case WM_KEYDOWN:
-        printf("DOWN: %d %d\r\n", wParam, 1&(lParam >> 30));
-        fflush(stdout);
-        InvalidateRect(hwnd, NULL, FALSE);
+        if (1 & (lParam >> 30)) break;
+        switch (wParam)
+        {
+            case VK_RETURN: updateKey(0, true); break;
+            case VK_UP: updateKey(1, true); break;
+            case VK_DOWN: updateKey(2, true); break;
+        }
         break;
 
     case WM_KEYUP:
-        printf("UP: %d %d\r\n", wParam, 1&(lParam >> 30));
-        fflush(stdout);
-        InvalidateRect(hwnd, NULL, FALSE);
+        switch (wParam)
+        {
+            case VK_RETURN: updateKey(0, false); break;
+            case VK_UP: updateKey(1, false); break;
+            case VK_DOWN: updateKey(2, false); break;
+        }
         break;
 
     }
