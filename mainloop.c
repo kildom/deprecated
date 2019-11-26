@@ -3,9 +3,12 @@
 
 #include "interface.h"
 
+static int j=0;
+
 void mainLoop()
 {
-    int i,j=0;
+    int i;
+    initConfig(&j - 1, 8);
     while (1)
     {
         if (j == 0) {
@@ -18,6 +21,7 @@ void mainLoop()
             if (getButtonPulse(i))
             {
                 printf("PULSE %d\n", i);
+                saveConfig(4, 4);
             }
         }
     }

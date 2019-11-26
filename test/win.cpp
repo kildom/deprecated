@@ -57,6 +57,39 @@ uint32_t getTime()
     return lastSimuTime;
 }
 
+uint8_t* configPtr;
+
+void initConfig(void* ptr, uint16_t size)
+{
+    FILE* f = fopen("conf.bin", "rb");
+    if (!f)
+    {
+        f = fopen("conf.bin", "wb");
+        if (!f) exit(1);
+        fwrite(ptr, 1, size, f);
+        fclose(f);
+        f = fopen("conf.bin", "rb");
+        if (!f) exit(2);
+    }
+    auto n = fread(ptr, 1, size, f);
+    if (n != size) exit(3);
+    fseek(f, 0, SEEK_END);
+    if (ftell(f) != size) exit(4);
+    fclose(f);
+    configPtr = (uint8_t*)ptr;
+}
+
+void saveConfig(uint16_t offset, uint8_t size)
+{
+    FILE* f = fopen("conf.bin", "r+b");
+    fseek(f, 0, SEEK_END);
+    if (ftell(f) < offset + size) exit(5);
+    fseek(f, offset, SEEK_SET);
+    if (ftell(f) != offset) exit(6);
+    fwrite(&configPtr[offset], 1, size, f);
+    fclose(f);
+}
+
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE res1, PWSTR pCmdLine, int nCmdShow)
 {
     // Register the window class.
