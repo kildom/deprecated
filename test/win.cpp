@@ -9,9 +9,12 @@
 
 #include "interface.h"
 
+#define WMA_REFRESH_DISPLAY (WM_USER + 1)
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 HANDLE thread;
+HWND hwnd;
 
 CRITICAL_SECTION cs;
 
@@ -26,7 +29,7 @@ DWORD WINAPI threadStart(LPVOID data)
 
 uint64_t lastRealTime = 0;
 uint32_t lastSimuTime = 0;
-double simuSpeed = 1.0;
+volatile double simuSpeed = 1.0;
 double simuRemaining = 0.0;
 
 #define TICKS_PER_SECOND 1000.0
@@ -108,7 +111,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE res1, PWSTR pCmdLine, int nCm
 
     // Create the window.
 
-    HWND hwnd = CreateWindowEx(
+    hwnd = CreateWindowEx(
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class
         L"Simu",    // Window text
@@ -213,6 +216,46 @@ void paintIcons(HDC hdc, int bits)
     }
 }
 
+volatile uint8_t displayBits[3];
+
+void setDisplay(uint8_t charIndex, uint8_t content)
+{
+    const char* chars[] = {
+        "/79130", "93", "/9510", "/9530", "7953",
+        "/7530", "/71035", "7/93", "/795130", "7/9530",
+        "", "51"
+    };
+    uint8_t bits = 0;
+    if (charIndex != CHAR_INDEX_ICONS)
+    {
+        if (content & CHAR_WITH_DOT) bits |= 128;
+        content &= ~CHAR_WITH_DOT;
+        const char* p = chars[content];
+        while (*p)
+        {
+            switch (*p)
+            {
+                case '/': bits |= 1; break;
+                case '5': bits |= 2; break;
+                case '0': bits |= 4; break;
+                case '7': bits |= 8; break;
+                case '9': bits |= 16; break;
+                case '1': bits |= 32; break;
+                case '3': bits |= 64; break;
+            }
+            p++;
+        }
+    }
+    else
+    {
+        bits = content;
+    }
+    ENTER();
+    displayBits[charIndex] = bits;
+    LEAVE();
+    PostMessage(hwnd, WMA_REFRESH_DISPLAY, 0, 0);
+}
+
 
 HDC Memhdc = NULL;
 HBITMAP Membitmap;
@@ -233,7 +276,6 @@ void paint(HWND hwnd)
         DeleteObject(Membitmap);
         DeleteDC    (Memhdc);
         Memhdc = NULL;
-        printf("%d %d\r\n", win_height, win_width);
     }
     old_width = win_width;
     old_height = win_height;
@@ -243,10 +285,11 @@ void paint(HWND hwnd)
         Membitmap = CreateCompatibleBitmap(hdc, win_width, win_height);
         SelectObject(Memhdc, Membitmap);
     }
+    
     FillRect(Memhdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW+1));
-    paintDigit(Memhdc, 45, 15, rand());
-    paintDigit(Memhdc, 90, 15, rand());
-    paintIcons(Memhdc, rand());
+    paintDigit(Memhdc, 45, 15, displayBits[0]);
+    paintDigit(Memhdc, 90, 15, displayBits[1]);
+    paintIcons(Memhdc, displayBits[2]);
     wchar_t buf[1024];
     swprintf(buf, 1024, L"%c %C%C %0.1f%%", L'P', L'▲', L'▼', 45.3);
     RECT r;
@@ -257,6 +300,7 @@ void paint(HWND hwnd)
     MoveToEx(Memhdc, 0, 88, NULL);
     LineTo(Memhdc, win_width, 88);
     DrawTextW(Memhdc, buf, -1, &r, DT_LEFT | DT_TOP |DT_SINGLELINE);
+
 	BitBlt(hdc, 0, 0, win_width, win_height, Memhdc, 0, 0, SRCCOPY);
 	EndPaint(hwnd, &ps);
 }
@@ -286,6 +330,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
+    case WM_CREATE:
+        return 0;
+
     case WM_DESTROY:
         PostQuitMessage(0);
         return 0;
@@ -312,6 +359,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             case VK_DOWN: updateKey(2, false); break;
         }
         break;
+
+    case WMA_REFRESH_DISPLAY:
+        InvalidateRect(hwnd, NULL, FALSE);
+        return 0;
 
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);

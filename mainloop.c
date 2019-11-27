@@ -14,6 +14,8 @@ void mainLoop()
         if (j == 0) {
             uint32_t t = getTime();
             printf("\r%d", t);
+            setDisplay(0, (t/1000) % 10);
+            setDisplay(1, (t/100) % 10);
         }
         j = (j + 1) & 0xFFFFF;
         for (i = 0; i < 3; i++)
