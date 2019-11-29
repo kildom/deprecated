@@ -112,12 +112,14 @@ class OBJ1RZ_RAW
     init x = @init;
     local
         double @x;
+        double @y;
         double @_x__det;
         double @_x__next;
     restore
         @x = state.@x;
     provide _x__det = @K * (@U - @x);
     provide _x__next = @_x__det * dt;
+    provide y = @x;
     override x = @_x__next;
     store
         state.@x = @x;
