@@ -1,0 +1,17 @@
+
+
+class aaas
+    struct
+        double @x;
+    struct int @tmp[10];
+    locals double @tmp = 0;
+    locals
+        double @aaa;
+    provide test
+        @test = 12 + @someIn;
+    provides test2 = @input10;
+    override x = @x#
+    overrides y, z
+        @y = @y + 1;
+        @z = @z * @y;
+    output Y = 12;
