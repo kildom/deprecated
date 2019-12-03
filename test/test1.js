@@ -80,6 +80,20 @@ class Model
         let counter = 0;
         let stack = [... this.expressions];
         let provided = {};
+        let mapProvides = {};
+        let mapOverrides = {};
+        this.expressions.map(exp => {
+            exp.provides.map(s => {
+                if (!s.startsWith('@')) return;
+                if (!(s in mapProvides)) mapProvides[s] = [];
+                mapProvides[s].push(exp);
+            });
+            exp.overrides.map(s => {
+                if (!s.startsWith('@')) return;
+                if (!(s in mapOverrides)) mapOverrides[s] = [];
+                mapOverrides[s].push(exp);
+            });
+        });
         while (stack.length > 0)
         {
             let exp = stack.pop();
@@ -88,7 +102,7 @@ class Model
             exp.depends.map(n => { if (!n.startsWith('@')) return; if (!(n in provided)) done = false; });
             if (!done)
             {
-                
+
             }
         }
     }
