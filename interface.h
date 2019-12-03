@@ -23,12 +23,12 @@ extern "C" {
 #define CHAR_R 11
 #define CHAR_WITH_DOT 0x80
 
-#define ICON_POMP 128
-#define ICON_ZAW 64
 #define ICON_BOOK 2
 #define ICON_DEG 4
 #define ICON_UP 8
 #define ICON_DOWN 32
+#define ICON_ZAW 64
+#define ICON_POMP 128
 
 extern void mainLoop();
 
