@@ -4,7 +4,7 @@ const fs = require('fs');
 function parseFile(file, root)
 {
     let lines = fs.readFileSync(file, 'UTF-8');
-    lines = lines.split(/\s*\r?\n/);
+    lines = lines.split(/\r?\n/);
     root.text = 'MODEL';
     root.loc = file;
     root.sub = root.sub || [];
@@ -15,7 +15,7 @@ function parseFile(file, root)
     let objStack = [];
     for (let i = 0; i < lines.length; i++)
     {
-        let line = lines[i];
+        let line = lines[i].trimRight();
         if (line.trim().startsWith('##') || line.trim() == '') continue;
         if (!line.startsWith(ind)) {
             // indent decreased - go back to parent object and try again this line
@@ -65,9 +65,13 @@ function constructCode(entry, inlineCode)
     }
 }
 
-function explodeNames(namesStr)
+function explodeNames(entry, namesStr)
 {
-    return namesStr.split(/\s*,\s*/);
+    let list = namesStr.split(/\s*,\s*/);
+    for (let n of list)
+        if (!n.match(/^@[A-Za-z0-9_]+[#`]?$/))
+            throw new MmdlError(entry, 'Invalid name');
+    return list;
 }
 
 
@@ -85,64 +89,144 @@ class Class
     /*
     
 class items:
-    - +struct - code to place in state structure
-    - init - code to place in state initialization function
-    - +finalize - code to finalize state (e.g. free memory)
-    - +locals - code to place in simulation function local variables
-    - +restore - code to restore locals from state structure
-    - +store - code to store locals in the state structure
-    - +output [name[,name[,...]]] - code to calculate output data (multiple outputs should be grouped only if needed)
+    - /struct code - code to place in state structure that must contains one @ symbol with field name
+    - /init - code to place in state initialization function
+    - /init x = code; - short notation of state initialization
+    - /finalize - code to finalize state (e.g. free memory)
+    - /local - code to place in simulation function local variables
+    - /output [name[,name[,...]]] - code to calculate output data (multiple outputs should be grouped only if needed)
             names starting with _ are private
-    - +output name = code; - short notation of above
-    - +provide [name[,name[,...]]] - like output, but does not allocate local variables automatically
-    - +override [name[,name[,...]]] - code that overrides symbols with value for the next step
+    - /output name = code; - short notation of above
+    - /provide [name[,name[,...]]] - like output, but does not allocate local variables automatically
+    - /override [name[,name[,...]]] - code that overrides symbols with value for the next step
     - state x - code to calculate next value of the state (using differential or directly)
     - state x` = code; - short notation of differential
     - state x# = code; - short notation of direct calculation of next state value
-    - init x = code; - short notation of state initialization
-    - input [name[,name[,...]]] - input signals (does not create local variable, but replaces symbol)
-    - input name - input signal (optional code provides default value if not connected)
-    - input name = code; - code to calculate input value if it is not connected
+    - /default name = code; - code to calculate input value if it is not connected
     
     */
     constructor(classEntry, name)
     {
         this.name = name;
         this.loc = classEntry.loc;
-        this.prefix = '`unknown prefix`';
         this.struct = '';
-        this.locals = '';
+        this.local = '';
         this.restore = '';
         this.store = '';
         this.finalize = '';
         this.expressions = [];
+        this.fieldNames = {};
+        this.localNames = {};
         this.parseSub(classEntry.sub);
+        this.postProcessSub();
         //this.processSub();
+    }
+
+    postProcessSub()
+    {
+        for (let exp of this.expressions)
+        {
+            if (exp.init)
+            {
+                for (let name in this.fieldNames) exp.requires = exp.requires.filter(n => (n != name));
+            }
+        }
+        let ids = {};
+        this.expressions = this.expressions.filter(exp => {
+            if (exp.uniqueId)
+            {
+                if (exp.uniqueId in ids) return false;
+                ids[exp.uniqueId] = true;
+            }
+            return true;
+        });
     }
     
     parseSub(sub)
     {
+        let m;
         for (let entry of sub)
         {
-            if ((m = entry.text.match(/^(struct|locals|restore|store|finalize)$/)))
+            if ((m = entry.text.match(/^struct\s+(.+)$/)))
+                this.addStructField(entry, constructCode(entry, m[1]));
+            else if ((m = entry.text.match(/^struct$/)))
+                this.addStructField(entry, constructCode(entry));
+            else if ((m = entry.text.match(/^local\s+(.+)$/)))
+                this.addLocal(entry, constructCode(entry, m[1]));
+            else if ((m = entry.text.match(/^local$/)))
+                this.addLocal(entry, constructCode(entry));
+            else if ((m = entry.text.match(/^(finalize)$/)))
                 this.addSimpleEntry(entry, m[1], constructCode(entry));
-            else if ((m = entry.text.match(/^(struct|locals|restore|store|finalize)\s+(.+)$/)))
+            else if ((m = entry.text.match(/^(finalize)\s+(.+)$/)))
                 this.addSimpleEntry(entry, m[1], constructCode(entry, m[2]));
-            else if ((m = entry.text.match(/^output?\s+([a-zA-Z0-9_,\s]+)$/)))
-                this.addOutput(entry, explodeNames(m[1]), constructCode(entry), true);
-            else if ((m = entry.text.match(/^output?\s+([a-zA-Z0-9_]+)\s*=\s*(.+)$/)))
-                this.addOutput(entry, [ m[1] ], constructCode(entry, `@${m[1]} = ${m[2]}`), true);
-            else if ((m = entry.text.match(/^provides?\s+([a-zA-Z0-9_,\s]+)$/)))
-                this.addOutput(entry, explodeNames(m[1]), constructCode(entry), false);
-            else if ((m = entry.text.match(/^provides?\s+([a-zA-Z0-9_]+)\s*=\s*(.+)$/)))
-                this.addOutput(entry, [ m[1] ], constructCode(entry, `@${m[1]} = ${m[2]}`), false);
-            else if ((m = entry.text.match(/^overrides?\s+([a-zA-Z0-9_,\s]+)$/)))
-                this.addOverride(entry, explodeNames(m[1]), constructCode(entry));
-            else if ((m = entry.text.match(/^overrides?\s+([a-zA-Z0-9_]+)\s*=\s*(.+)$/)))
-                this.addOverride(entry, [ m[1] ], constructCode(entry, `@${m[1]} = ${m[2]}`));
+            else if ((m = entry.text.match(/^output?\s+([a-zA-Z0-9_,\s@#`]+)$/)))
+                this.addOutput(entry, explodeNames(entry, m[1]), constructCode(entry), true);
+            else if ((m = entry.text.match(/^output?\s+(@[a-zA-Z0-9_]+[#`]?)\s*=\s*(.+)$/)))
+                this.addOutput(entry, explodeNames(entry, m[1]), constructCode(entry, `${m[1]} = ${m[2]}`), true);
+            else if ((m = entry.text.match(/^provides?\s+([a-zA-Z0-9_,\s@#`]+)$/)))
+                this.addOutput(entry, explodeNames(entry, m[1]), constructCode(entry), false);
+            else if ((m = entry.text.match(/^provides?\s+(@[a-zA-Z0-9_]+[#`]?)\s*=\s*(.+)$/)))
+                this.addOutput(entry, explodeNames(entry, m[1]), constructCode(entry, `${m[1]} = ${m[2]}`), false);
+            else if ((m = entry.text.match(/^overrides?\s+([a-zA-Z0-9_,\s@#`]+)$/)))
+                this.addOverride(entry, explodeNames(entry, m[1]), constructCode(entry));
+            else if ((m = entry.text.match(/^overrides?\s+(@[a-zA-Z0-9_]+[#`]?)\s*=\s*(.+)$/)))
+                this.addOverride(entry, explodeNames(entry, m[1]), constructCode(entry, `${m[1]} = ${m[2]}`));
+            else if ((m = entry.text.match(/^default?\s+(@[a-zA-Z0-9_]+[#`]?)\s*=\s*(.+)$/)))
+                this.addOutput(entry, explodeNames(entry, m[1]), constructCode(entry, `${m[1]} = ${m[2]}`), true, true);
+            else if ((m = entry.text.match(/^init\s+(.+)$/)))
+                this.addInit(entry, constructCode(entry, m[1]));
+            else if ((m = entry.text.match(/^init$/)))
+                this.addInit(entry, constructCode(entry));
+            else if ((m = entry.text.match(/^state?\s+(@[a-zA-Z0-9_]+)(#|`)\s*=\s*(.+)$/)))
+                this.addState(entry, explodeNames(entry, m[1]), m[2], constructCode(entry, `${m[1]}${m[2]} = ${m[3]}`));
+            else if ((m = entry.text.match(/^state?\s+(@[a-zA-Z0-9_]+)(#|`)$/)))
+                this.addState(entry, explodeNames(entry, m[1]), m[2], constructCode(entry));
             else
                 throw Error(`${entry.loc}: Syntax error.`);
         }
+    }
+
+    addState(entry, names, type, code)
+    {
+        let name = names[0];
+        if (type == '`')
+        {
+            this.addExpression(entry, [ `${name}\`` ], [], code);
+            this.addExpression(entry, [ `${name}#` ], [], `    ${name}# = ${name}\` * dt;\r\n`);
+            if (!this.localNames[`${name}\``])
+            {
+                this.local += `   double ${name}\`;\r\n`;
+                this.localNames[`${name}\``] = true;
+            }
+        }
+        else
+        {
+            this.addExpression(entry, [ `${name}#` ], [], code);
+        }
+        let exp = this.addExpression(entry, [], [ name ], `    ${name} = ${name}#;\r\n`);
+        exp.uniqueId = `override state ${name}`;
+        if (!this.localNames[`${name}#`])
+        {
+            this.local += `   double ${name}#;\r\n`;
+            this.localNames[`${name}#`] = true;
+        }
+        if (!this.fieldNames[name])
+        {
+            this.struct += `   double ${name};\r\n`;
+            this.fieldNames[name] = true;
+        }
+    }
+
+    addStructField(entry, code)
+    {
+        code.replace(/@[A-Za-z0-9_]+/g, m => this.fieldNames[m] = true);
+        this.struct += code;
+    }
+
+    addLocal(entry, code)
+    {
+        code.replace(/@[A-Za-z0-9_]+/g, m => this.localNames[m] = true);
+        this.local += code;
     }
 
     addSimpleEntry(entry, name, code)
@@ -150,39 +234,108 @@ class items:
         this[name] += code;
     }
 
-    addOutput(entry, names, code, addLocal)
+    addOutput(entry, names, code, addLocal, optional)
     {
-        this.addExpression(names, [], code);
+        let exp = this.addExpression(entry, names, [], code);
+        exp.optional = !!optional;
         if (addLocal)
         {
+            exp.local = '';
             for (let n of names)
-                this.locals += `    double @${n};\r\n`;
+            {
+                exp.local += `    double ${n};\r\n`;
+                this.localNames[n] = true;
+            }
         }
     }
 
     addOverride(entry, names, code)
     {
-        this.addExpression([], names, code);
+        this.addExpression(entry, [], names, code);
     }
 
-    addExpression(provides, overrides, code)
+    addInit(entry, code)
+    {
+        let exp = this.addExpression(entry, [], [], code);
+        exp.init = true;
+    }
+
+    addExpression(entry, provides, overrides, code)
     {
         let requires = {};
-        code.replace(/@([a-zA-Z0-9_]+)/g, (_, id) => { requires[id] = true; });
+        code.replace(/(@[a-zA-Z0-9_]+)/g, id => { requires[id] = true; });
         for (let p of provides) delete requires[p];
         for (let p of overrides) delete requires[p];
-        code = code
-            .replace(/(@[a-zA-Z0-9_]+)#/g, '$1__next')
-            .replace(/(@[a-zA-Z0-9_]+)`/g, '$1__det');
         let exp = {
-            code: code,
+            loc: entry.loc,
             provides: provides,
             overrides: overrides,
-            requires: Object.keys(requires)
+            requires: Object.keys(requires),
+            optional: false,
+            init: false,
+            local: '',
+            code: code
         };
         this.expressions.push(exp);
+        return exp;
+    }
+
+    addPrefix(prefix)
+    {
+        
     }
 };
+
+
+class Model
+{
+    constructor(modelEntry, name, parent)
+    {
+        Object.defineProperty(this, "parent", { enumerable: false, writable: true });
+        this.loc = modelEntry.loc;
+        this.name = name;
+        this.parent = parent;
+        this.classes = {};
+        this.parseSub(modelEntry.sub);
+    }
+
+    parseSub(sub)
+    {
+        let m;
+        for (let entry of sub)
+        {
+            if ((m = entry.text.match(/^class\s+([a-zA-Z0-9_]+)$/)))
+                this.classes[m[1]] = new Class(entry, m[1]);
+            else if ((m = entry.text.match(/^model\s+([a-zA-Z0-9_]+)$/)))
+                this.classes[m[1]] = new Model(entry, m[1], this);
+            else if ((m = entry.text.match(/^([a-zA-Z0-9_]+)$/)))
+                this.addObject(entry, m[1], m[1]);
+            else if ((m = entry.text.match(/^([a-zA-Z0-9_]+)\s*:\s*([a-zA-Z0-9_]+)$/)))
+                this.addObject(entry, m[1], m[2]);
+            else
+                throw Error(`${entry.loc}: Syntax error.`);
+        }
+    }
+
+    addObject(entry, name, className)
+    {
+        let cls = this.findClass(entry, className);
+        let obj = Object.create(cls);
+        obj.addPrefix(name);
+    }
+
+    findClass(entry, className)
+    {
+        let model = this;
+        while (model)
+        {
+            if (model.classes[className]) return model.classes[className];
+            model = model.parent;
+        }
+        throw new MmdlError(entry, `Cannot find class ${className}`);
+    }
+
+}
 
 
 function createStructure(root)
@@ -193,6 +346,10 @@ function createStructure(root)
         if ((m = entry.text.match(/^class\s+([a-zA-Z0-9_]+)$/)))
         {
             classes[m[1]] = new Class(entry, m[1]);
+        }
+        else if ((m = entry.text.match(/^model\s+([a-zA-Z0-9_]+)$/)))
+        {
+            classes[m[1]] = new Model(entry, m[1]);
         }
         else
         {
@@ -206,7 +363,8 @@ function createStructure(root)
 
 let root = {};
 parseFile('../m.mmdl', root);
-console.log(JSON.stringify(createStructure(root), null, 4));
+//console.log(JSON.stringify(root, null, 4));
+console.log(JSON.stringify(new Model(root, 'mmdl', null), null, 4));
 
 
 /*
