@@ -10,6 +10,7 @@
   - [Algorytm w stanie STEROWANIE](#algorytm-w-stanie-sterowanie)
   - [Ogólny opis algorytmu szacowania pochodnej](#og%c3%b3lny-opis-algorytmu-szacowania-pochodnej)
 - [GUI](#gui)
+- [Model testowy](#model-testowy)
 
 > TODO:
 > Zastanowowić się nad trybem letnim: Po zakończeniu pompka ma tak długo działać, aż temperatura powrotu będzie niższa niż zadana wortość `letnia`.
