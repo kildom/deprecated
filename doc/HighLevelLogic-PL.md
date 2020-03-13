@@ -165,3 +165,8 @@ Ekrany konfiguracji:
 * `reczne` - `r`  sterowanie ręczne
   * `▲` `▼` - włącz/wyłącz sterowanie zaworem
   * `OK` - włącz/wyłącz sterowanie pompą
+
+Model testowy
+=============
+
+[![Model](TestModelDiagram.svg)](https://kildom.github.io/drawio/#TestModelDiagram.drawio)
