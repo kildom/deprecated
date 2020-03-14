@@ -29,13 +29,13 @@ all: $(TARGET).exe
 clean:
 	rm -f $(OBJ) $(TARGET).exe
 
-.cpp.o: Makefile
+.cpp.o:
 	c++ -c $(CPUFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) -o $@ $<
 
-.c.o: Makefile
+.c.o:
 	gcc -c $(CPUFLAGS) $(CPPFLAGS) $(CFLAGS) $(INCLUDE) -o $@ $<
 
-.S.o: Makefile
+.S.o:
 	gcc -c $(CPUFLAGS) $(CPPFLAGS) $(ASMFLAGS) $(INCLUDE) -o $@ $<
 
 $(TARGET).exe: $(OBJ) Makefile
