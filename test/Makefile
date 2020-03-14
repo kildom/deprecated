@@ -22,14 +22,14 @@ ASMFLAGS =
 
 LIBS = -lm -lkernel32 -luser32 -lgdi32
 
-OBJ = win.o ../mainloop.o
+OBJ = ../test/win.o ../mainloop.o ../test/model.o
 
 all: $(TARGET).exe
 
 clean:
 	rm -f $(OBJ) $(TARGET).exe
 
-.cpp.o:
+.cc.o:
 	c++ -c $(CPUFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) -o $@ $<
 
 .c.o:

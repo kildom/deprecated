@@ -9,6 +9,8 @@
 
 #include "interface.h"
 
+#include "model.hh"
+
 #define WMA_REFRESH_DISPLAY (WM_USER + 1)
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -21,8 +23,54 @@ CRITICAL_SECTION cs;
 #define ENTER() EnterCriticalSection(&cs)
 #define LEAVE() LeaveCriticalSection(&cs)
 
+Model* model;
+bool stopMainLoop = false;
+
+uint32_t getTimeInt();
+
+uint64_t targetTimeStep = (1LL << 32) / 10;
+uint64_t targetTime = 0;
+uint64_t simuTimeStep = targetTimeStep / 60;
+uint64_t simuTime = 0;
+uint64_t simuTimeSynch = (10LL << 32);
+uint64_t simuTimeNextSynch = 0;
+
+uint32_t getTime()
+{
+    return targetTime >> 32;
+}
+
+uint64_t realTimeStart = 0;
+
+uint8_t stopRequested()
+{
+    uint8_t res;
+    model->steps((double)getTime() / 1000.0);
+    targetTime += targetTimeStep;
+    simuTime += simuTimeStep;
+    if (simuTime >= simuTimeNextSynch) {
+        uint64_t now = GetTickCount64();
+        if (realTimeStart == 0)
+        {
+            realTimeStart = now;
+        }
+        uint64_t realTime = (now - realTimeStart) << 32;
+        int32_t delta = (int64_t)(simuTime - realTime) >> 32;
+        if (delta > 0)
+        {
+            Sleep(delta);
+        }
+        simuTimeNextSynch = simuTime + simuTimeSynch;
+    }
+    ENTER();
+    res = stopMainLoop;
+    LEAVE();
+    return res;
+}
+
 DWORD WINAPI threadStart(LPVOID data)
 {
+    model = new Model();
     mainLoop();
     return 0;
 }
@@ -34,7 +82,7 @@ double simuRemaining = 0.0;
 
 #define TICKS_PER_SECOND 1000.0
 
-uint32_t getTime()
+uint32_t getTime3()
 {
     FILETIME t1, t2;
     FILETIME kernel, user;
@@ -42,10 +90,11 @@ uint32_t getTime()
     ENTER();
     double speed = simuSpeed;
     LEAVE();
-    GetThreadTimes(thread, &t1, &t2, &kernel, &user);
+    /*GetThreadTimes(thread, &t1, &t2, &kernel, &user);
     conv.LowPart = user.dwLowDateTime;
     conv.HighPart = user.dwHighDateTime;
-    uint64_t realTime = conv.QuadPart;
+    uint64_t realTime = conv.QuadPart;*/
+    uint64_t realTime = GetTickCount64();
     //conv.LowPart = kernel.dwLowDateTime;
     //conv.HighPart = kernel.dwHighDateTime;
     //realTime += conv.QuadPart;
@@ -57,6 +106,11 @@ uint32_t getTime()
     uint32_t simuStepInt = simuStep;
     simuRemaining = simuStep - (double)simuStepInt;
     lastSimuTime += simuStep;
+    return lastSimuTime;
+}
+
+uint32_t getTime2()
+{
     return lastSimuTime;
 }
 
@@ -99,6 +153,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE res1, PWSTR pCmdLine, int nCm
     const wchar_t CLASS_NAME[]  = L"Sample Window Class";
 
     InitializeCriticalSection(&cs);
+
+    /*model = new Model();
+    uint64_t last = GetTickCount64();
+    for (int i = 0; i < 10000000; i++)
+    {
+        model->steps(100);
+    }
+    uint64_t now = GetTickCount64();
+    printf("%.17g\n", (double)(now - last) / 100000.0);
+    return 0;*/
     
     WNDCLASS wc = { };
 
@@ -143,6 +207,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE res1, PWSTR pCmdLine, int nCm
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+
+    stopMainLoop = true;
+
+    WaitForSingleObject(thread, INFINITE);
 
     return 0;
 }
@@ -291,7 +359,17 @@ void paint(HWND hwnd)
     paintDigit(Memhdc, 90, 15, displayBits[1]);
     paintIcons(Memhdc, displayBits[2]);
     wchar_t buf[1024];
-    swprintf(buf, 1024, L"%c %C%C %0.1f%%", L'P', L'▲', L'▼', 45.3);
+    uint32_t time;
+    ENTER();
+    time = getTime() / 1000;
+    LEAVE();
+    uint32_t sec = time % 60;
+    time /= 60;
+    uint32_t min = time % 60;
+    time /= 60;
+    uint32_t h = time % 24;
+    time /= 24;
+    swprintf(buf, 1024, L"%dd %d:%02d:%02d %c %C%C %0.1f%%", time, h, min, sec, L'P', L'▲', L'▼', 45.3);
     RECT r;
     r.left = 10;
     r.top = 90;

@@ -54,6 +54,8 @@ uint32_t getTime();
 void initConfig(void* ptr, uint16_t size);
 void saveConfig(uint16_t offset, uint8_t size);
 
+// Exit simulation
+uint8_t stopRequested();
 
 #ifdef __cplusplus
 };
