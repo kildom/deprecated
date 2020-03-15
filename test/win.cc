@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include "interface.h"
 
@@ -30,10 +31,11 @@ uint32_t getTimeInt();
 
 uint64_t targetTimeStep = (1LL << 32) / 10;
 uint64_t targetTime = 0;
-uint64_t simuTimeStep = targetTimeStep / 60;
+uint64_t simuTimeStep = targetTimeStep;
 uint64_t simuTime = 0;
 uint64_t simuTimeSynch = (10LL << 32);
 uint64_t simuTimeNextSynch = 0;
+int32_t simuDelay = 0;
 
 uint32_t getTime()
 {
@@ -41,6 +43,14 @@ uint32_t getTime()
 }
 
 uint64_t realTimeStart = 0;
+
+void setSimuSpeed(double speed)
+{
+    simuTimeStep = (uint64_t)((double)targetTimeStep / speed);
+    uint64_t now = GetTickCount64();
+    uint64_t realTime = (now - realTimeStart) << 32;
+    simuTime = realTime;
+}
 
 uint8_t stopRequested()
 {
@@ -55,10 +65,10 @@ uint8_t stopRequested()
             realTimeStart = now;
         }
         uint64_t realTime = (now - realTimeStart) << 32;
-        int32_t delta = (int64_t)(simuTime - realTime) >> 32;
-        if (delta > 0)
+        simuDelay = (int64_t)(simuTime - realTime) >> 32;
+        if (simuDelay > 0)
         {
-            Sleep(delta);
+            Sleep(simuDelay);
         }
         simuTimeNextSynch = simuTime + simuTimeSynch;
     }
@@ -330,6 +340,56 @@ HBITMAP Membitmap;
 int old_width = 0;
 int old_height = 0;
 
+wchar_t textLine[1024];
+RECT textRect;
+
+void drawInfoLine()
+{
+    DrawTextW(Memhdc, textLine, -1, &textRect, DT_LEFT | DT_TOP | DT_SINGLELINE);
+    int h = textRect.bottom - textRect.top;
+    textRect.top += h;
+    textRect.bottom += h;
+}
+
+bool relays[3];
+
+#include <assert.h>
+
+void setRelay(uint8_t relayIndex, uint8_t state)
+{
+    relays[relayIndex] = state;
+    assert(!relays[RELAY_MINUS] || !relays[RELAY_PLUS]);
+    model->input.sil = relays[RELAY_PLUS] ? 1 : relays[RELAY_MINUS] ? -1 : 0;
+}
+
+void drawInfos()
+{
+    if (!model) return;
+    uint32_t time;
+    ENTER();
+    time = getTime() / 1000;
+    LEAVE();
+    uint32_t sec = time % 60;
+    time /= 60;
+    uint32_t min = time % 60;
+    time /= 60;
+    uint32_t h = time % 24;
+    time /= 24;
+    swprintf(textLine, 1024, L"%c %C%C %0.1f%%",
+        relays[RELAY_POMP] ? 'P' : ' ',
+        relays[RELAY_PLUS] ? L'▲' : L' ',
+        relays[RELAY_MINUS] ? L'▼' : L' ',
+        model->silownik.poz * 100.0);
+    drawInfoLine();
+    swprintf(textLine, 1024, L"%dd %d:%02d:%02d", time, h, min, sec);
+    drawInfoLine();
+    swprintf(textLine, 1024, L"SimuSpeed: %d", (int)(targetTimeStep / simuTimeStep));
+    drawInfoLine();
+    swprintf(textLine, 1024, L"SimuDelay: %d", simuDelay);
+    drawInfoLine();
+    
+}
+
 void paint(HWND hwnd)
 {
     RECT Client_Rect;
@@ -358,26 +418,13 @@ void paint(HWND hwnd)
     paintDigit(Memhdc, 45, 15, displayBits[0]);
     paintDigit(Memhdc, 90, 15, displayBits[1]);
     paintIcons(Memhdc, displayBits[2]);
-    wchar_t buf[1024];
-    uint32_t time;
-    ENTER();
-    time = getTime() / 1000;
-    LEAVE();
-    uint32_t sec = time % 60;
-    time /= 60;
-    uint32_t min = time % 60;
-    time /= 60;
-    uint32_t h = time % 24;
-    time /= 24;
-    swprintf(buf, 1024, L"%dd %d:%02d:%02d %c %C%C %0.1f%%", time, h, min, sec, L'P', L'▲', L'▼', 45.3);
-    RECT r;
-    r.left = 10;
-    r.top = 90;
-    r.right = win_width;
-    r.bottom = win_height;
     MoveToEx(Memhdc, 0, 88, NULL);
     LineTo(Memhdc, win_width, 88);
-    DrawTextW(Memhdc, buf, -1, &r, DT_LEFT | DT_TOP |DT_SINGLELINE);
+    textRect.left = 10;
+    textRect.top = 90;
+    textRect.right = win_width;
+    textRect.bottom = 90 + 16;
+    drawInfos();
 
 	BitBlt(hdc, 0, 0, win_width, win_height, Memhdc, 0, 0, SRCCOPY);
 	EndPaint(hwnd, &ps);
@@ -426,6 +473,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             case VK_RETURN: updateKey(0, true); break;
             case VK_UP: updateKey(1, true); break;
             case VK_DOWN: updateKey(2, true); break;
+            case '0': setSimuSpeed(0.25); break;
+            case '1': setSimuSpeed(1); break;
+            case '2': setSimuSpeed(10); break;
+            case '3': setSimuSpeed(60); break;
+            case '4': setSimuSpeed(5 * 60); break;
+            case '5': setSimuSpeed(10 * 60); break;
         }
         break;
 

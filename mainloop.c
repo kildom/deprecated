@@ -14,6 +14,22 @@ void mainLoop()
     {
         if (j == 0) {
             uint32_t t = getTime();
+            if ((t & 0x3000) == 0x0000)
+            {
+                setRelay(RELAY_MINUS, 1);
+            }
+            if ((t & 0x3000) == 0x1000)
+            {
+                setRelay(RELAY_MINUS, 0);
+            }
+            if ((t & 0x3000) == 0x2000)
+            {
+                setRelay(RELAY_PLUS, 1);
+            }
+            if ((t & 0x3000) == 0x3000)
+            {
+                setRelay(RELAY_PLUS, 0);
+            }
             printf("\r%d", t);
             setDisplay(0, (t/1000) % 10);
             setDisplay(1, ((t/100) % 10) | (CHAR_WITH_DOT * (t/2000%2)));
