@@ -8,7 +8,7 @@ static int j=0;
 void mainLoop()
 {
     int i;
-    initConfig(&j - 1, 8);
+    initConfig(&j, 4);
     j = 0;
     while (!stopRequested())
     {
@@ -33,6 +33,7 @@ void mainLoop()
             printf("\r%d", t);
             setDisplay(0, (t/1000) % 10);
             setDisplay(1, ((t/100) % 10) | (CHAR_WITH_DOT * (t/2000%2)));
+            setDisplay(2, t / 100);
         }
         j = (j + 1) & 0xFF;
         for (i = 0; i < 3; i++)
@@ -40,7 +41,7 @@ void mainLoop()
             if (getButtonPulse(i))
             {
                 printf("PULSE %d\n", i);
-                saveConfig(4, 4);
+                saveConfig(0, 4);
             }
         }
     }

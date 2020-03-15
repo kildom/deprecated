@@ -22,7 +22,7 @@ ASMFLAGS =
 
 LIBS = -lm -lkernel32 -luser32 -lgdi32
 
-OBJ = ../test/win.o ../mainloop.o ../test/model.o
+OBJ = ../test/win.o ../mainloop.o ../test/Model.o ../test/Logger.o
 
 all: $(TARGET).exe
 
