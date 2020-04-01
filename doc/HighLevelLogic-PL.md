@@ -123,20 +123,19 @@ Ikony:
 * `zawór` - gdy w stanie innym niż BEZCZYNNOŚĆ
 * `książka` - gdy w ekranie ustawień parametrów
 * `°C` - gdy wyświetlana jest temperatura
-* `▲` `▼` migające - gdy zawór jest sterowany
-* `▲` `▼` stałe - wskazanie do wyświetlanej aktualnie wartości
+* `▲` `▼` - gdy zawór jest sterowany lub wskazanie do wyświetlanej aktualnie wartości
 
 Ekrany standardowe:
 * Globalne klawisze:
   * `OK 5s` => `nr_par`
-  * `Idle 30s` => `glowny`
+  * `Idle 10s` => `glowny`
 * `glowny` - `58°C` ekran główny, aktualna temperatura
   * `OK` => `ulamek`
   * `▲` `▼` => `poch`
 * `ulamek` - `.3°C` część ułamkowa tempratury
   * `OK` => `glowny`
-* `poch`- `11▲°C` `1.6▼°C` zmiana temperatury w ciągu ostatniej minuty
-  * `OK` => `glowny`
+* `poch`- `11▲°C` `1.6▼°C` zmiana temperatury w ciągu ostatniej minuty (migający razem ze strzałką, żeby odróżnić od akt. temp. i działania zaworu)
+  * `OK` `▲` `▼` => `glowny`
   
 Ekrany konfiguracji:
 * Globalne klawisze:
