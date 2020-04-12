@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2020-04-12T21:30:45.153Z" agent="5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/12.9.9 Chrome/80.0.3987.163 Electron/8.2.1 Safari/537.36" etag="7eGn_7uKlqffog7zK8S4" compressed="false" version="12.9.9" type="device">
+<mxfile host="Electron" modified="2020-04-12T22:00:33.025Z" agent="5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/12.9.9 Chrome/80.0.3987.163 Electron/8.2.1 Safari/537.36" etag="m6faF3TxcEevRivXRI-z" compressed="false" version="12.9.9" type="device">
   <diagram id="a8qm5YuHrImj4eT9IvoD" name="Page-1">
-    <mxGraphModel dx="331" dy="229" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="0" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="569" dy="394" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="0" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -13,10 +13,10 @@
             <mxPoint x="11" y="2" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="HVskGO4853j7q7rBNwDe-2" value="Piec:&lt;br&gt;YTwyj = $iner:Inercja(UTpowr + UTmoc);" style="rounded=0;whiteSpace=wrap;html=1;gradientColor=#6666FF;fillColor=#FF6666;" parent="1" vertex="1">
+        <mxCell id="HVskGO4853j7q7rBNwDe-2" value="Piec:&lt;br style=&quot;font-size: 9px;&quot;&gt;&lt;br style=&quot;font-size: 9px;&quot;&gt;$YTwyj =&lt;br style=&quot;font-size: 9px;&quot;&gt;&amp;nbsp; $iner:Inercja($UTpowr + $UTmoc);" style="rounded=0;whiteSpace=wrap;html=1;gradientColor=#6666FF;fillColor=#FF6666;align=left;fontSize=9;" parent="1" vertex="1">
           <mxGeometry x="140" y="190" width="160" height="240" as="geometry" />
         </mxCell>
-        <mxCell id="HVskGO4853j7q7rBNwDe-3" value="Powrot:&lt;br&gt;YTczuj = iner(UTwej)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#6666FF;gradientColor=none;align=left;" parent="1" vertex="1">
+        <mxCell id="HVskGO4853j7q7rBNwDe-3" value="Powrot:&lt;br style=&quot;font-size: 11px;&quot;&gt;$YTczuj =&lt;br style=&quot;font-size: 11px;&quot;&gt;&amp;nbsp; &amp;nbsp;$iner:Inercja($UTwej)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#6666FF;gradientColor=none;align=left;fontSize=11;" parent="1" vertex="1">
           <mxGeometry x="230" y="370" width="120" height="40" as="geometry" />
         </mxCell>
         <mxCell id="HVskGO4853j7q7rBNwDe-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#FF0000;" parent="1" source="HVskGO4853j7q7rBNwDe-4" target="HVskGO4853j7q7rBNwDe-15" edge="1">
@@ -37,9 +37,14 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="VbgerHLO9BjWHMapBbgY-2" value="zawor.YTwyj = piec.YTwyj" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#ffffff;fontSize=10;" parent="HVskGO4853j7q7rBNwDe-28" vertex="1" connectable="0">
+        <mxCell id="VbgerHLO9BjWHMapBbgY-2" value="zawor.YTwyj&lt;br&gt;= piec.YTwyj" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#ffffff;fontSize=10;" parent="HVskGO4853j7q7rBNwDe-28" vertex="1" connectable="0">
           <mxGeometry x="-0.3765" y="1" relative="1" as="geometry">
-            <mxPoint as="offset" />
+            <mxPoint x="171.2" y="71" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="jTCrMVD-Wz8t5kz14MTb-1" value="sprz.UTpiec&lt;br&gt;= piec.YTwyj" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontFamily=Helvetica;" vertex="1" connectable="0" parent="HVskGO4853j7q7rBNwDe-28">
+          <mxGeometry x="0.6635" y="-1" relative="1" as="geometry">
+            <mxPoint x="16" y="-11" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="sfrr9DZfyL2tGj60liWU-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;strokeColor=#000000;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="HVskGO4853j7q7rBNwDe-4" target="sfrr9DZfyL2tGj60liWU-2" edge="1">
@@ -73,10 +78,10 @@
         </mxCell>
         <mxCell id="VbgerHLO9BjWHMapBbgY-3" value="piec.UTpowr&lt;br style=&quot;font-size: 10px;&quot;&gt;= zawor.YTwyj" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;fontSize=10;" parent="HVskGO4853j7q7rBNwDe-19" vertex="1" connectable="0">
           <mxGeometry x="-0.1833" y="-15" relative="1" as="geometry">
-            <mxPoint x="-5" y="11" as="offset" />
+            <mxPoint x="-155" y="-29.17" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="HVskGO4853j7q7rBNwDe-15" value="Zawor:&lt;br&gt;YTwyj = Usil * UTsprz + (1-Usil) * UTpiec" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFCCE6;gradientColor=none;align=left;" parent="1" vertex="1">
+        <mxCell id="HVskGO4853j7q7rBNwDe-15" value="Zawor:&lt;br style=&quot;font-size: 10px&quot;&gt;$YTwyj = $Usil * $UTsprz&lt;br&gt;&amp;nbsp; &amp;nbsp; + (1-$Usil) * $UTpiec" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFCCE6;gradientColor=none;align=left;fontSize=10;" parent="1" vertex="1">
           <mxGeometry x="500" y="280" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="HVskGO4853j7q7rBNwDe-31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="HVskGO4853j7q7rBNwDe-17" target="HVskGO4853j7q7rBNwDe-30" edge="1">
@@ -96,20 +101,35 @@
         <mxCell id="HVskGO4853j7q7rBNwDe-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#0000FF;" parent="1" source="HVskGO4853j7q7rBNwDe-27" target="HVskGO4853j7q7rBNwDe-15" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <mxCell id="jTCrMVD-Wz8t5kz14MTb-2" value="zawor.UTsprz&lt;br&gt;= sprz.YTzimn" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontFamily=Helvetica;" vertex="1" connectable="0" parent="HVskGO4853j7q7rBNwDe-29">
+          <mxGeometry x="-0.1257" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="HVskGO4853j7q7rBNwDe-37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#FF0000;" parent="1" source="HVskGO4853j7q7rBNwDe-27" target="HVskGO4853j7q7rBNwDe-36" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="HVskGO4853j7q7rBNwDe-27" value="&lt;font style=&quot;font-size: 6px&quot;&gt;Sprz:&lt;br style=&quot;font-size: 6px&quot;&gt;$Cin = $Usil;&lt;br style=&quot;font-size: 6px&quot;&gt;$Zout = -$Usil;&lt;br style=&quot;font-size: 6px&quot;&gt;$Cout = -$K*$Upomp;&lt;br style=&quot;font-size: 6px&quot;&gt;$Zin = $K*$Upomp;&lt;br style=&quot;font-size: 6px&quot;&gt;$Cbilans = $Cin + $Cout;&lt;br style=&quot;font-size: 6px&quot;&gt;$Zbilans = $Zin + $Zout;&lt;br style=&quot;font-size: 6px&quot;&gt;$d = $Cbilans - $Zbilans;&lt;br style=&quot;font-size: 6px&quot;&gt;if ($d &amp;gt; 0) {&lt;br style=&quot;font-size: 6px&quot;&gt;&amp;nbsp; &amp;nbsp;$YTciepl = $UTpiec;&lt;br style=&quot;font-size: 6px&quot;&gt;&amp;nbsp; &amp;nbsp;$w = $d / ($d + $Zin);&lt;br style=&quot;font-size: 6px&quot;&gt;&amp;nbsp; &amp;nbsp;$YTzimn = $UTpiec * $w&lt;br&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; + $UTzas * (1 - $w);&lt;br style=&quot;font-size: 6px&quot;&gt;} else {&lt;br style=&quot;font-size: 6px&quot;&gt;&amp;nbsp; &amp;nbsp;$YTzimn = $UTzas;&lt;br style=&quot;font-size: 6px&quot;&gt;&amp;nbsp; &amp;nbsp;$w = $d / ($d - $Cin);&lt;br style=&quot;font-size: 6px&quot;&gt;&amp;nbsp; &amp;nbsp;$YTciepl = $UTzas * $w&lt;br&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;+ $UTpiec * (1 - $w);&lt;br&gt;}&lt;br style=&quot;font-size: 6px&quot;&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;gradientColor=#6666FF;fillColor=#FF6666;align=left;fontSize=6;" parent="1" vertex="1">
+        <mxCell id="HVskGO4853j7q7rBNwDe-27" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;Sprz:&lt;br style=&quot;font-size: 8px;&quot;&gt;$Cin = $Usil;&lt;br style=&quot;font-size: 8px;&quot;&gt;$Zout = -$Usil;&lt;br style=&quot;font-size: 8px;&quot;&gt;$Cout = -$K*$Upomp;&lt;br style=&quot;font-size: 8px;&quot;&gt;$Zin = $K*$Upomp;&lt;br style=&quot;font-size: 8px;&quot;&gt;$Cbilans = $Cin + $Cout;&lt;br style=&quot;font-size: 8px;&quot;&gt;$Zbilans = $Zin + $Zout;&lt;br style=&quot;font-size: 8px;&quot;&gt;$d = $Cbilans - $Zbilans;&lt;br style=&quot;font-size: 8px;&quot;&gt;if ($d &amp;gt; 0) {&lt;br style=&quot;font-size: 8px;&quot;&gt;&amp;nbsp; &amp;nbsp;$YTciepl = $UTpiec;&lt;br style=&quot;font-size: 8px;&quot;&gt;&amp;nbsp; &amp;nbsp;$w = $d / ($d + $Zin);&lt;br style=&quot;font-size: 8px;&quot;&gt;&amp;nbsp; &amp;nbsp;$YTzimn = $UTpiec * $w&lt;br style=&quot;font-size: 8px;&quot;&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; + $UTzas * (1 - $w);&lt;br style=&quot;font-size: 8px;&quot;&gt;} else {&lt;br style=&quot;font-size: 8px;&quot;&gt;&amp;nbsp; &amp;nbsp;$YTzimn = $UTzas;&lt;br style=&quot;font-size: 8px;&quot;&gt;&amp;nbsp; &amp;nbsp;$w = $d / ($d - $Cin);&lt;br style=&quot;font-size: 8px;&quot;&gt;&amp;nbsp; &amp;nbsp;$YTciepl = $UTzas * $w&lt;br style=&quot;font-size: 8px;&quot;&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;+ $UTpiec * (1 - $w);&lt;br style=&quot;font-size: 8px;&quot;&gt;}&lt;br style=&quot;font-size: 8px;&quot;&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;gradientColor=#6666FF;fillColor=#FF6666;align=left;fontSize=8;" parent="1" vertex="1">
           <mxGeometry x="690" y="100" width="120" height="280" as="geometry" />
         </mxCell>
         <mxCell id="HVskGO4853j7q7rBNwDe-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;" parent="1" source="HVskGO4853j7q7rBNwDe-30" target="HVskGO4853j7q7rBNwDe-15" edge="1">
           <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="jTCrMVD-Wz8t5kz14MTb-3" value="zawor.Usil =&lt;br&gt;silownik.y" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontFamily=Helvetica;" vertex="1" connectable="0" parent="HVskGO4853j7q7rBNwDe-32">
+          <mxGeometry x="0.5667" y="1" relative="1" as="geometry">
+            <mxPoint x="1" y="34" as="offset" />
+          </mxGeometry>
         </mxCell>
         <mxCell id="HVskGO4853j7q7rBNwDe-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" parent="1" source="HVskGO4853j7q7rBNwDe-30" target="HVskGO4853j7q7rBNwDe-27" edge="1">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="660" y="380" />
             </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="jTCrMVD-Wz8t5kz14MTb-4" value="sprz.Usil =&lt;br&gt;silownik.y" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontFamily=Helvetica;" vertex="1" connectable="0" parent="HVskGO4853j7q7rBNwDe-33">
+          <mxGeometry x="0.6971" relative="1" as="geometry">
+            <mxPoint x="10.8" y="20" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="HVskGO4853j7q7rBNwDe-30" value="Silownik:&lt;br&gt;$y&#39; = $Ksil * U;&lt;br&gt;$y in [0..1]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E6E6E6;gradientColor=none;align=left;" parent="1" vertex="1">
@@ -136,7 +156,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="VbgerHLO9BjWHMapBbgY-8" value="ster.UTzas&lt;br style=&quot;font-size: 10px;&quot;&gt;= zasob.y" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#ffffff;fontSize=10;" parent="sfrr9DZfyL2tGj60liWU-5" vertex="1" connectable="0">
+        <mxCell id="VbgerHLO9BjWHMapBbgY-8" value="ster.UTzas = zasob.y" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#ffffff;fontSize=10;" parent="sfrr9DZfyL2tGj60liWU-5" vertex="1" connectable="0">
           <mxGeometry x="0.3204" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -195,7 +215,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="sfrr9DZfyL2tGj60liWU-2" value="&lt;font style=&quot;font-size: 10px&quot;&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Ster:&lt;br style=&quot;font-size: 10px&quot;&gt;if (hister(UTzas, Tzasmin, Tzasmax)) {&lt;br style=&quot;font-size: 10px&quot;&gt;&amp;nbsp; &amp;nbsp; YTdodana = KPster * (Tpieczadana - UTpiec);&lt;br style=&quot;font-size: 10px&quot;&gt;&amp;nbsp; &amp;nbsp; YTdodana in [3..10];&lt;br style=&quot;font-size: 10px&quot;&gt;&amp;nbsp; &amp;nbsp; Ycwu = 1;&lt;br style=&quot;font-size: 10px&quot;&gt;} else {&lt;br style=&quot;font-size: 10px&quot;&gt;&amp;nbsp; &amp;nbsp; YTdodana = 0;&lt;br style=&quot;font-size: 10px&quot;&gt;&amp;nbsp; &amp;nbsp; Ycwu = 0;&lt;br style=&quot;font-size: 10px&quot;&gt;}&lt;br&gt;&lt;/font&gt;&lt;br&gt;// $hister:Histereza&lt;br style=&quot;font-size: 10px&quot;&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E6E6E6;gradientColor=none;align=left;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
+        <mxCell id="sfrr9DZfyL2tGj60liWU-2" value="&lt;font style=&quot;font-size: 10px&quot;&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Ster:&lt;br style=&quot;font-size: 10px&quot;&gt;if ($hister:Histereza(UTzas, Tzasmin, Tzasmax)) {&lt;br style=&quot;font-size: 10px&quot;&gt;&amp;nbsp; &amp;nbsp; YTdodana = KPster * (Tpieczadana - UTpiec);&lt;br style=&quot;font-size: 10px&quot;&gt;&amp;nbsp; &amp;nbsp; YTdodana in [3..10];&lt;br style=&quot;font-size: 10px&quot;&gt;&amp;nbsp; &amp;nbsp; Ycwu = 1;&lt;br style=&quot;font-size: 10px&quot;&gt;} else {&lt;br style=&quot;font-size: 10px&quot;&gt;&amp;nbsp; &amp;nbsp; YTdodana = 0;&lt;br style=&quot;font-size: 10px&quot;&gt;&amp;nbsp; &amp;nbsp; Ycwu = 0;&lt;br style=&quot;font-size: 10px&quot;&gt;}&lt;/font&gt;&lt;br style=&quot;font-size: 10px&quot;&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E6E6E6;gradientColor=none;align=left;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
           <mxGeometry x="100" y="520" width="310" height="140" as="geometry" />
         </mxCell>
         <mxCell id="sfrr9DZfyL2tGj60liWU-6" value="# cwu&lt;br&gt;[0, 1]" style="shape=parallelogram;html=1;strokeWidth=1;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.17333333333333334;fillColor=#FFFFFF;gradientColor=none;" parent="1" vertex="1">

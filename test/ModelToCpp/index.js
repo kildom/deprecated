@@ -59,53 +59,59 @@ async function main() {
         )
         .filter(x => !x.startsWith('#')) // remove comment texts that starts with '#'
         ;
+
+    // Extract objects from text
     let objs = cells
-        .filter(x => x.match(/^[a-z_$0-9]+:/i))
-        .map(x => {
-            let m = x.match(/^([a-z_\$0-9]+):\s*([\s\S]*)$/mi);
+        .filter(x => x.match(/^[a-z_\$0-9]+:/i)) // Filter only starting with 'name:'
+        .map(x => { // convert text to object
+            let m = x.match(/^([a-z_\$0-9]+):\s*([\s\S]*)$/mi); // split between name and code
             let v = {};
-            let c = m[2].replace(/\$([a-z_\$0-9]+):([a-z_\$0-9]+)/gi, (x, m, t) => { v[m] = t; return m; });
-            c = c.replace(/\$([a-z_\$0-9]+)/gi, (x, m) => { if (!(m in v)) v[m] = 'num'; return m; });
+            let c = m[2].replace(/\$([a-z_\$0-9]+):([a-z_\$0-9]+)/gi, (x, m, t) => { v[m] = t; return m; }); // extract identifiers $name:type
+            c = c.replace(/\$([a-z_\$0-9]+)/gi, (x, m) => { if (!(m in v)) v[m] = 'num'; return m; }); // extract identifiers $name
             return { cls: m[1], name: m[1].toLowerCase(), code: c, vars: v, conns: [] };
         });
+    
+    // Add special in/out object
     objs.push({ cls: 'In', name: 'in', code: '', vars: {}, conns: [] });
     objs.push({ cls: 'Out', name: 'out', code: '', vars: {}, conns: [] });
+
+    // Create map name => object
     let objMap = {};
     objs.forEach(x => (objMap[x.name] = x));
-    // x' = ...
+
+    // Convert: x' = ...
     objs.forEach(x => {
         x.code = x.code.replace(/([a-z_\$0-9]+)'(.*);/ig, (m, id, rval) => {
             x.vars[`${id}_p`] = 'num';
             return `${id}_p${rval};\n${id} += ${id}_p * dt;`;
         });
     });
-    // x in [? .. ?]
+
+    // Convert: x in [? .. ?]
     objs.forEach(x => {
         x.code = x.code.replace(/([a-z_\$0-9]+)\s+in\s+\[(.+)\.\.(.+)\]/ig, (m, name, from, to) => {
             return `${name} = range(${name}, ${from}, ${to})`;
         });
     });
 
-    let initCode = '';
-    let initList = {};
-    objs.forEach(obj => {
-        for (let v in obj.vars) {
-            initCode += `${obj.name}.${v} = 0;\n`;
-        }
-    });
-    console.log(initCode);
-
+    // Extract connection from text
     let conns = cells
         .filter(x => !x.match(/^[a-z_$0-9]+:/i))
         .map(x => { let m = x.match(/^([a-z_\$0-9]+).([a-z_\$0-9]+)\s*=\s*([a-z_\$0-9]+).([a-z_\$0-9]+)/i); return { toObj: m[1], toVar: m[2], fromObj: m[3], fromVar: m[4], code: x }; });
     conns.forEach(x => { objMap[x.toObj].vars[x.toVar] = 'num'; objMap[x.fromObj].vars[x.fromVar] = 'num'; });
     conns.forEach(x => { objMap[x.toObj].conns.push(x); });
 
-    //console.log(JSON.stringify(objMap, null, 4));
-    //console.log(JSON.stringify(conns, null, 4));
-    //console.log(JSON.stringify(cells.length, null, 4));
+    // Print example initialization code
+    let initCode = '';
+    objs.forEach(obj => {
+        for (let v in obj.vars) {
+            initCode += `${obj.name}.${v} = 0;\n`;
+        }
+        initCode += `\n`;
+    });
+    console.log(initCode);
+
     let header = '';
-    let source = '';
 
     header += `\n/*------------------------------ Connections ------------------------------*/\n\n`;
     header += `inline void sub()\n{\n`;
@@ -146,4 +152,3 @@ async function main() {
 }
 
 main();
-//setTimeout(() => { }, 10000);
