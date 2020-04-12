@@ -5,3 +5,6 @@
 *.exe
 *.o
 conf.bin
+/test/ModelToCpp/node_modules/
+/test/ModelToCpp/package-lock.json
+/test/ModelSub.hh

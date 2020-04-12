@@ -254,6 +254,7 @@ uint8_t getButtonPulse(uint8_t buttonIndex)
 
 volatile uint8_t displayBits[3];
 volatile bool displayRefreshing = false;
+volatile int displayBrightness = 0;
 
 static int segs[][4] = {
     {20, 0, 45, 0}, // ^
@@ -358,6 +359,11 @@ void setDisplay(uint8_t charIndex, uint8_t content)
     }
 }
 
+void setBrightness(uint8_t value)
+{
+    displayBrightness = value;
+}
+
 
 #pragma endregion
 
@@ -405,6 +411,8 @@ static void paintInfos()
     swprintf(textLine, 1024, L"SimuSpeed: %d", (int)(targetTimeStep / simuTimeStep));
     paintInfoLine();
     swprintf(textLine, 1024, L"SimuDelay: %d", simuDelay);
+    paintInfoLine();
+    swprintf(textLine, 1024, L"Brightness: %d", displayBrightness);
     paintInfoLine();
 }
 
