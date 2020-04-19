@@ -41,13 +41,16 @@ async function main() {
     } catch (ex) { }
 
     // Find and transform all texts
+    let temp = {};
     let cells = findAllRec(json, (x) => (typeof (x) == 'object' && 'mxCell' in x), []) // find child arrays with mxCell
         .map(x => x.mxCell) // get mxCell from it
         .reduce((s, x) => s.concat(x), []) // join all arrays
         .filter(x => ('$' in x && 'value' in x.$ && x.$.value.trim().length > 0)) // remove all that do not have value attribute
         .map(x => x
             .$.value // get value attribute
-            .replace(/<.*?>/g, ' ') // strip html tags
+            .replace(/<a [^>]*href="http: (.*?)".*?>(.*?)<\/a>/g, (x, d, n) => { temp[n] = d; return n; }) // strip html tags
+            .replace(/<(br|p|div).*?>/g, ' ') // strip html tags
+            .replace(/<.*?>/g, '') // strip html tags
             .replace(/&nbsp;/g, ' ') // replace special html chars
             .replace(/&lt;/g, '<')
             .replace(/&gt;/g, '>')
@@ -56,6 +59,7 @@ async function main() {
             .replace(/[\s\r\n\t]*([;\{\}])[\s\r\n\t]*/g, '$1\n') // add new line after ; { } and remove whitespace around it
             .replace(/(;\n)+/g, ';\n') // remove duplicated new lines with ';'
             .trim()
+            .replace(/$/g, () => { if (Object.keys(temp).length == 0) return ''; let t = '`' + JSON.stringify(temp); temp = {}; return  t; })
         )
         .filter(x => !x.startsWith('#')) // remove comment texts that starts with '#'
         ;
@@ -65,25 +69,29 @@ async function main() {
         .filter(x => x.match(/^[a-z_\$0-9]+:/i)) // Filter only starting with 'name:'
         .map(x => { // convert text to object
             let m = x.match(/^([a-z_\$0-9]+):\s*([\s\S]*)$/mi); // split between name and code
+            let info = {};
             let v = {};
             let c = m[2].replace(/\$([a-z_\$0-9]+):([a-z_\$0-9]+)/gi, (x, m, t) => { v[m] = t; return m; }); // extract identifiers $name:type
             c = c.replace(/\$([a-z_\$0-9]+)/gi, (x, m) => { if (!(m in v)) v[m] = 'num'; return m; }); // extract identifiers $name
-            return { cls: m[1], name: m[1].toLowerCase(), code: c, vars: v, conns: [] };
+            c = c.replace(/`(.*)/, (x, m) => { info = JSON.parse(m); return ''; });
+            return { cls: m[1], name: m[1].toLowerCase(), code: c, vars: v, conns: [], info: info };
         });
     
     // Add special in/out object
-    objs.push({ cls: 'In', name: 'in', code: '', vars: {}, conns: [] });
-    objs.push({ cls: 'Out', name: 'out', code: '', vars: {}, conns: [] });
+    objs.push({ cls: 'In', name: 'in', code: '', vars: {}, conns: [], info: {} });
+    objs.push({ cls: 'Out', name: 'out', code: '', vars: {}, conns: [], info: {} });
 
     // Create map name => object
     let objMap = {};
     objs.forEach(x => (objMap[x.name] = x));
+    
+    console.log(objMap);
+    setTimeout(()=>{}, 10000);
 
     // Convert: x' = ...
     objs.forEach(x => {
         x.code = x.code.replace(/([a-z_\$0-9]+)'(.*);/ig, (m, id, rval) => {
-            x.vars[`${id}_p`] = 'num';
-            return `${id}_p${rval};\n${id} += ${id}_p * dt;`;
+            return `num ${id}_p${rval};\n${id} += ${id}_p * dt;`;
         });
     });
 
@@ -105,7 +113,11 @@ async function main() {
     let initCode = '';
     objs.forEach(obj => {
         for (let v in obj.vars) {
-            initCode += `${obj.name}.${v} = 0;\n`;
+            initCode += `${obj.name}.${v} = 0;`;
+            if (v in obj.info) {
+                initCode += ` // ${obj.info[v]}`;
+            }
+            initCode += `\n`;
         }
         initCode += `\n`;
     });
