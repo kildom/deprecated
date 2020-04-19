@@ -1,6 +1,5 @@
 
 
-
 #include <algorithm>
 #include <iterator>
 #include <string>
@@ -16,31 +15,83 @@
 #define TEMP_0 20.0
 
 #define SEK(x) (x)
-#define MIN(x) ((x) * 60.0)
-#define GODZ(x) ((x) * 60.0 * 60.0)
-
+#define MIN(x) ((x)*60.0)
+#define GODZ(x) ((x)*60.0 * 60.0)
 
 Model::Model()
 {
-    time = 0;
-    dt = DT;
-    silownik.czasOtw = 60.0;
-    silownik.poz = 1;
-    zawor.Twyj = 20;
-    input.sil = -1;
-    piec.inerWyjscia.init(dt, MIN(5), MIN(5), TEMP_0);
-    piec.inerCzujnika.init(dt, MIN(1), MIN(1), TEMP_0);
-    piec.inerMocy.init(dt, MIN(20), MIN(15), 0);
-    double* values[] = { &time, &input.sil, &silownik.poz, NULL };
-    double deltas[] =  { 10,    0.1,        0.01,          };
+    init();
+
+    num *values[] = {
+        &T,
+        &piec.YTwyj,
+        &ster.YTdodana,
+        NULL,
+    };
+    num deltas[] = {
+        10,
+        1,
+        0.5,
+    };
     log.init(values, deltas);
     log.log(true);
 }
 
-int Model::steps(double toTime)
+void Model::init()
 {
-    int steps = (toTime - time) / dt;
-    if (steps <= 0) return 0;
+    T = 0;
+    dt = 0.1;
+
+    piec.iner.init(dt, TMIN(10), TMIN(5), 20);
+    piec.YTwyj = 20;
+    piec.dt = dt;
+
+    czujnik.iner.init(dt, TMIN(1), TMIN(1), 20);
+    czujnik.y = 20;
+    czujnik.dt = dt;
+
+    zawor.YTwyj = 20;
+    zawor.dt = dt;
+
+    sprz.K = 0.5; // Ile razy pomp. zasobnika jest mocniejsza niż pomp. pieca
+    sprz.YTciepl = 20;
+    sprz.YTzimn = 20;
+    sprz.dt = dt;
+
+    silownik.y = 0;
+    silownik.Ksil = 1.0 / TMIN(2); // Prędkość otw./zam. zaworu [obr./s]
+    silownik.dt = dt;
+
+    zasob.x = 20;
+    zasob.Kgrz = 0.1;    // Wzrost temp. zasobn. na każdy stopień różnicy temp. (°C/s) / °C
+    zasob.Kodplyw = 0.1; // Spadek temp. zasob. przy max. odpływie na każdy st. różnicy temp. (°C/s) / °C
+    zasob.Twod = 15;     // Temp. wody z wodociągu °C
+    zasob.y = 20;
+    zasob.Kwymm = 0.7; // Sprawność wymiennika w zasobniku [0..1]
+    zasob.dt = dt;
+
+    ster.hister.init(-1);
+    ster.Tzasmin = 38; // Zadana min. temp. zasob.
+    ster.Tzasmax = 58; // Zadana max. temp. zasob.
+    ster.YTdodana = 0;
+    ster.KPster = 0.5;     // Wspolczynnik proporcjonalnosci
+    ster.Tpieczadana = 70; // Zadana temp. na piecu
+    ster.Ycwu = 1;
+    ster.dt = dt;
+
+    in.silownik = 0;
+    in.pomp = 0;
+    in.odplyw = 0;
+
+    out.temp = 20;
+    out.cwu = 0;
+}
+
+int Model::steps(num toTime)
+{
+    int steps = (toTime - T) / dt;
+    if (steps <= 0)
+        return 0;
     this->steps(steps);
     return steps;
 }
@@ -53,21 +104,13 @@ void Model::steps(int steps)
     }
 }
 
-
 void Model::step()
 {
-    // zawor
-    zawor.Twyj = silownik.poz;// * sprzeglo.Tciepla + (1.0 - silownik.poz * piec.Twyj)
-
-    // silownik
-    silownik.poz += diff(1.0 / silownik.czasOtw * input.sil);
-    limit(silownik.poz, 0, 1);
-
-    // piec
-    piec.Twyj = piec.inerWyjscia.step(zawor.Twyj + piec.Tpodw);
+    // objekty
+    sub();
 
     // czas
-    time += dt;
+    T += dt;
 
     // logger
     log.log();
@@ -78,8 +121,7 @@ void Model::done()
     log.close();
 }
 
-
-void Model::Inercja::init(double dt, double T, double delay, double x0)
+void Model::Inercja::init(num dt, num T, num delay, num x0)
 {
     this->dt = dt;
     Tinv = 1.0 / T;
@@ -92,11 +134,10 @@ void Model::Inercja::init(double dt, double T, double delay, double x0)
     }
 }
 
-
-double Model::Inercja::step(double U)
+num Model::Inercja::operator()(num U)
 {
-    double result;
-    double dx = Tinv * (U - x);
+    num result;
+    num dx = Tinv * (U - x);
     x += dx * dt;
     if (hist.size() > 0)
     {
@@ -111,30 +152,20 @@ double Model::Inercja::step(double U)
     return result;
 }
 
-void Model::Piec::step()
+void Model::Histereza::init(num state)
 {
-    YTwyj = iner(UTpowr + UTmoc);
+    this->state = state;
 }
 
-void Model::Ster::step()
+num Model::Histereza::operator()(num U, num min, num max)
 {
-    if (hister(UTzas, Tzasmin, Tzasmax)) {
-        YTdodana = KPster * (Tpieczadana - UTpiec);
-        YTdodana = range(YTdodana, 3, 10);
-        Ycwu = 1;
-    } else {
-        YTdodana = 0;
-        Ycwu = 0;
+    if (U < min && state > 0)
+    {
+        state = -1;
     }
-    YTmoc = iner(YTdodana);
-}
-
-void Model::Powr::step()
-{
-    YTczuj = iner(UTwej);
-}
-
-void Model::Zawor::step()
-{
-    YTwyj = Usil * UTsprz + (1 - Usil) * UTpiec;
+    else if (U > max && state < 0)
+    {
+        state = 1;
+    }
+    return state;
 }

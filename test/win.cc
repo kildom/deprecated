@@ -202,7 +202,7 @@ void setRelay(uint8_t relayIndex, uint8_t state)
 {
     relays[relayIndex] = state;
     assert(!relays[RELAY_MINUS] || !relays[RELAY_PLUS]);
-    model->input.sil = relays[RELAY_PLUS] ? 1 : relays[RELAY_MINUS] ? -1 : 0;
+    model->in.silownik = relays[RELAY_PLUS] ? 1 : relays[RELAY_MINUS] ? -1 : 0;
     // TODO: RELAY_POMP to model
 }
 
@@ -395,7 +395,7 @@ static void paintInfos()
     time = getTime() / 1000;
     LEAVE();
     uint32_t sec = time % 60;
-    time /= 60;
+    time /= 60; 
     uint32_t min = time % 60;
     time /= 60;
     uint32_t h = time % 24;
@@ -404,7 +404,7 @@ static void paintInfos()
         relays[RELAY_POMP] ? 'P' : ' ',
         relays[RELAY_PLUS] ? L'▲' : L' ',
         relays[RELAY_MINUS] ? L'▼' : L' ',
-        model->silownik.poz * 100.0);
+        model->silownik.y * 100.0);
     paintInfoLine();
     swprintf(textLine, 1024, L"%dd %d:%02d:%02d", time, h, min, sec);
     paintInfoLine();

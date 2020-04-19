@@ -4,17 +4,19 @@
 #include <stdio.h>
 #include <vector>
 
+#include "ModelCommon.hh"
+
 class Logger
 {
 private:
     bool first;
     int size;
-    std::vector<double*> values;
-    std::vector<double> maxDeltas;
-    std::vector<double> lastLogValues;
+    std::vector<num*> values;
+    std::vector<num> maxDeltas;
+    std::vector<num> lastLogValues;
     FILE* file;
 public:
-    void init(double** values, double* maxDeltas);
+    void init(num** values, num* maxDeltas);
     void log(bool force = false);
     void close();
 };

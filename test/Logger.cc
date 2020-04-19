@@ -11,9 +11,9 @@
 #define INT_DOT ','
 
 
-void Logger::init(double** values, double* maxDeltas)
+void Logger::init(num** values, num* maxDeltas)
 {
-    double** ptr = values;
+    num** ptr = values;
     size = 0;
     while (*ptr)
     {
@@ -52,7 +52,7 @@ void Logger::log(bool force)
 
     for (int i = 0; i < size; i++)
     {
-        double val = *(values[i]);
+        num val = *(values[i]);
         lastLogValues[i] = val;
         int n = sprintf(ptr, "%.17g%s", val, i < size - 1 ? INT_SEP : "\r\n");
         if (INT_DOT != '.')

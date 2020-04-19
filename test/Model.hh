@@ -2,7 +2,9 @@
 #define _MODEL_H
 
 #include <queue>
+#include <cmath>
 
+#include "ModelCommon.hh"
 #include "Logger.hh"
 
 class Model
@@ -12,82 +14,50 @@ private:
     class Inercja
     {
         public:
-            void init(double dt, double T, double delay, double x0);
-            double step(double U);
+            void init(num dt, num T, num delay, num x0);
+            num operator()(num U);
         private:
-            double dt;
-            double Tinv;
-            double x;
-            std::queue<double> hist;
+            num dt;
+            num Tinv;
+            num x;
+            std::queue<num> hist;
+    };
+
+    class Histereza
+    {
+        public:
+            void init(num state);
+            num operator()(num U, num min, num max);
+        private:
+            num state;
     };
 
 public:
 
     Logger log;
 
-    double time;
-    double dt;
+    num T;
+    num dt;
 
-    struct
-    {
-        double czasOtw;
-        double poz;
-    } silownik;
-
-    struct
-    {
-        double Twyj;
-    } zawor;
-
-    struct
-    {
-        double sil;
-    } input;
-
-    struct
-    {
-        Inercja inerWyjscia;
-        Inercja inerCzujnika;
-        Inercja inerMocy;
-        double Twyj;
-        double Tpodw;
-    } piec;
-    
-    
     Model();
+    void init();
     void steps(int steps);
-    int steps(double toTime);
+    int steps(num toTime);
     void step();
     void done();
 
 private:
-    inline double diff(double expr)
+    static inline num range(num x, num min, num max)
     {
-        return expr * dt;
-    }
-
-    inline void limit(double& value, double min, double max)
-    {
-        if (value < min) value = min;
-        if (value > max) value = max;
+        return (x < min) ? min : (x > max) ? max : x;
     }
 
     struct Sub {
-        double dt;
-        double t;
+        num dt;
     };
 
-    struct Piec : public Sub {
-        void step();
-        double YTwyj, UTpowr, UTmoc;
-        Inercja iner;
-    } piec;
-
-    struct Powrot : public Sub {
-        void step();
-        double YTczuj, UTwej;
-        Inercja iner;
-    } powrot;
+public:
+#include "ModelSub.hh"
 
 };
 

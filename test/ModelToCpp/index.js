@@ -59,7 +59,7 @@ async function main() {
             .replace(/[\s\r\n\t]*([;\{\}])[\s\r\n\t]*/g, '$1\n') // add new line after ; { } and remove whitespace around it
             .replace(/(;\n)+/g, ';\n') // remove duplicated new lines with ';'
             .trim()
-            .replace(/$/g, () => { if (Object.keys(temp).length == 0) return ''; let t = '`' + JSON.stringify(temp); temp = {}; return  t; })
+            .replace(/$/g, () => { if (Object.keys(temp).length == 0) return ''; let t = '`' + JSON.stringify(temp); temp = {}; return t; })
         )
         .filter(x => !x.startsWith('#')) // remove comment texts that starts with '#'
         ;
@@ -74,19 +74,16 @@ async function main() {
             let c = m[2].replace(/\$([a-z_\$0-9]+):([a-z_\$0-9]+)/gi, (x, m, t) => { v[m] = t; return m; }); // extract identifiers $name:type
             c = c.replace(/\$([a-z_\$0-9]+)/gi, (x, m) => { if (!(m in v)) v[m] = 'num'; return m; }); // extract identifiers $name
             c = c.replace(/`(.*)/, (x, m) => { info = JSON.parse(m); return ''; });
-            return { cls: m[1], name: m[1].toLowerCase(), code: c, vars: v, conns: [], info: info };
+            return { cls: m[1], name: m[1].toLowerCase(), code: c, vars: v, in: {}, conns: [], info: info };
         });
-    
+
     // Add special in/out object
-    objs.push({ cls: 'In', name: 'in', code: '', vars: {}, conns: [], info: {} });
-    objs.push({ cls: 'Out', name: 'out', code: '', vars: {}, conns: [], info: {} });
+    objs.push({ cls: 'In', name: 'in', code: '', vars: {}, in: {}, conns: [], info: {} });
+    objs.push({ cls: 'Out', name: 'out', code: '', vars: {}, in: {}, conns: [], info: {} });
 
     // Create map name => object
     let objMap = {};
     objs.forEach(x => (objMap[x.name] = x));
-    
-    console.log(objMap);
-    setTimeout(()=>{}, 10000);
 
     // Convert: x' = ...
     objs.forEach(x => {
@@ -106,7 +103,12 @@ async function main() {
     let conns = cells
         .filter(x => !x.match(/^[a-z_$0-9]+:/i))
         .map(x => { let m = x.match(/^([a-z_\$0-9]+).([a-z_\$0-9]+)\s*=\s*([a-z_\$0-9]+).([a-z_\$0-9]+)/i); return { toObj: m[1], toVar: m[2], fromObj: m[3], fromVar: m[4], code: x }; });
-    conns.forEach(x => { objMap[x.toObj].vars[x.toVar] = 'num'; objMap[x.fromObj].vars[x.fromVar] = 'num'; });
+    conns.forEach(x => {
+        if (x.toVar in objMap[x.toObj].vars) throw Error(`The same state variable name and input ${x.toObj}.${x.toVar}!`);
+        objMap[x.toObj].in[x.toVar] = 'num';
+        if (objMap[x.toObj].name == 'out') objMap[x.toObj].vars[x.toVar] = 'num';
+        objMap[x.fromObj].vars[x.fromVar] = 'num';
+    });
     conns.forEach(x => { objMap[x.toObj].conns.push(x); });
 
     // Print example initialization code
@@ -119,7 +121,7 @@ async function main() {
             }
             initCode += `\n`;
         }
-        initCode += `\n`;
+        initCode += `${obj.name}.dt = dt;\n\n`;
     });
     console.log(initCode);
 
@@ -129,16 +131,18 @@ async function main() {
     header += `inline void sub()\n{\n`;
 
     for (let obj of objs) {
-        header += `    ${obj.name}.T = T;\n`;
-    }
-
-    for (let obj of objs) {
         header += `\n`;
-        for (let conn of obj.conns) {
-            header += `    ${conn.code}\n`;
-        }
         if (obj.code.trim() != '') {
-            header += `    ${obj.name}.step();\n`;
+            header += `    ${obj.name}.step(`;
+            for (let conn of obj.conns) {
+                header += `    ${conn.fromObj}.${conn.fromVar}, // => ${conn.toVar}\n`;
+            }
+            header += `T);\n`;
+        }
+        if (obj.name == 'out') {
+            for (let conn of obj.conns) {
+                header += `    ${conn.toObj}.${conn.toVar} = ${conn.fromObj}.${conn.fromVar};\n`;
+            }
         }
     }
 
@@ -152,7 +156,11 @@ async function main() {
             header += `    ${obj.vars[varName]} ${varName};\n`;
         }
         if (obj.code.trim() != '') {
-            header += `inline void step()\n{\n`;
+            header += `inline void step(`;
+            for (let conn of obj.conns) {
+                header += `num ${conn.toVar}, `;
+            }
+            header += `num T)\n{\n`;
             header += `    ${obj.code}\n`;
             header += `}\n`;
         }
