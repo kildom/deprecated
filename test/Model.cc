@@ -26,11 +26,15 @@ Model::Model()
         &T,
         &piec.YTwyj,
         &ster.YTdodana,
+        &zasob.x,
+        &sprz.YTciepl,
         NULL,
     };
     num deltas[] = {
         10,
         1,
+        0.5,
+        0.5,
         0.5,
     };
     log.init(values, deltas);
@@ -42,7 +46,7 @@ void Model::init()
     T = 0;
     dt = 0.1;
 
-    piec.iner.init(dt, TMIN(10), TMIN(5), 20);
+    piec.iner.init(dt, TMIN(3), TMIN(5), 20);
     piec.YTwyj = 20;
     piec.dt = dt;
 
@@ -63,7 +67,7 @@ void Model::init()
     silownik.dt = dt;
 
     zasob.x = 20;
-    zasob.Kgrz = 0.1;    // Wzrost temp. zasobn. na każdy stopień różnicy temp. (°C/s) / °C
+    zasob.Kgrz = 0.002;    // Wzrost temp. zasobn. na każdy stopień różnicy temp. (°C/s) / °C
     zasob.Kodplyw = 0.1; // Spadek temp. zasob. przy max. odpływie na każdy st. różnicy temp. (°C/s) / °C
     zasob.Twod = 15;     // Temp. wody z wodociągu °C
     zasob.y = 20;
@@ -80,7 +84,7 @@ void Model::init()
     ster.dt = dt;
 
     in.silownik = 0;
-    in.pomp = 0;
+    in.pomp = 1;
     in.odplyw = 0;
 
     out.temp = 20;

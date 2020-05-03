@@ -203,7 +203,24 @@ void setRelay(uint8_t relayIndex, uint8_t state)
     relays[relayIndex] = state;
     assert(!relays[RELAY_MINUS] || !relays[RELAY_PLUS]);
     model->in.silownik = relays[RELAY_PLUS] ? 1 : relays[RELAY_MINUS] ? -1 : 0;
-    // TODO: RELAY_POMP to model
+    model->in.pomp = relays[RELAY_POMP] ? 1 : 0;\
+}
+
+uint16_t temp = 0;
+
+void measureTemp()
+{
+    temp = model->out.temp * 10.0 + 0.5;
+}
+
+uint16_t getTemp()
+{
+    return temp;
+}
+
+uint8_t getInput()
+{
+    return model->out.cwu > 0.5;
 }
 
 
@@ -413,6 +430,14 @@ static void paintInfos()
     swprintf(textLine, 1024, L"SimuDelay: %d", simuDelay);
     paintInfoLine();
     swprintf(textLine, 1024, L"Brightness: %d", displayBrightness);
+    paintInfoLine();
+    swprintf(textLine, 1024, L"Piec: %1.1f°C  +%1.1f", model->piec.YTwyj, model->ster.YTdodana);
+    paintInfoLine();
+    swprintf(textLine, 1024, L"Powr: %1.1f°C  (%1.1f°C)", model->zawor.YTwyj, model->out.temp);
+    paintInfoLine();
+    swprintf(textLine, 1024, L"Zaw: %1.1f°C  < %1.1f°C", model->zawor.YTwyj, model->sprz.YTzimn);
+    paintInfoLine();
+    swprintf(textLine, 1024, L"Zasob: %1.1f°C  < %1.1f°C", model->zasob.x, model->sprz.YTciepl);
     paintInfoLine();
 }
 
