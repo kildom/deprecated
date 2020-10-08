@@ -330,7 +330,7 @@ void processTemp()
         return;
 
     diffUpdate(temp);
-    tempUpdate(temp);  // TODO: Sliding window average (window size samplingCongig->windowSize)
+    //tempUpdate(temp);  // TODO: Sliding window average (window size samplingCongig->windowSize)
 }
 
 void mainLoop()

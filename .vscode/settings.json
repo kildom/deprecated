@@ -6,5 +6,8 @@
         "piec",
         "silownik",
         "zawor"
-    ]
+    ],
+    "files.associations": {
+        "*.tcc": "cpp"
+    }
 }

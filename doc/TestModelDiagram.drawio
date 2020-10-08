@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2020-04-19T17:08:28.733Z" agent="5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/12.9.13 Chrome/80.0.3987.163 Electron/8.2.1 Safari/537.36" etag="ahXJiO7CVNTZt8yw-a-j" compressed="false" version="12.9.13" type="device">
+<mxfile host="Electron" modified="2020-09-21T18:56:15.241Z" agent="5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/13.7.3 Chrome/85.0.4183.98 Electron/10.1.2 Safari/537.36" etag="5JfjgL0AXCh7AI5XZFXT" compressed="false" version="13.7.3" type="device">
   <diagram id="a8qm5YuHrImj4eT9IvoD" name="Page-1">
-    <mxGraphModel dx="289" dy="173" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="0" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="868" dy="520" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="0" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -123,17 +123,17 @@
         <mxCell id="HVskGO4853j7q7rBNwDe-30" value="Silownik:&lt;br style=&quot;font-size: 11px;&quot;&gt;$y&#39; = $&lt;a href=&quot;http: Prędkość otw./zam. zaworu [obr./s]&quot; style=&quot;font-size: 11px;&quot;&gt;Ksil&lt;/a&gt; * U;&lt;br style=&quot;font-size: 11px;&quot;&gt;$y in [0..1]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E6E6E6;gradientColor=none;align=left;fontSize=11;" parent="1" vertex="1">
           <mxGeometry x="600" y="420" width="120" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="HVskGO4853j7q7rBNwDe-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#FF0000;" parent="1" source="HVskGO4853j7q7rBNwDe-36" target="HVskGO4853j7q7rBNwDe-38" edge="1">
+        <mxCell id="HVskGO4853j7q7rBNwDe-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;strokeColor=#FF0000;" parent="1" source="HVskGO4853j7q7rBNwDe-36" target="HVskGO4853j7q7rBNwDe-38" edge="1">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="900" y="170" />
-              <mxPoint x="900" y="240" />
+              <mxPoint x="940" y="170" />
+              <mxPoint x="940" y="170" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="dyTlxXhGQoL0F0jeLbe4-1" value="zasob.UTsprz&lt;br style=&quot;font-size: 9px;&quot;&gt;= sprz.YTciepl" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;fontSize=9;fontColor=#808080;" parent="HVskGO4853j7q7rBNwDe-39" vertex="1" connectable="0">
           <mxGeometry x="0.1867" y="-4" relative="1" as="geometry">
-            <mxPoint x="28.86" y="-24.020000000000003" as="offset" />
+            <mxPoint x="-12" y="-18.000000000000004" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="HVskGO4853j7q7rBNwDe-36" value="" style="triangle;whiteSpace=wrap;html=1;fillColor=#ffffff;gradientColor=none;align=left;rotation=0;strokeColor=#FF0000;" parent="1" vertex="1">
@@ -171,7 +171,7 @@
         </mxCell>
         <mxCell id="BD1AswMrN5vGTzjJQriU-6" value="sprz.Upomp&lt;br&gt;= in.pomp" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#808080;" parent="HVskGO4853j7q7rBNwDe-42" vertex="1" connectable="0">
           <mxGeometry x="0.2125" y="3" relative="1" as="geometry">
-            <mxPoint x="-3.97" y="10.02" as="offset" />
+            <mxPoint x="-6" y="-17.000000000000004" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="HVskGO4853j7q7rBNwDe-43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;fontColor=#000000;strokeColor=#808080;" parent="1" source="HVskGO4853j7q7rBNwDe-41" target="HVskGO4853j7q7rBNwDe-38" edge="1">
@@ -183,7 +183,7 @@
         </mxCell>
         <mxCell id="BD1AswMrN5vGTzjJQriU-7" value="zasob.pomp&lt;br&gt;= in.pomp" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#808080;" parent="HVskGO4853j7q7rBNwDe-43" vertex="1" connectable="0">
           <mxGeometry x="0.4324" y="1" relative="1" as="geometry">
-            <mxPoint x="-2.43" y="10.99" as="offset" />
+            <mxPoint x="-2" y="-13" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="HVskGO4853j7q7rBNwDe-41" value="# pomp&lt;br&gt;[0, 1]" style="shape=parallelogram;html=1;strokeWidth=1;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.17333333333333334;fillColor=#FFFFFF;gradientColor=none;" parent="1" vertex="1">
