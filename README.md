@@ -15,7 +15,7 @@
   * Klucz prywatny `CSK`, ktróry jest generowany w centralce i nigdy go nie opuszcza.
   * Klucz publiczny `CPK`, który będzie później udostępniony pilotom podczas procesu parowania.
 
-### Parowanie
+## Parowanie
 * Parowanie pilota i centralki rozpoczyna się po długim wciśnięciu przycisku. LED informuje o rozpoczęciu procesu parowania.
 * Centralka nadaje przez LED `CPK` i losowy ciąg danych `CR`.
 * Pilot po odebraniu przez czujnik światła danych z centralki:
@@ -37,14 +37,14 @@
   * zapisuje dane parowania: `memory[S] = { SK, T, SN }`
   * kończy proces parowania
 
-### Rozparowanie
+## Rozparowanie
 * Usunięcie numeru pilota z centralki ręcznie (np. kiedy pilot się zepsuł)
 * Usunięcie przez zbliżenie:
   * Centrakla jest w stanie rozparowania
   * Pilot jest w stanie parowania
   * Proces przebiega jak parowanie, z wyjątkiem tego, że centralka zamiast zapisywać czyści dane parowania
 
-### Otwieranie
+## Otwieranie
 * Pilot po wciśnięciu lub puszczeniu przycisku
   * dodaje zdarzenie do kolejki `Q`
   * szyfruje ciąg `P = AES(SK, {SN T Q})`
