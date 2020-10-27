@@ -19,12 +19,12 @@
 * Parowanie pilota i centralki rozpoczyna się po długim wciśnięciu przycisku. LED informuje o rozpoczęciu procesu parowania.
 * Centralka nadaje przez LED `CPK` i losowy ciąg danych `CR`.
 * Pilot po odebraniu przez czujnik światła danych z centralki:
-  * oblicza wspólny klucz szyfrowania `SK = KDF(X25519(CPK, RSK))`,
+  * oblicza wspólny klucz szyfrowania `SK = KDF(X25519(CPK, RSK), CR)`,
   * generuje losowy ciąg danych `RR`,
   * szyfruje ciąg `RH = AES(SK, {CR RR SN})`,
   * rozpoczyna nadawanie `RPK` i `RH` przez LED
 * Centralka po odebraniu poprawnego `RH`:
-  * oblicza wspólny klucz szyfrowania `SK = KDF(X25519(RPK, CSK))`
+  * oblicza wspólny klucz szyfrowania `SK = KDF(X25519(RPK, CSK), CR)`
   * przydzila pilotowy numer `S`
   * szyfruje ciąg `CH = AES(SK, {RR S})`
   * rozpoczyna nadawanie `CH` przez LED
@@ -42,7 +42,7 @@
 * Usunięcie przez zbliżenie:
   * Centrakla jest w stanie rozparowania
   * Pilot jest w stanie parowania
-  * Proces przebiega jak parowanie, z wyjątkiem tego, że centralka zamiast zapisywać czyści dane parowania
+  * Proces przebiega jak parowanie, z wyjątkiem tego, że centralka zamiast zapisywać czyści dane parowania i nie czeka na `P`.
 
 ## Otwieranie
 * Pilot po wciśnięciu lub puszczeniu przycisku
