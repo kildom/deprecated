@@ -29,7 +29,7 @@
   * szyfruje ciąg `CH = AES(SK, {RR S})`
   * rozpoczyna nadawanie `CH` przez LED
 * Pilot po odebraniu poprawnego `CH`
-  * zapisuje dane parowania: `memory = SK`
+  * zapisuje dane parowania: `memory = {S SK}`
   * szyfruje ciąg `P = AES(SK, {SN T})`
   * nadaje przez radio ciąg `S P` przez kilka sekund
   * kończy proces parowania
