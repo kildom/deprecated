@@ -17,6 +17,7 @@
 #define NOINIT_DATA __attribute__((section(".noinit")))
 
 #define BLOCK_SIZE 128
+#define MAX_BLOCK_COUNT 256
 #define MAX_PACKET_SIZE (BLOCK_SIZE + 16)
 
 #define ARRAY_LEN(arr) (sizeof(arr) / sizeof((arr)[0]))

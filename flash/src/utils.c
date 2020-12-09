@@ -11,8 +11,10 @@ EXTERN void zeroMem(uint8_t* dst, size_t size)
 	}
 }
 
-EXTERN void copyMem(uint8_t* dst, const uint8_t* src, size_t size)
+EXTERN void copyMem(void* _dst, const void* _src, size_t size)
 {
+	uint8_t* dst = _dst;
+	const uint8_t* src = _src;
     uint8_t* dstEnd = dst + size;
 	while (dst < dstEnd)
 	{

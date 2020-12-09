@@ -139,6 +139,10 @@ exit /b 0
     call :find_CMSIS_inner .\CMSIS\Include                            && goto :EOF
     call :find_CMSIS_inner .\CMSIS\Core\Include                       && goto :EOF
     call :find_CMSIS_inner .\CMSIS\CMSIS\Core\Include                 && goto :EOF
+    call :find_CMSIS_inner ..\CMSIS                                   && goto :EOF
+    call :find_CMSIS_inner ..\CMSIS\Include                           && goto :EOF
+    call :find_CMSIS_inner ..\CMSIS\Core\Include                      && goto :EOF
+    call :find_CMSIS_inner ..\CMSIS\CMSIS\Core\Include                && goto :EOF
     for /D %%f in (_begin_of_list_ CMSIS_*) do set WITH_VER=%%f
     call :find_CMSIS_inner %WITH_VER%\CMSIS\Core\Include              && goto :EOF
     for /D %%f in (_begin_of_list_ CMSIS\CMSIS_*) do set WITH_VER=%%f
@@ -159,6 +163,7 @@ exit /b 0
 :find_NRFX
     call :find_NRFX_inner %NRFX_DIR% _dummy__parameter_ && goto :EOF
     call :find_NRFX_inner .\nrfx                        && goto :EOF
+    call :find_NRFX_inner ..\nrfx                       && goto :EOF
     echo ERROR: Cannot find nrfx directory!
     echo ERROR: Place it in .\nrfx or provide path in NRFX_DIR variable.
     %PAUSE%

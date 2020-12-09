@@ -38,8 +38,9 @@ static void stateMachine()
 			} else if (type == PACKET_TYPE_REQUEST) {
 				timeout = getRecvTime() + RUNNING_TIMEOUT;
 				state = RUNNING;
-			} else if (type == PACKET_TYPE_REQUEST_START) {
-				return;
+				if (!executeRequest()) {
+					return;
+				}
 			}
 		}
 	} while (true);

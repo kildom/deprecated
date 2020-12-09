@@ -8,3 +8,8 @@
 *.bin
 
 /recovery-bootloader.c
+/flash/recovery-bootloader.c
+/flash/recovery-bootloader.elf
+/flash/recovery-bootloader.hex
+/flash/recovery-bootloader.lst
+/flash/recovery-bootloader.map

@@ -81,25 +81,23 @@ static bool decodeRequestPacket()
 
 EXTERN PacketType parsePacket()
 {
-	do
+	uint8_t* buffer = getPacket();
+	packetType = buffer[1];
+	if (packetType == PACKET_TYPE_CATCH)
 	{
-		uint8_t* buffer = getPacket();
-		packetType = buffer[1];
-		if (packetType == PACKET_TYPE_CATCH)
+		if (validateCatchPacket())
 		{
-			if (validateCatchPacket())
-			{
-				return packetType;
-			}
+			return packetType;
 		}
-		else if (packetType == PACKET_TYPE_REQUEST)
+	}
+	else if (packetType == PACKET_TYPE_REQUEST)
+	{
+		if (decodeRequestPacket())
 		{
-			if (decodeRequestPacket())
-			{
-				return packetType;
-			}
+			return packetType;
 		}
-	} while(true);
+	}
+	return PACKET_TYPE_INVALID;
 }
 
 
