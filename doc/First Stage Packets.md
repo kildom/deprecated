@@ -42,9 +42,15 @@ Key = SHA-256(Salt & Password & "RecoveryBootloaderPassword")
 ***IV*** field contains last 12 bytes of initialization vector used to encrypt this packet.
 First 4 bytes of the initialization vector are taken from the end of ***Salt***
 
-***ConnID***, ***Counter*** and ***CheckBytes*** are encrypted using DCFB-AES with *IV* and *Key* parameters as described above.
+***ConnID***, ***Counter***, ***Flags*** and ***CheckBytes*** are encrypted using DCFB-AES with *IV* and *Key* parameters as described above.
 
 ***ConnID*** and ***Counter*** are used later to encrypt **request** and **response**.
+
+***Flags*** byte contain one flag on bit 0 which is set when bootloader is running in safe mode.
+Rest of bits are set to zero.
+
+Safe mode is active when partial write of page 0 was done, so it is unknown how much of bootloader
+is actually valid. Controller will use only core part of protocol: requests WRITE_BLOCK, GET_STATUS and START_APP.
 
 ***CheckBytes*** contains copy of the beginning of the packet (bytes from 0 to 11) before encryption was applyied.
 
