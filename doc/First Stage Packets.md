@@ -23,7 +23,8 @@ this packet contains information needed to verify password and start secure conn
 |     | 10  | 12   | IV         | Initialization vector for encryption of remaining data |
 | Y   | 22  | 12   | ConnID     | Random Connection ID                                   |
 | Y   | 34  | 4    | Counter    | Random initial value of counter                        |
-| Y   | 38  | 12   | CheckBytes | Copy of the beginning of the packet                    |
+| Y   | 38  | 1    | Flags      | Flags: bit 0 - bootloader is running in safe mode      |
+| Y   | 39  | 12   | CheckBytes | Copy of the beginning of the packet                    |
 
 Each device has a unique encryption key generated from user provided *Password* using following method:
 ```
