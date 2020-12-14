@@ -109,6 +109,8 @@ Packet is encrypted using DCFB-AES. IV is the same as in associated **request**.
 
 ## Get Device Info
 
+Query for device information.
+
 Request:
 | Off | Size | Name | Description        |
 |-----|------|------|--------------------|
@@ -141,6 +143,8 @@ Response: **NONE**
 
 ## Get Status
 
+Get status which blocks of second stage bootloader were received.
+
 Request:
 | Off | Size | Name | Description        |
 |-----|------|------|--------------------|
@@ -155,6 +159,46 @@ If block index 0 was received then bit 0 in byte 0 is set.
 If block index 1 was received then bit 1 in byte 0 is set.
 If block index 8 was received then bit 0 in byte 1 is set.
 And so on.
+
+GET_HASH request clears the bitmap.
+
+## Get Hash
+
+Get simple hash of received application.
+
+Request:
+| Off | Size | Name | Description        |
+|-----|------|------|--------------------|
+| 0   | 1    | Id   | 3: GET_HASH        |
+
+Response:
+| Off | Size | Name | Description                |
+|-----|------|------|----------------------------|
+| 0   | 16   | Hash | Hash calculated using SAHF |
+
+If there are some missing blocks then resulting hash is unpredicable. This hash is not cryptographically secure.
+
+## Start Application
+
+Start second stage bootloader (RAM Application).
+
+Request:
+| Off | Size | Name | Description        |
+|-----|------|------|--------------------|
+| 0   | 1    | Id   | 4: START_APP       |
+
+Response: **NONE**
+
+## Start MBR
+
+Shut down the bootloader and give control to MBR to start normal startup process.
+
+Request:
+| Off | Size | Name | Description        |
+|-----|------|------|--------------------|
+| 0   | 1    | Id   | 5: START_MBR       |
+
+Response: **NONE**
 
 # Notes
 
