@@ -105,6 +105,57 @@ Packet is encrypted using DCFB-AES. IV is the same as in associated **request**.
 
 ***CheckBytes*** are described in **caught** packet.
 
+# Requests
+
+## Get Device Info
+
+Request:
+| Off | Size | Name | Description        |
+|-----|------|------|--------------------|
+| 0   | 1    | Id   | 0: GET_DEVICE_INFO |
+
+Response:
+| Off | Size | Name             | Description                                            |
+|-----|------|------------------|--------------------------------------------------------|
+| 0   | 2    | PagesAndArrdType | bits 0-14: Number of flash pages, bit 15: Address type |
+| 2   | 1    | BlocksPerPage    | Number of 128-byte blocks in one flash page            |
+| 3   | 1    | BlocksForRamApp  | Number of 128-byte blocks for second stage bootloader  |
+| 4   | 8    | DeviceId[2]      | nRF5x device id                                        |
+| 12  | 4    | AddrLow          | Lower 32 bits of nRF5x device address                  |
+| 16  | 2    | AddrHi           | Higer 16 bits of nRF5x device address                  |
+| 18  | 2    | HWID             | nRF5x hardware id                                      |
+| 20  | N    | Name             | Device name                                            |
+
+## Write block
+
+Writes block of 128 bytes of second stage bootloader to RAM. Second stage boootloader is aligned to block boudary by padding with any value.
+
+Request:
+| Off | Size | Name  | Description    |
+|-----|------|-------|----------------|
+| 0   | 1    | Id    | 1: WRITE_BLOCK |
+| 1   | 1    | Index | Block index    |
+| 1   | 128  | Block | Block data     |
+
+Response: **NONE**
+
+## Get Status
+
+Request:
+| Off | Size | Name | Description        |
+|-----|------|------|--------------------|
+| 0   | 1    | Id   | 2: GET_STATUS      |
+
+Response:
+| Off | Size | Name                 | Description                                     |
+|-----|------|----------------------|-------------------------------------------------|
+| 0   | N    | ReceivedBlocksBitmap | Bitmap containing bit 1 for each received block |
+
+If block index 0 was received then bit 0 in byte 0 is set.
+If block index 1 was received then bit 1 in byte 0 is set.
+If block index 8 was received then bit 0 in byte 1 is set.
+And so on.
+
 # Notes
 
 > NOTE: Over the air packets contains: Prelambule, Address, Length, Content and CRC.  This documents describes only Length and Content, because rest is handled by the nRF5x HW.
