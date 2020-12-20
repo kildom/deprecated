@@ -24,6 +24,7 @@ static void stateMachine()
 				timeout = CAUGHT_TIMEOUT;
 				state = CAUGHT;
 			} else {
+				// TODO: never go to MRB if bootloader magic value is invalid
 				shutdown();
 			}
 		} else {
@@ -47,6 +48,7 @@ static void stateMachine()
 }
 
 
+__attribute__((noinline))
 EXTERN void main()
 {
     initTimer();
@@ -61,5 +63,5 @@ EXTERN void shutdown()
 {
 	shutdownRadio();
 	shutdownTimer();
-	startMbr();
+	startMbr(); // TODO: Do SW reset instead
 }

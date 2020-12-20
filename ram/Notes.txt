@@ -1,0 +1,11 @@
+
+
+Page 0 reprogramming order:
+    1. erase
+    2. reset vector and initial SP
+    3. recovery-bootloader keys
+    4. recovery-bootloader main code
+    5. recovery-bootloader non-essential code
+    6. rest of recovery-bootloader configuration
+    7. MBR + old MBR vectors
+    8. recovery-bootloader ready magic value

@@ -17,7 +17,9 @@ static bool connValid = false;
 
 static bool validateCatchPacket()
 {
-	if (packetLength < 2 + sizeof(magicPacket))
+	uint8_t* buffer = getRecvBuffer();
+
+	if (buffer[0] < 2 + sizeof(magicPacket))
 	{
 		return false;
 	}
@@ -30,9 +32,10 @@ static bool decodeRequestPacket()
 	uint32_t counter;
 	uint32_t oldCouter;
 	int32_t diff;
+	uint8_t* buffer = getRecvBuffer();
 
 	// validate state and buffer length
-	if (!connValid || packetLength < 17 || packetLength > sizeof(packetBuffer[0]))
+	if (!connValid || buffer[0] < 17 || buffer[0] > MAX_PACKET_SIZE)
 	{
 		return false;
 	}
@@ -66,22 +69,22 @@ static bool decodeRequestPacket()
 
 	// decrypt buffer
 	connState.counter = counter;
-	aes_dcfb(&buffer[4], packetLength - 4, AES_DCFB_DECRYPT, (uint8_t*)&connState);
+	aes_dcfb(&buffer[4], buffer[0] - 4, AES_DCFB_DECRYPT, (uint8_t*)&connState);
 
 	// do integrity check
-	if (!compareMem(buffer, &buffer[packetLength - 12], 12))
+	if (!compareMem(buffer, &buffer[buffer[0] - 12], 12))
 	{
 		return false;
 	}
 
-	// use new buffer counter value if buffer is valid
+	// use new packet counter value if packet is valid
 	connCounter = counter;
 	return true;
 }
 
 EXTERN PacketType parsePacket()
 {
-	uint8_t* buffer = getPacket();
+	uint8_t* buffer = getRecvBuffer();
 	packetType = buffer[1];
 	if (packetType == PACKET_TYPE_CATCH)
 	{
@@ -100,18 +103,35 @@ EXTERN PacketType parsePacket()
 	return PACKET_TYPE_INVALID;
 }
 
-
-EXTERN void sendResponse()
+static void sendEncrypted(uint32_t plainSize, const uint8_t* iv)
 {
+	uint8_t* buffer = getRecvBuffer();
+
+	// prepare and encrypt buffer
+	uint32_t len = buffer[0];
+	buffer[0] += 12;
+	copyMem(&buffer[len], buffer, 12);
+	aes_dcfb(&buffer[plainSize], len + 12 - plainSize, AES_DCFB_ENCRYPT, iv);
+	send();
+}
+
+EXTERN void sendResponse(uint8_t size)
+{
+	uint8_t* buffer = getRecvBuffer();
+	
 	connState.counter = connCounter;
+	buffer[0] = size;
 	buffer[1] = PACKET_TYPE_RESPONSE;
-	send(2, (uint8_t*)&connState);
+	sendEncrypted(2, (uint8_t*)&connState);
 }
 
 EXTERN void sendCaught(size_t size)
 {
+	uint8_t* buffer = getRecvBuffer();
+	
+	// TODO: Send information that recovery-bootloader valid magic data is invalid
 	buffer[1] = PACKET_TYPE_CAUGHT;
-	send(22, &buffer[6]);
+	sendEncrypted(22, &buffer[6]);
 }
 
 EXTERN uint8_t* getConnState()

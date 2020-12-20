@@ -3,10 +3,10 @@
 
 #define CONN_COUNTER_DIFF_MAX 1024
 
-NOINIT_DATA static uint8_t packetBuffer[2][256];
+NOINIT_DATA static uint8_t swappingBuffers[2][256];
+NOINIT_DATA static uint8_t sendBuffer[MAX_SEND_SIZE];
 static int bufferIndex = 0;
-NOINIT_DATA static uint8_t* buffer;
-NOINIT_DATA static size_t packetLength;
+NOINIT_DATA static uint8_t* recvBuffer;
 NOINIT_DATA static uint32_t recvTime;
 
 
@@ -31,7 +31,7 @@ static void assertEvent(volatile uint32_t *reg)
 static void startReceiver()
 {
 	NRF_RADIO->SHORTS = 0;
-	NRF_RADIO->PACKETPTR = (uint32_t)&packetBuffer[bufferIndex];
+	NRF_RADIO->PACKETPTR = (uint32_t)&swappingBuffers[bufferIndex];
 	bufferIndex ^= 1;
 	NRF_RADIO->EVENTS_READY = 0;
 	NRF_RADIO->EVENTS_END = 0;
@@ -58,7 +58,7 @@ EXTERN void initRadio()
 	NRF_RADIO->PCNF0 = (8 << RADIO_PCNF0_LFLEN_Pos)
 		| (0 << RADIO_PCNF0_S0LEN_Pos)
 		| (0 << RADIO_PCNF0_S1LEN_Pos);
-	NRF_RADIO->PCNF1 = (192 << RADIO_PCNF1_MAXLEN_Pos) // TODO: set maxlen to actual buffer size
+	NRF_RADIO->PCNF1 = (192 << RADIO_PCNF1_MAXLEN_Pos) // TODO: set maxlen to actual recvBuffer size
 		| (0 << RADIO_PCNF1_STATLEN_Pos)
 		| (4 << RADIO_PCNF1_BALEN_Pos)
 		| (RADIO_PCNF1_ENDIAN_Little << RADIO_PCNF1_ENDIAN_Pos)
@@ -73,19 +73,14 @@ EXTERN void shutdownRadio()
 
 }
 
-EXTERN uint8_t* getPacket()
+EXTERN uint8_t* getRecvBuffer()
 {
-    return buffer;
+	return recvBuffer;
 }
 
-EXTERN uint32_t getPacketSize()
+EXTERN uint8_t* getSendBuffer()
 {
-	return packetLength;
-}
-
-EXTERN void setPacketSize(uint32_t size)
-{
-	packetLength = size;
+	return sendBuffer;
 }
 
 EXTERN uint32_t getRecvTime()
@@ -97,24 +92,23 @@ EXTERN bool recv(uint32_t timeout)
 {
 	do
 	{
-		// wait for incoming buffer
+		// wait for incoming recvBuffer
 		if (!waitForEvent(&NRF_RADIO->EVENTS_END, timeout))
 		{
 			return false;
 		}
 		recvTime = getTime();
-		// switch to second buffer as soon as possible
-		NRF_RADIO->PACKETPTR = (uint32_t)&packetBuffer[bufferIndex];
+		// switch to second recvBuffer as soon as possible
+		NRF_RADIO->PACKETPTR = (uint32_t)&swappingBuffers[bufferIndex];
 		NRF_RADIO->TASKS_START = 1;
 		bufferIndex ^= 1;
-		// parse current buffer
-		buffer = packetBuffer[bufferIndex];
-		packetLength = buffer[0] + 1;
-	} while (packetLength < 16 || packetLength > MAX_PACKET_SIZE);
+		// parse current recvBuffer
+		recvBuffer = swappingBuffers[bufferIndex];
+	} while (recvBuffer[0] < 16 || recvBuffer[0] > MAX_PACKET_SIZE);
 	return true;
 }
 
-EXTERN void send(size_t plainSize, uint8_t* iv)
+EXTERN void send()
 {
 	// stop receiving as fast as possible
 	stopReceiver();
@@ -124,14 +118,10 @@ EXTERN void send(size_t plainSize, uint8_t* iv)
 	NRF_RADIO->EVENTS_END = 0;
 	NRF_RADIO->EVENTS_DISABLED = 0;
 	NRF_RADIO->TASKS_TXEN = 1;
-	// prepare and encrypt buffer
-	buffer[0] = packetLength + 12;
-	copyMem(&buffer[packetLength], buffer, 12);
-	aes_dcfb(&buffer[plainSize], packetLength + 12 - plainSize, AES_DCFB_ENCRYPT, iv);
 	// wait for trasmitter ready
 	assertEvent(&NRF_RADIO->EVENTS_READY);
-	// send buffer
-	NRF_RADIO->PACKETPTR = (uint32_t)buffer;
+	// send recvBuffer
+	NRF_RADIO->PACKETPTR = (uint32_t)recvBuffer;
 	NRF_RADIO->TASKS_START = 1;
 	assertEvent(&NRF_RADIO->EVENTS_DISABLED);
 	// go back to receiving

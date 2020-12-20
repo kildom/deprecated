@@ -13,6 +13,6 @@ typedef enum {
 
 EXTERN PacketType parsePacket();
 EXTERN void sendCaught();
-EXTERN void sendResponse();
+EXTERN void sendResponse(uint8_t size);
 
 #endif

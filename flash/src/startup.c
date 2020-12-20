@@ -43,6 +43,7 @@ void startRamApp()
 __attribute__((noinline))
 static void prepare()
 {
+	// TODO: go to recovery-bootloader always if bootloader magic value is invalid
 	extern uint8_t __begin_rambss;
 	extern uint8_t __end_rambss;
 	uint32_t reas = NRF_POWER->RESETREAS;

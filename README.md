@@ -16,7 +16,7 @@ Main features of the bootloader:
 Comonents
 ---------
 
-[![Alt text](doc/Components.svg)](https://kildom.github.io/drawio/#doc/Components.svg)
+[![Alt text](doc/img/Components.svg)](https://kildom.github.io/drawio/#doc/img/Components.svg)
 
 - First stage bootloader (**`flash/`** directory)
   - Located on the second (unused) half of MBR

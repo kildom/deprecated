@@ -3,16 +3,12 @@
 
 typedef enum {
     GET_DEVICE_INFO = 0x00,
-    GET_STATUS = 0x01,
-    GET_HASH = 0x02,
-    START_APP = 0x03,
-    WRITE_BLOCK = 0x100,
+    WRITE_BLOCK = 0x01,
+    GET_STATUS = 0x02,
+    GET_HASH = 0x03,
+    START_APP = 0x04,
+    START_MBR = 0x05,
 } RequestType;
-
-extern uint8_t __begin_ramapp;
-extern uint8_t __end_ramapp;
-static uint8_t blockBitmap[MAX_BLOCK_COUNT / 8];
-static uint16_t blocksReceived = 0;
 
 typedef struct
 {
@@ -25,11 +21,17 @@ typedef struct
     uint16_t hwid;
 } DeviceInfoHeader;
 
+extern uint8_t __begin_ramapp[MAX_BLOCK_COUNT * BLOCK_SIZE];
+extern uint8_t __end_ramapp[1];
+static uint8_t blockBitmap[MAX_BLOCK_COUNT / 8];
+static uint16_t blocksReceived = 0;
+
 
 static void sendDeviceInfo()
 {
-    uint8_t* buffer = getPacket();
+    uint8_t* buffer = getSendBuffer();
     uint8_t* ptr = buffer;
+    uint8_t* nameEnd;
     uint32_t blocks;
     DeviceInfoHeader header;
 
@@ -37,7 +39,7 @@ static void sendDeviceInfo()
 
     header.pagesAndAddrType = NRF_FICR->CODESIZE | ((NRF_FICR->DEVICEADDRTYPE & 1) << 15);
     header.blocksPerPage = NRF_FICR->CODEPAGESIZE / BLOCK_SIZE;
-    blocks = (&__end_ramapp - &__begin_ramapp) / BLOCK_SIZE;
+    blocks = (__end_ramapp - __begin_ramapp) / BLOCK_SIZE;
     header.blocksRamApp = blocks <= MAX_BLOCK_COUNT ? blocks - 1 : MAX_BLOCK_COUNT - 1;
     header.deviveId[0] = NRF_FICR->DEVICEID[0];
     header.deviveId[1] = NRF_FICR->DEVICEID[1];
@@ -49,7 +51,8 @@ static void sendDeviceInfo()
     ptr += sizeof(header);
 
     copyMem(ptr, conf.name, sizeof(conf.name));
-    while (*ptr != 0 && ptr < (uint8_t*)conf.name + sizeof(conf.name))
+    nameEnd = ptr + sizeof(conf.name);
+    while (*ptr != 0 && ptr < nameEnd)
     {
         ptr++;
     }
@@ -59,16 +62,18 @@ static void sendDeviceInfo()
 
 static void sendStatus()
 {
-    uint8_t* buffer = getPacket();
+    uint8_t* buffer = getSendBuffer();
     uint32_t bytes = (blocksReceived + 7) / 8;
+
     copyMem(&buffer[2], blockBitmap, bytes);
     sendResponse(2 + bytes);
 }
 
 static void sendHash()
 {
-    uint8_t* buffer = getPacket();
-    aes_hash(&__begin_ramapp, blocksReceived * BLOCK_SIZE, &buffer[2]);
+    uint8_t* buffer = getSendBuffer();
+
+    aes_hash(__begin_ramapp, blocksReceived * BLOCK_SIZE, &buffer[2]);
     sendResponse(2 + 16);
     zeroMem(blockBitmap, sizeof(blockBitmap));
     blocksReceived = 0;
@@ -76,11 +81,11 @@ static void sendHash()
 
 static void writeBlock()
 {
-    uint8_t* buffer = getPacket();
+    uint8_t* buffer = getRecvBuffer();
     uint32_t blockNumber = buffer[4];
-    uint8_t* ptr = &__begin_ramapp + blockNumber * BLOCK_SIZE;
+    uint8_t* ptr = __begin_ramapp + blockNumber * BLOCK_SIZE;
 
-    if (ptr + BLOCK_SIZE > &__end_ramapp)
+    if (ptr + BLOCK_SIZE > __end_ramapp)
     {
         return;
     }
@@ -95,18 +100,10 @@ static void writeBlock()
 
 bool executeRequest()
 {
-    uint8_t* buffer = getPacket();
-    uint32_t size = getPacketSize();
+    uint8_t* buffer = getRecvBuffer();
     RequestType type;
-
-    if (size == 5 + BLOCK_SIZE)
-    {
-        type = WRITE_BLOCK;
-    }
-    else
-    {
-        type = buffer[4];
-    }
+    
+    type = buffer[4];
 
     switch (type)
     {
@@ -121,6 +118,9 @@ bool executeRequest()
         break;
     case START_APP:
         return false;
+        break;
+    case START_MBR:
+        shutdown();
         break;
     case WRITE_BLOCK:
         writeBlock();
