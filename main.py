@@ -8,11 +8,12 @@ class CalcLexer(Lexer):
     tokens = {
         NAME, NUMBER, IF, ELSE, FUNCTION, DELEGATE, VAR, STRUCT,
         WHILE, DO, BREAK, CONTINUE, SWITCH, CASE, DEFAULT,
-        ENUM, FOR, RETURN }
+        ENUM, FOR, RETURN, IMPORT }
     ignore = ' \t\r\n'
     literals = { '=', '+', '-', '*', '/', '(', ')', ';', '.', ',', '[', ']', "&", '{', '}', ':' }
 
     # Tokens
+    IMPORT = 'import'
     RETURN = 'return'
     FOR = 'for'
     ENUM = 'enum'
@@ -69,6 +70,14 @@ class CalcParser(Parser):
     @_('statement')
     def module_statement(self, p):
         return p.statement
+
+    @_('IMPORT dotted_name ";"')
+    def module_statement(self, p):
+        return f'import {p.dotted_name}'
+
+    @_('IMPORT NAME "=" dotted_name ";"')
+    def module_statement(self, p):
+        return f'import {p.dotted_name} as {p.NAME}'
 
     @_('empty')
     def params(self, p):
@@ -464,6 +473,8 @@ for (a;a;a)
 }
 return;
 return 12;
+import a.some;
+import some = a.b.some;
 '''
 
 lexer = CalcLexer()
