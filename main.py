@@ -64,10 +64,11 @@ class UVMSLexer(Lexer):
     ELSE = 'else'
     NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
 
-    @_(r'\d+')
-    def NUMBER(self, t):
-        t.value = int(t.value)
-        return t
+    HEX_NUMBER = r'0[Xx][\da-fA-F]+'
+    OCT_NUMBER = r'0[Oo][0-7]+'
+    BIN_NUMBER = r'0[Bb][01]+'
+    INV_NUMBER = r'0\d+'
+    DEC_NUMBER = r'\d+'
 
     def error(self, t):
         print("Illegal character '%s'" % t.value[0])
