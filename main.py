@@ -1,18 +1,50 @@
 from sly import Lexer, Parser
 import sly
+import sys
 
-sly.yacc.YaccProduction
+class SlyLoggerFilter(object):
+    def warning(self, msg, *args, **kwargs):
+        text = 'WARNING: ' + (msg % args) + '\n'
+        #if text == 'WARNING: 2 shift/reduce conflicts\n' and self.f == sys.stderr:
+        #    return
+        SlyLoggerFilter.old(self, msg, *args, **kwargs)
 
-class CalcLexer(Lexer):
+SlyLoggerFilter.old = sly.yacc.SlyLogger.warning
+sly.yacc.SlyLogger.warning = SlyLoggerFilter.warning
+
+class UVMSLexer(Lexer):
     _ = _
     tokens = {
         NAME, NUMBER, IF, ELSE, FUNCTION, DELEGATE, VAR, STRUCT,
         WHILE, DO, BREAK, CONTINUE, SWITCH, CASE, DEFAULT,
-        ENUM, FOR, RETURN, IMPORT }
+        ENUM, FOR, RETURN, IMPORT, LE, GE, EQ, NE,
+        TRY, CATCH, FINALLY, NEW, DELETE, PP, MM, AND, OR, SHL, SHR, THROW, CMP_ASSIGN, XOR }
     ignore = ' \t\r\n'
-    literals = { '=', '+', '-', '*', '/', '(', ')', ';', '.', ',', '[', ']', "&", '{', '}', ':' }
+    literals = {
+        '=', '+', '-', '*', '/',
+        '(', ')', ';', '.', ',', '[', ']', "&", '{', '}',
+        ':', '<', '>', '`', '~', '@'
+    }
 
     # Tokens
+    CMP_ASSIGN = r'\+=|-=|\*=|\/=|%=|>>=|<<=|&=|\^=|\|=|&&=|\^\^=|\|\|='
+    SHL = '<<'
+    SHR = '>>'
+    AND = '&&'
+    OR = r'\|\|'
+    XOR = r'\^\^'
+    PP = '\+\+'
+    MM = '--'
+    GE = '>='
+    LE = '<='
+    EQ = '=='
+    NE = '!='
+    THROW = 'throw'
+    NEW = 'new'
+    DELETE = 'delete'
+    TRY = 'try'
+    CATCH = 'catch'
+    FINALLY = 'finally'
     IMPORT = 'import'
     RETURN = 'return'
     FOR = 'for'
@@ -41,16 +73,26 @@ class CalcLexer(Lexer):
         print("Illegal character '%s'" % t.value[0])
         self.index += 1
 
-class CalcParser(Parser):
+class UVMSParser(Parser):
     _ = _
     debugfile = 'parser.out'
-    tokens = CalcLexer.tokens
+    tokens = UVMSLexer.tokens
 
     precedence = (
         ('right', 'ELSE', 'IFPREC'),
+        ('left', ':'),
+        ('left', 'OR'),
+        ('left', 'XOR'),
+        ('left', 'AND'),
+        ('left', '|'),
+        ('left', '^'),
+        ('left', '&'),
+        ('left', 'EQ', 'NE'),
+        ('left', '<', 'LE', '>', 'GE'),
+        ('left', 'SHL', 'SHR'),
         ('left', '+', '-'),
-        ('left', '*', '/'),
-        ('right', 'UMINUS'),
+        ('left', '*', '/', '%'),
+        ('right', 'UMINUS', 'UPLUS'),
         ('left', 'DOTTED_NAME_PREC'),
         ('left', '.'),
         ('left', '('),
@@ -114,6 +156,10 @@ class CalcParser(Parser):
     @_('typedef "&"')
     def typedef(self, p):
         return f'ref({p.typedef})'
+
+    @_('typedef AND')
+    def typedef(self, p):
+        return f'ref-ref({p.typedef}))'
 
     @_('typedef "[" "]"')
     def typedef(self, p):
@@ -223,6 +269,30 @@ class CalcParser(Parser):
     def statement(self, p):
         return p.statement_with_semicolon
 
+    @_('TRY "{" block "}" catch_list')
+    def statement_without_semicolon(self, p):
+        return f'try {p.block} {p.catch_list}'
+
+    @_('catch_list catch')
+    def catch_list(self, p):
+        return f'{p.catch_list} {p.catch}'
+
+    @_('catch')
+    def catch_list(self, p):
+        return p.catch
+
+    @_('CATCH "(" expr ")" statement')
+    def catch(self, p):
+        return f'catch ({p.expr}) {p.statement}'
+
+    @_('CATCH "(" ")" statement')
+    def catch(self, p):
+        return f'catch ([ALL]) {p.statement}'
+
+    @_('FINALLY statement')
+    def catch(self, p):
+        return f'finally {p.statement}'
+
     @_('IF "(" expr ")" statement %prec IFPREC')
     def statement_without_semicolon(self, p):
         return f'[ if {p.expr} then {p.statement} ]'
@@ -243,29 +313,29 @@ class CalcParser(Parser):
     def cases(self, p):
         return f'{p.cases} ;; {p.case}'
 
-    @_('block')
-    def block_or_empty(self, p):
-        return p.block
-
-    @_('empty')
-    def block_or_empty(self, p):
-        return '[[empty case]]'
-
-    @_('CASE expr ":" block_or_empty')
+    @_('CASE expr ":" block')
     def case(self, p):
-        return f'case {p.expr}: {p.block_or_empty}'
+        return f'case {p.expr}: {p.block}'
 
-    @_('DEFAULT ":" block_or_empty')
+    @_('DEFAULT ":" block')
     def case(self, p):
-        return f'default: {p.block_or_empty}'
+        return f'default: {p.block}'
 
-    @_('FOR "(" statement expr ";" loop_statement ")" statement')
+    @_('FOR "(" loop_init expr ";" loop_statement ")" statement')
     def statement_without_semicolon(self, p):
-        return f'for ({p.statement0} ;; {p.expr} ;; {p.loop_statement}) << {p.statement1} >>'
+        return f'for ({p.loop_init} ;; {p.expr} ;; {p.loop_statement}) << {p.statement} >>'
 
-    @_('FOR "(" statement ";" loop_statement ")" statement')
+    @_('FOR "(" loop_init ";" loop_statement ")" statement')
     def statement_without_semicolon(self, p):
-        return f'for ({p.statement0} ;; [[forever]] ;; {p.loop_statement}) << {p.statement1} >>'
+        return f'for ({p.loop_init} ;; [[forever]] ;; {p.loop_statement}) << {p.statement} >>'
+
+    @_('statement_without_semicolon ";"')
+    def loop_init(self, p):
+        return p.statement_without_semicolon
+
+    @_('statement_with_semicolon ";"')
+    def loop_init(self, p):
+        return p.statement_with_semicolon
 
     @_('statement_without_semicolon')
     def loop_statement(self, p):
@@ -287,6 +357,14 @@ class CalcParser(Parser):
     def statement_with_semicolon(self, p):
         return f'[ continue ]'
 
+    @_('THROW expr "," expr')
+    def statement_with_semicolon(self, p):
+        return f'[ throw {p.expr0}, {p.expr1} ]'
+
+    @_('THROW expr')
+    def statement_with_semicolon(self, p):
+        return f'[ throw {p.expr} ]'
+
     @_('break_list CONTINUE')
     def statement_with_semicolon(self, p):
         return f'[ break {str(p.break_list)} and continue ]'
@@ -303,13 +381,33 @@ class CalcParser(Parser):
     def break_list(self, p):
         return p.break_list + 1
 
-    @_('NAME "=" expr')
-    def statement_with_semicolon(self, p):
-        return f'[ {p.NAME} = {p.expr} ]'
+    @_('NAME')
+    def lexpr(self, p):
+        return p.NAME
 
-    @_('expr "." NAME "=" expr')
+    @_('expr "." NAME')
+    def lexpr(self, p):
+        return f'{p.expr} . {p.NAME}'
+
+    @_('expr "[" expr "]"')
+    def lexpr(self, p):
+        return f'{p.expr0} [ {p.expr1} ]'
+
+    @_('lexpr "=" expr')
     def statement_with_semicolon(self, p):
-        return f'[ {p.expr0} . {p.NAME} = {p.expr1} ]'
+        return f'[ {p.lexpr} = {p.expr} ]'
+
+    @_('lexpr CMP_ASSIGN expr')
+    def statement_with_semicolon(self, p):
+        return f'[ {p.lexpr} {p.CMP_ASSIGN} {p.expr} ]'
+
+    @_('lexpr PP')
+    def statement_with_semicolon(self, p):
+        return f'[ {p.lexpr} ++ ]'
+
+    @_('lexpr MM')
+    def statement_with_semicolon(self, p):
+        return f'[ {p.lexpr} -- ]'
 
     @_('VAR typedef NAME')
     def statement_with_semicolon(self, p):
@@ -323,6 +421,14 @@ class CalcParser(Parser):
     def statement_without_semicolon(self, p):
         return f'[[[\n{p.block}\n]]]'
 
+    @_('NEW "(" typedef ")"')
+    def expr(self, p):
+        return f'new {p.typedef}'
+
+    @_('DELETE "(" expr ")"')
+    def statement_with_semicolon(self, p):
+        return f'delete {p.expr}'
+
     @_('RETURN')
     def statement_with_semicolon(self, p):
         return f'return'
@@ -331,9 +437,9 @@ class CalcParser(Parser):
     def statement_with_semicolon(self, p):
         return f'return {p.expr}'
 
-    @_('statement')
+    @_('empty')
     def block(self, p):
-        return p.statement
+        return ''
 
     @_('block statement')
     def block(self, p):
@@ -363,6 +469,10 @@ class CalcParser(Parser):
     def expr(self, p):
         return f'[ {p.expr} (( {p.args} )) ]'
 
+    @_('expr "[" expr "]"')
+    def expr(self, p):
+        return f'[ {p.expr} [[ {p.expr} ]] ]'
+
     @_('expr "." NAME')
     def expr(self, p):
         return f'[ {p.expr} . {p.NAME} ]'
@@ -374,6 +484,10 @@ class CalcParser(Parser):
     @_('expr')
     def statement_with_semicolon(self, p):
         return p.expr
+
+    @_('expr "?" expr ":" expr')
+    def expr(self, p):
+        return f'[ {p.expr0} + {p.expr1} ]'
 
     @_('expr "+" expr')
     def expr(self, p):
@@ -391,12 +505,96 @@ class CalcParser(Parser):
     def expr(self, p):
         return f'[ {p.expr0} / {p.expr1} ]'
 
+    @_('expr "%" expr')
+    def expr(self, p):
+        return f'[ {p.expr0} % {p.expr1} ]'
+
+    @_('expr "<" expr')
+    def expr(self, p):
+        return f'[ {p.expr0} < {p.expr1} ]'
+
+    @_('expr LE expr')
+    def expr(self, p):
+        return f'[ {p.expr0} <= {p.expr1} ]'
+
+    @_('expr ">" expr')
+    def expr(self, p):
+        return f'[ {p.expr0} > {p.expr1} ]'
+
+    @_('expr GE expr')
+    def expr(self, p):
+        return f'[ {p.expr0} >= {p.expr1} ]'
+
+    @_('expr EQ expr')
+    def expr(self, p):
+        return f'[ {p.expr0} == {p.expr1} ]'
+
+    @_('expr NE expr')
+    def expr(self, p):
+        return f'[ {p.expr0} != {p.expr1} ]'
+
+    @_('expr "&" expr')
+    def expr(self, p):
+        return f'[ {p.expr0} & {p.expr1} ]'
+
+    @_('expr "|" expr')
+    def expr(self, p):
+        return f'[ {p.expr0} | {p.expr1} ]'
+
+    @_('expr "^" expr')
+    def expr(self, p):
+        return f'[ {p.expr0} ^{p.expr1} ]'
+
+    @_('expr AND expr')
+    def expr(self, p):
+        return f'[ {p.expr0} && {p.expr1} ]'
+
+    @_('expr OR expr')
+    def expr(self, p):
+        return f'[ {p.expr0} || {p.expr1} ]'
+
+    @_('expr XOR expr')
+    def expr(self, p):
+        return f'[ {p.expr0} ^^ {p.expr1} ]'
+
+    @_('expr SHR expr')
+    def expr(self, p):
+        return f'[ {p.expr0} >> {p.expr1} ]'
+
+    @_('expr SHL expr')
+    def expr(self, p):
+        return f'[ {p.expr0} << {p.expr1} ]'
+
     @_('"-" expr %prec UMINUS')
     def expr(self, p):
         return f'[ -{p.expr} ]'
 
-    @_('"(" expr ")"')
+    @_('"+" expr %prec UPLUS')
     def expr(self, p):
+        return f'[ +{p.expr} ]'
+
+    @_('"!" expr %prec UPLUS')
+    def expr(self, p):
+        return f'[ !{p.expr} ]'
+
+    @_('"~" expr %prec UPLUS')
+    def expr(self, p):
+        return f'[ ~{p.expr} ]'
+
+    @_('"&" expr %prec UPLUS')
+    def expr(self, p):
+        return f'[ ref {p.expr} ]'
+
+    @_('expr "@" typedef')
+    def expr(self, p):
+        return f'[ ((({p.typedef}))){p.expr} ]'
+
+    @_('brackets')
+    def expr(self, p):
+        return f'[ {p.brackets} ]'
+
+    @_('"(" expr ")"')
+    def brackets(self, p):
         return f'[ ( {p.expr} ) ]'
 
     @_('NUMBER')
@@ -412,73 +610,17 @@ class CalcParser(Parser):
 
 
 text = '''
-if (x) if (a) b; else c; else d;
-a.b.c = 1;
-(2 + 2).sum = 123.add.some.yuu.hjhg(123);
-f();
-f(1);
-f(1,2+1,3+b,-f(123,33));
-a = b.c;
-function f(mod.a(x)&[5] b)
-{
-    a = 1;
-    b = b + 1;
-}
-var int(8)& a;
-a.b + 1;
-union a : a.b {
-    int a;
-    byte(4) str;
-    function get(int x) {
-        a = 1;
-    }
-    union {
-        int x;
-        byte some;
-        struct : data {
-            cdn s;
-        }
-    }
-}
-while (1) {
-    a = a + 1;
-}
-do
-    a = a + 1;
-while (1);
-break break continue;
-continue;
-break;
-break break;
-switch (a)
-{
-    case 1:
-        a = 2;
-        x = 1;
-        break;
-    case 3:
-    case 2:
-    case x + 3:
-        break continue;
-    default:
-}
-enum Test {
-    VAL1 = 1,
-    VAR2,
-    VAR88 = 88 + 1 + Test.x + 1,
-}
+x &&= true;
+x.y /= 13;
+x[i] ^= 33 ^^ 2;
 for (a;a;a)
 {
-    print(i);
+    aa = 12;
 }
-return;
-return 12;
-import a.some;
-import some = a.b.some;
 '''
 
-lexer = CalcLexer()
-parser = CalcParser()
+lexer = UVMSLexer()
+parser = UVMSParser()
 tokens = lexer.tokenize(text)
 tree = parser.parse(tokens)
 print(tree)
