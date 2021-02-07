@@ -23,7 +23,7 @@ class UVMSLexer(Lexer):
         NAME, IF, ELSE, FUNCTION, DELEGATE, VAR, STRUCT,
         WHILE, DO, BREAK, CONTINUE, SWITCH, CASE, DEFAULT,
         ENUM, FOR, RETURN, IMPORT, LE, GE, EQ, NE,
-        TRY, CATCH, FINALLY, NEW, DELETE, PP, MM, AND, OR, SHL, SHR, THROW, CMP_ASSIGN, XOR }
+        TRY, CATCH, FINALLY, NEW, DELETE, PP, MM, AND, OR, SHL, SHR, THROW, CMP_ASSIGN }
     ignore = ' \t\r\n'
     literals = {
         '=', '+', '-', '*', '/',
@@ -32,12 +32,11 @@ class UVMSLexer(Lexer):
     }
 
     # Tokens
-    CMP_ASSIGN = r'\+=|-=|\*=|\/=|%=|>>=|<<=|&=|\^=|\|=|&&=|\^\^=|\|\|='
+    CMP_ASSIGN = r'\+=|-=|\*=|\/=|%=|>>=|<<=|&=|\^=|\|=|&&=|\|\|='
     SHL = '<<'
     SHR = '>>'
     AND = '&&'
     OR = r'\|\|'
-    XOR = r'\^\^'
     PP = '\+\+'
     MM = '--'
     GE = '>='
@@ -96,7 +95,6 @@ class UVMSParser(Parser):
         ('right', 'ELSE', 'IFPREC'),
         ('left', ':'),
         ('left', 'OR'),
-        ('left', 'XOR'),
         ('left', 'AND'),
         ('left', '|'),
         ('left', '^'),
@@ -355,11 +353,11 @@ class UVMSParser(Parser):
 
     @_('FOR "(" loop_init expr ";" loop_statement ")" statement')
     def statement_without_semicolon(self, p):
-        return f'for ({p.loop_init} ;; {p.expr} ;; {p.loop_statement}) << {p.statement} >>'
+        return NS(T='For', init=p.loop_init, condition=p.expr, iteration=p.loop_statement, body=p.statement)
 
     @_('FOR "(" loop_init ";" loop_statement ")" statement')
     def statement_without_semicolon(self, p):
-        return f'for ({p.loop_init} ;; [[forever]] ;; {p.loop_statement}) << {p.statement} >>'
+        return NS(T='For', init=p.loop_init, condition=None, iteration=p.loop_statement, body=p.statement)
 
     @_('statement_without_semicolon ";"')
     def loop_init(self, p):
@@ -379,11 +377,11 @@ class UVMSParser(Parser):
 
     @_('WHILE "(" expr ")" statement')
     def statement_without_semicolon(self, p):
-        return f'[ while {p.expr} then {p.statement} ]'
+        return NS(T='While', condition=p.expr, body=p.statement)
 
     @_('DO statement WHILE "(" expr ")"')
     def statement_without_semicolon(self, p):
-        return f'[ {p.statement} when {p.expr} ]'
+        return NS(T='DoWhile', condition=p.expr, body=p.statement)
 
     @_('CONTINUE')
     def statement_with_semicolon(self, p):
@@ -391,11 +389,11 @@ class UVMSParser(Parser):
 
     @_('THROW expr "," expr')
     def statement_with_semicolon(self, p):
-        return f'[ throw {p.expr0}, {p.expr1} ]'
+        return NS(T='Throw', type=p.expr0, code=p.expr1)
 
     @_('THROW expr')
     def statement_with_semicolon(self, p):
-        return f'[ throw {p.expr} ]'
+        return NS(T='Throw', type=p.expr, code=None)
 
     @_('break_list CONTINUE')
     def statement_with_semicolon(self, p):
@@ -414,36 +412,36 @@ class UVMSParser(Parser):
         return p.break_list + 1
 
     @_('NAME')
-    def lexpr(self, p):
-        return p.NAME
+    def assignee(self, p):
+        return NS(T='DirectAssignee', name=p.NAME)
 
     @_('expr "." NAME')
-    def lexpr(self, p):
-        return f'{p.expr} . {p.NAME}'
+    def assignee(self, p):
+        return NS(T='FieldAssignee', object=p.expr, name=p.NAME)
 
     @_('expr "[" expr "]"')
-    def lexpr(self, p):
-        return f'{p.expr0} [ {p.expr1} ]'
+    def assignee(self, p):
+        return NS(T='ItemAssignee', array=p.expr0, index=p.expr1)
 
-    @_('lexpr "=" expr')
+    @_('assignee "=" expr')
     def statement_with_semicolon(self, p):
-        return f'[ {p.lexpr} = {p.expr} ]'
+        return NS(T='Assign', assignee=p.assignee, value=p.expr)
 
-    @_('lexpr CMP_ASSIGN expr')
+    @_('assignee CMP_ASSIGN expr')
     def statement_with_semicolon(self, p):
-        return f'[ {p.lexpr} {p.CMP_ASSIGN} {p.expr} ]'
+        return NS(T='CompoundAssign', op=p.CMP_ASSIGN[0:-1], assignee=p.assignee, value=p.expr)
 
-    @_('lexpr PP')
+    @_('assignee PP')
     def statement_with_semicolon(self, p):
-        return f'[ {p.lexpr} ++ ]'
+        return NS(T='IncDecAssign', op='++', assignee=p.assignee)
 
-    @_('lexpr MM')
+    @_('assignee MM')
     def statement_with_semicolon(self, p):
-        return f'[ {p.lexpr} -- ]'
+        return NS(T='IncDecAssign', op='--', assignee=p.assignee)
 
     @_('VAR typedef NAME')
     def statement_with_semicolon(self, p):
-        return f'[ {p.NAME} = {p.typedef} ]'
+        return NS(T='Variable', name=p.NAME, type=p.typedef)
 
     @_('DELEGATE NAME "(" params ")" ";"')
     def module_statement(self, p):
@@ -455,7 +453,7 @@ class UVMSParser(Parser):
 
     @_('"{" block "}"')
     def statement_without_semicolon(self, p):
-        return f'[[[\n{p.block}\n]]]'
+        return NS(T='Block', body=p.block)
 
     @_('NEW "(" typedef ")"')
     def expr(self, p):
@@ -463,23 +461,25 @@ class UVMSParser(Parser):
 
     @_('DELETE "(" expr ")"')
     def statement_with_semicolon(self, p):
-        return f'delete {p.expr}'
+        return NS(T='Delete', value=p.expr)
 
     @_('RETURN')
     def statement_with_semicolon(self, p):
-        return f'return'
+        return NS(T='Return', value=None)
 
     @_('RETURN expr')
     def statement_with_semicolon(self, p):
-        return f'return {p.expr}'
+        return NS(T='Return', value=p.expr)
 
     @_('empty')
     def block(self, p):
-        return ''
+        return [ ]
 
     @_('block statement')
     def block(self, p):
-        return f'{p.block}\n{p.statement}'
+        if p.statement.T != 'Empty':
+            p.block.append(p.statement)
+        return p.block
 
     @_('')
     def empty(self, p):
@@ -515,177 +515,165 @@ class UVMSParser(Parser):
 
     @_('empty')
     def statement_with_semicolon(self, p):
-        return f'[ empty stmt ]'
+        return NS(T='Empty')
 
     @_('expr')
     def statement_with_semicolon(self, p):
-        return p.expr
+        return NS(T='ExpressionStatement', expr=p.expr)
 
     @_('expr "?" expr ":" expr')
     def expr(self, p):
-        return f'[ {p.expr0} + {p.expr1} ]'
+        return NS(T='Conditional', condition=p.expr0, then=p.expr1, otherwise=p.expr2)
 
     @_('expr "+" expr')
     def expr(self, p):
-        return f'[ {p.expr0} + {p.expr1} ]'
+        return NS(T='AddOperator', left=p.expr0, right=p.expr1)
 
     @_('expr "-" expr')
     def expr(self, p):
-        return f'[ {p.expr0} - {p.expr1} ]'
+        return NS(T='SubOperator', left=p.expr0, right=p.expr1)
 
     @_('expr "*" expr')
     def expr(self, p):
-        return f'[ {p.expr0} * {p.expr1} ]'
+        return NS(T='MulOperator', left=p.expr0, right=p.expr1)
 
     @_('expr "/" expr')
     def expr(self, p):
-        return f'[ {p.expr0} / {p.expr1} ]'
+        return NS(T='DivOperator', left=p.expr0, right=p.expr1)
 
     @_('expr "%" expr')
     def expr(self, p):
-        return f'[ {p.expr0} % {p.expr1} ]'
+        return NS(T='ModOperator', left=p.expr0, right=p.expr1)
 
     @_('expr "<" expr')
     def expr(self, p):
-        return f'[ {p.expr0} < {p.expr1} ]'
+        return NS(T='CompareOperator', op='<', left=p.expr0, right=p.expr1)
 
     @_('expr LE expr')
     def expr(self, p):
-        return f'[ {p.expr0} <= {p.expr1} ]'
+        return NS(T='CompareOperator', op='<=', left=p.expr0, right=p.expr1)
 
     @_('expr ">" expr')
     def expr(self, p):
-        return f'[ {p.expr0} > {p.expr1} ]'
+        return NS(T='CompareOperator', op='>', left=p.expr0, right=p.expr1)
 
     @_('expr GE expr')
     def expr(self, p):
-        return f'[ {p.expr0} >= {p.expr1} ]'
+        return NS(T='CompareOperator', op='>=', left=p.expr0, right=p.expr1)
 
     @_('expr EQ expr')
     def expr(self, p):
-        return f'[ {p.expr0} == {p.expr1} ]'
+        return NS(T='CompareOperator', op='==', left=p.expr0, right=p.expr1)
 
     @_('expr NE expr')
     def expr(self, p):
-        return f'[ {p.expr0} != {p.expr1} ]'
+        return NS(T='CompareOperator', op='!=', left=p.expr0, right=p.expr1)
 
     @_('expr "&" expr')
     def expr(self, p):
-        return f'[ {p.expr0} & {p.expr1} ]'
+        return NS(T='BitAndOperator', left=p.expr0, right=p.expr1)
 
     @_('expr "|" expr')
     def expr(self, p):
-        return f'[ {p.expr0} | {p.expr1} ]'
+        return NS(T='BitOrOperator', left=p.expr0, right=p.expr1)
 
     @_('expr "^" expr')
     def expr(self, p):
-        return f'[ {p.expr0} ^{p.expr1} ]'
+        return NS(T='BitXorOperator', left=p.expr0, right=p.expr1)
 
     @_('expr AND expr')
     def expr(self, p):
-        return f'[ {p.expr0} && {p.expr1} ]'
+        return NS(T='LogicAndOperator', left=p.expr0, right=p.expr1)
 
     @_('expr OR expr')
     def expr(self, p):
-        return f'[ {p.expr0} || {p.expr1} ]'
-
-    @_('expr XOR expr')
-    def expr(self, p):
-        return f'[ {p.expr0} ^^ {p.expr1} ]'
+        return NS(T='LogicOrOperator', left=p.expr0, right=p.expr1)
 
     @_('expr SHR expr')
     def expr(self, p):
-        return f'[ {p.expr0} >> {p.expr1} ]'
+        return NS(T='ShiftRightOperator', left=p.expr0, right=p.expr1)
 
     @_('expr SHL expr')
     def expr(self, p):
-        return f'[ {p.expr0} << {p.expr1} ]'
+        return NS(T='ShiftLeftOperator', left=p.expr0, right=p.expr1)
 
     @_('"-" expr %prec UMINUS')
     def expr(self, p):
-        return f'[ -{p.expr} ]'
+        return NS(T='MinusOperator', left=p.expr)
 
     @_('"+" expr %prec UPLUS')
     def expr(self, p):
-        return f'[ +{p.expr} ]'
+        return NS(T='PlusOperator', left=p.expr)
 
     @_('"!" expr %prec UPLUS')
     def expr(self, p):
-        return f'[ !{p.expr} ]'
+        return NS(T='NotOperator', left=p.expr)
 
     @_('"~" expr %prec UPLUS')
     def expr(self, p):
-        return f'[ ~{p.expr} ]'
+        return NS(T='BitInversionOperator', left=p.expr)
 
     @_('"&" expr %prec UPLUS')
     def expr(self, p):
-        return f'[ ref {p.expr} ]'
+        return NS(T='ReferenceOperator', left=p.expr)
 
     @_('expr "@" typedef')
     def expr(self, p):
-        return f'[ ((({p.typedef}))){p.expr} ]'
+        return NS(T='TypeCast', value=p.expr, type=p.typedef)
 
     @_('brackets')
     def expr(self, p):
-        return f'[ {p.brackets} ]'
+        return p.brackets
 
     @_('"(" expr ")"')
     def brackets(self, p):
-        return f'[ ( {p.expr} ) ]'
+        return p.expr
 
     @_('HEX_NUMBER')
-    def number(self, p):
-        return str(p.HEX_NUMBER)
+    def expr(self, p):
+        return NS(T='IntLiteral', base=16, value=p.HEX_NUMBER[2:])
 
     @_('OCT_NUMBER')
-    def number(self, p):
-        return str(p.OCT_NUMBER)
+    def expr(self, p):
+        return NS(T='IntLiteral', base=8, value=p.OCT_NUMBER[2:])
 
     @_('BIN_NUMBER')
-    def number(self, p):
-        return str(p.BIN_NUMBER)
+    def expr(self, p):
+        return NS(T='IntLiteral', base=2, value=p.BIN_NUMBER[2:])
 
     @_('DEC_NUMBER')
-    def number(self, p):
-        return str(p.DEC_NUMBER)
+    def expr(self, p):
+        return NS(T='IntLiteral', base=10, value=p.DEC_NUMBER)
 
     @_('INV_NUMBER')
-    def number(self, p):
-        return 'INVALID'
+    def expr(self, p):
+        raise Exception('Decimal number with zero prefix is not allowed.')
 
     @_('FP_NUMBER')
-    def number(self, p):
-        return str(p.FP_NUMBER)
-
-    @_('number')
     def expr(self, p):
-        return f'`{p.number}`'
+        return NS(T='FloatLiteral', value=p.FP_NUMBER)
 
     @_('NAME')
     def expr(self, p):
-        return f'`{p.NAME}`'
+        return NS(T='Identifier', name=p.NAME)
+
+    def unescape_string(self, s):
+        s = s[1:-1]
+        return s # TODO: Unscape string
 
     @_('STRING')
     def expr(self, p):
-        return f'`{p.STRING}`'
+        return NS(T='StringLiteral', value=self.unescape_string(p.STRING))
 
     @_('CHAR')
     def expr(self, p):
-        return f'`{p.CHAR}`'
+        return NS(T='CharLiteral', value=self.unescape_string(p.CHAR))
 
     def error(*args):
         print(args)
 
 
-text = '''
-try {
-    a = 12;
-}
-catch (exception.type == StackOverflowException)
-    log("stack overflow");
-finally
-    log("Done");
-
+text = '''1e10;
 
 '''
 
