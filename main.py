@@ -166,31 +166,38 @@ class UVMSParser(Parser):
 
     @_('dotted_name')
     def typedef(self, p):
-        return f'type:{p.dotted_name}'
+        return NS(T='Type', name=p.dotted_name, postfixes=[ ])
 
     @_('typedef "&"')
     def typedef(self, p):
-        return f'ref({p.typedef})'
+        p.typedef.postfixes.append(NS(T='Ref'))
+        return p.typedef
 
     @_('typedef AND')
     def typedef(self, p):
-        return f'ref-ref({p.typedef}))'
+        p.typedef.postfixes.append(NS(T='Ref'))
+        p.typedef.postfixes.append(NS(T='Ref'))
+        return p.typedef
 
     @_('typedef "[" "]"')
     def typedef(self, p):
-        return f'array({p.typedef})'
+        p.typedef.postfixes.append(NS(T='Array', size=None))
+        return p.typedef
 
     @_('typedef "[" expr "]"')
     def typedef(self, p):
-        return f'array({p.typedef})[{p.expr}]'
+        p.typedef.postfixes.append(NS(T='Array', size=p.expr))
+        return p.typedef
 
     @_('typedef "(" ")"')
     def typedef(self, p):
-        return f'buffer({p.typedef})'
+        p.typedef.postfixes.append(NS(T='Buffer', size=None))
+        return p.typedef
 
     @_('typedef "(" expr ")"')
     def typedef(self, p):
-        return f'buffer({p.typedef})[{p.expr}]'
+        p.typedef.postfixes.append(NS(T='Buffer', size=p.expr))
+        return p.typedef
 
     @_('function')
     def module_statement(self, p):
@@ -455,11 +462,11 @@ class UVMSParser(Parser):
     def statement_without_semicolon(self, p):
         return NS(T='Block', body=p.block)
 
-    @_('NEW "(" typedef ")"')
+    @_('NEW typedef')
     def expr(self, p):
-        return f'new {p.typedef}'
+        return NS(t='New', type=p.typedef)
 
-    @_('DELETE "(" expr ")"')
+    @_('DELETE expr')
     def statement_with_semicolon(self, p):
         return NS(T='Delete', value=p.expr)
 
@@ -487,7 +494,7 @@ class UVMSParser(Parser):
 
     @_('empty')
     def args(self, p):
-        return f'[[none]]'
+        return [ ]
 
     @_('args_list')
     def args(self, p):
@@ -495,23 +502,24 @@ class UVMSParser(Parser):
 
     @_('expr')
     def args_list(self, p):
-        return p.expr
+        return [ p.expr ]
 
     @_('args_list "," expr')
     def args_list(self, p):
-        return f'{p.args_list} , {p.expr}'
+        p.args_list.append(p.expr)
+        return p.args_list
 
     @_('expr "(" args ")"')
     def expr(self, p):
-        return f'[ {p.expr} (( {p.args} )) ]'
+        return NS(T='Call', func=p.expr0, args=p.args)
 
     @_('expr "[" expr "]"')
     def expr(self, p):
-        return f'[ {p.expr} [[ {p.expr} ]] ]'
+        return NS(T='GetItem', array=p.expr0, index=p.expr1)
 
     @_('expr "." NAME')
     def expr(self, p):
-        return f'[ {p.expr} . {p.NAME} ]'
+        return NS(T='GetField', value=p.expr, name=p.NAME)
 
     @_('empty')
     def statement_with_semicolon(self, p):
@@ -599,34 +607,30 @@ class UVMSParser(Parser):
 
     @_('"-" expr %prec UMINUS')
     def expr(self, p):
-        return NS(T='MinusOperator', left=p.expr)
+        return NS(T='MinusOperator', value=p.expr)
 
     @_('"+" expr %prec UPLUS')
     def expr(self, p):
-        return NS(T='PlusOperator', left=p.expr)
+        return NS(T='PlusOperator', value=p.expr)
 
     @_('"!" expr %prec UPLUS')
     def expr(self, p):
-        return NS(T='NotOperator', left=p.expr)
+        return NS(T='NotOperator', value=p.expr)
 
     @_('"~" expr %prec UPLUS')
     def expr(self, p):
-        return NS(T='BitInversionOperator', left=p.expr)
+        return NS(T='BitInversionOperator', value=p.expr)
 
     @_('"&" expr %prec UPLUS')
     def expr(self, p):
-        return NS(T='ReferenceOperator', left=p.expr)
+        return NS(T='ReferenceOperator', value=p.expr)
 
     @_('expr "@" typedef')
     def expr(self, p):
         return NS(T='TypeCast', value=p.expr, type=p.typedef)
 
-    @_('brackets')
-    def expr(self, p):
-        return p.brackets
-
     @_('"(" expr ")"')
-    def brackets(self, p):
+    def expr(self, p):
         return p.expr
 
     @_('HEX_NUMBER')
@@ -673,7 +677,9 @@ class UVMSParser(Parser):
         print(args)
 
 
-text = '''1e10;
+text = '''
+
+delete &x;
 
 '''
 
