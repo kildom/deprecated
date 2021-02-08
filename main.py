@@ -661,13 +661,78 @@ class UVMSParser(Parser):
     def expr(self, p):
         return NS(T='Identifier', name=p.NAME)
 
+    escape_chars = {
+        'n': '\n',
+        't': '\t',
+        'v': '\v',
+        'b': '\b',
+        'r': '\r',
+        'f': '\f',
+        'a': '\a',
+        '\\': '\\',
+        '?': '?',
+        '\'': '\'',
+        '"': '"',
+        '0': '\0',
+    }
+
     def unescape_string(self, s):
-        s = s[1:-1]
-        return s # TODO: Unscape string
+        state = 'text'
+        out = ''
+        for c in s[1:-1]:
+            if state == 'text':
+                if c == '\\':
+                    state = 'escape'
+                else:
+                    out += c
+            elif state == 'escape':
+                c = c.lower()
+                if c == 'x':
+                    state = 'hex'
+                    cnt = 2
+                    value = 0
+                elif c == 'u':
+                    state = 'hex'
+                    cnt = 4
+                    value = 0
+                elif c in UVMSParser.escape_chars:
+                    out += UVMSParser.escape_chars[c]
+                    state = 'text'
+                else:
+                    raise Exception('Unexpected escape sequence')
+            elif state == 'hex':
+                c = c.lower()
+                if c in '0123456789':
+                    x = ord(c) - ord('0')
+                elif c in 'abcdef':
+                    x = ord(c) - ord('a') + 10
+                elif c == 'u':
+                    cnt += 2
+                    continue
+                else:
+                    raise Exception('Invalid hexidecimal sequence')
+                value <<= 4
+                value |= x
+                cnt -= 1
+                if cnt == 0:
+                    out += chr(value)
+                    state = 'text'
+        if state != 'text':
+            raise Exception('Unexpected end of string')
+        return out
 
     @_('STRING')
-    def expr(self, p):
+    def strings(self, p):
         return NS(T='StringLiteral', value=self.unescape_string(p.STRING))
+
+    @_('strings STRING')
+    def strings(self, p):
+        p.strings.value += self.unescape_string(p.STRING)
+        return p.strings
+
+    @_('strings')
+    def expr(self, p):
+        return p.strings
 
     @_('CHAR')
     def expr(self, p):
@@ -679,7 +744,7 @@ class UVMSParser(Parser):
 
 text = '''
 
-delete &x;
+"str\\uu09237F" "str";
 
 '''
 
