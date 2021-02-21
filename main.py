@@ -14,6 +14,10 @@ class SlyLoggerFilter(object):
 SlyLoggerFilter.old = sly.yacc.SlyLogger.warning
 sly.yacc.SlyLogger.warning = SlyLoggerFilter.warning
 
+class ErrorReport:
+    def error(self, text, loc):
+        print(f'{loc}:error: {text}') # TODO: put it into stderr
+
 
 class UVMSLexer(Lexer):
     _ = _
@@ -30,6 +34,10 @@ class UVMSLexer(Lexer):
         '(', ')', ';', '.', ',', '[', ']', "&", '{', '}',
         ':', '<', '>', '`', '~', '@', '?'
     }
+
+    ignore_hash_comment = r'\#[^\r\n]*'
+    ignore_oneline_comment = r'\/\/[^\r\n]*'
+    ignore_multiline_comment = r'\/\*[\s\S]*?\*\/'
 
     # Tokens
     CMP_ASSIGN = r'\+=|-=|\*=|\/=|%=|>>=|<<=|&=|\^=|\|=|&&=|\|\|='
@@ -77,8 +85,12 @@ class UVMSLexer(Lexer):
     INV_NUMBER = r'0\d+'
     DEC_NUMBER = r'\d+'
 
+    def __init__(self):
+        super().__init__()
+        self.rep = ErrorReport()
+
     def error(self, t):
-        print("Illegal character '%s'" % t.value[0])
+        self.rep.error(f'Illegal character `{t.value[0]}`', t.index)
         self.index += 1
 
 class NS:
@@ -106,7 +118,7 @@ class NS:
             self.loc = m
             self._loc_begin = m
         else:
-             raise Exception('Internal error')
+            raise Exception('Internal error') # TODO: make sure that this will never happen
 
 class UVMSParser(Parser):
     _ = _
@@ -133,7 +145,8 @@ class UVMSParser(Parser):
         )
 
     def __init__(self):
-        self.names = { }
+        super().__init__()
+        self.rep = ErrorReport()
 
     @_('module_statement')
     def module(self, p):
@@ -697,7 +710,8 @@ class UVMSParser(Parser):
 
     @_('INV_NUMBER')
     def expr(self, p):
-        raise Exception('Decimal number with zero prefix is not allowed.')
+        self.rep.error('Decimal number with zero prefix is not allowed.', p.index)
+        return NS(p, T='IntLiteral', base=10, value='0')
 
     @_('FP_NUMBER')
     def expr(self, p):
@@ -722,10 +736,11 @@ class UVMSParser(Parser):
         '0': '\0',
     }
 
-    def unescape_string(self, s):
+    def unescape_string(self, s, loc):
         state = 'text'
         out = ''
         for c in s[1:-1]:
+            loc += 1
             if state == 'text':
                 if c == '\\':
                     state = 'escape'
@@ -745,7 +760,9 @@ class UVMSParser(Parser):
                     out += UVMSParser.escape_chars[c]
                     state = 'text'
                 else:
-                    raise Exception('Unexpected escape sequence')
+                    self.rep.error('Unexpected string escape sequence.', loc)
+                    out += c
+                    state = 'text'
             elif state == 'hex':
                 c = c.lower()
                 if c in '0123456789':
@@ -756,7 +773,10 @@ class UVMSParser(Parser):
                     cnt += 2
                     continue
                 else:
-                    raise Exception('Invalid hexidecimal sequence')
+                    self.rep.error('Invalid hexidecimal sequence.', loc)
+                    out += c
+                    state = 'text'
+                    continue
                 value <<= 4
                 value |= x
                 cnt -= 1
@@ -764,16 +784,16 @@ class UVMSParser(Parser):
                     out += chr(value)
                     state = 'text'
         if state != 'text':
-            raise Exception('Unexpected end of string')
+            self.rep.error('Unexpected end of string.', loc)
         return out
 
     @_('STRING')
     def strings(self, p):
-        return NS(p, T='StringLiteral', value=self.unescape_string(p.STRING))
+        return NS(p, T='StringLiteral', value=self.unescape_string(p.STRING, p.index))
 
     @_('strings STRING')
     def strings(self, p):
-        p.strings.value += self.unescape_string(p.STRING)
+        p.strings.value += self.unescape_string(p.STRING, p.index)
         return p.strings
 
     @_('strings')
@@ -782,17 +802,70 @@ class UVMSParser(Parser):
 
     @_('CHAR')
     def expr(self, p):
-        return NS(p, T='CharLiteral', value=self.unescape_string(p.CHAR))
+        return NS(p, T='CharLiteral', value=self.unescape_string(p.CHAR, p.index))
 
-    def error(*args):
-        print(args)
+    def error(self, p):
+        self.rep.error(f'Syntax error. Unexpected token {p.type} `{p.value}`.', p.index)
+
+import bisect
+import re
+
+class LocTransform:
+
+    def __init__(self, text, file_name):
+        self.total = len(text)
+        self.starts = [ 0 ]
+        self.virt_starts = [ 1 ]
+        self.virt_info = [ (file_name, 1) ]
+        start = 0
+        while start < len(text):
+            try:
+                pos = text.index('\n', start) + 1
+                line = text[start:pos]
+            except ValueError:
+                pos = len(text)
+                line = text[start:]
+            num = len(self.starts)
+            self.starts.append(pos)
+            start = pos
+            m = re.match(r'^\s*#\s*(?:line)?\s+([0-9]+)(?:(?:\s+([^"][^\s]+))|(?:\s+"([^"]+)))?', line)
+            if m is not None:
+                self.virt_starts.append(num + 1)
+                file_name = m.group(2) or m.group(3) or file_name
+                self.virt_info.append((file_name, int(m.group(1))))
+
+    def indexToLocInfo(self, index):
+        index = max(0, min(self.total, index))
+        line = bisect.bisect(self.starts, index)
+        line_start = self.starts[max(0, min(len(self.starts) - 1, line - 1))]
+        col = index - line_start
+        index = bisect.bisect(self.virt_starts, line)
+        index = max(0, min(len(self.virt_starts) - 1, index - 1))
+        start = self.virt_starts[index]
+        info = self.virt_info[index]
+        return (info[0], line - start + info[1], col + 1)
+
+    def transform(index):
+        pass
 
 
-text = '''"test" "two" a;'''
+text = '''a /* other
+ comment */
+# 90
+import re;
+#line 12 "some.c"
+import utf8; // some comment
+funtion x() {
+    re.some();
+}
+'''
 
 lexer = UVMSLexer()
 parser = UVMSParser()
 tokens = lexer.tokenize(text)
+for t in tokens:
+    print(t.value)
+exit()
 tree = parser.parse(tokens)
 print(tree)
 
