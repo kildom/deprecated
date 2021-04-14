@@ -1,3 +1,96 @@
+
+# First stage bootloader
+
+1. Device sends ***Started*** packets N times, where N is configurable.
+2. Device switches to the receiving state.
+3. Controller sends entire second stage bootloader in the ***Block*** packets.
+4. Controller sends ***Start*** packet and waits for second stage bootloader response.
+5. If second stage bootloader did not start, controller repeats the procedure starting from point 3.
+
+# Packets
+
+## Started
+Device sends this packet to inform that the bootloader just started and it is waiting for further communication. Additionally, this packet contains information needed to verify password and start a secure connection. It can be send more than once depending on the configuration.
+
+| Enc | Off | Size   | Name       | Description                                            |
+|-----|-----|--------|------------|--------------------------------------------------------|
+|     | 0   | 8      | Salt       | Random salt bytes for device key generation            |
+|     | 8   | 12     | IV         | Initialization vector for encryption of remaining data |
+| Y   | 20  | 14     | ConnID     | Random Connection ID                                   |
+| Y   | 34  | 1      | HW ID      | Value that identifies the hardware                     |
+| Y   | 35  | 1      | Counter    | Packet repeat counter                                  |
+| Y   | 36  | 16     | CheckBytes | All zeros                                              |
+|     |     | **52** |            | **Total packet size**                                  |
+
+Each device has a unique encryption key generated from user provided *Password* using following method:
+```
+Salt = 8 random bytes
+Key = SHA-256(Salt & Password & "RecoveryBootloaderPassword")
+```
+*& sign indicates concatenation.*
+
+***Salt*** and *Key* are stored on the device. ***Salt*** is send by this packet allowing controller to generate device *Key* for this connection.
+
+> SECURITY NOTE: ***Salt*** may be used to uniquly indentify the device. Because of that, this protocol cannot be used
+> if device needs anonymity. This can be solved by using the same ***Salt*** on every device, but this solution creates the
+> same key for each device, so breaking one device allows full access to all devices.
+
+***IV*** field contains last 12 bytes of initialization vector used to encrypt this packet.
+First 4 bytes of the initialization vector are taken from the end of ***Salt***
+
+***ConnID***, ***Counter*** and ***CheckBytes*** are encrypted using DCFB-AES with *IV* and *Key* parameters as described above.
+
+***ConnID*** and ***Counter*** are used later to encrypt **block** packet.
+
+***Counter*** contains integer that tells how many **started** packet will be send after this one. Last **started** packet will have ***Counter*** equals zero. This field is used to calculate time to start sending ***block*** packets.
+
+***CheckBytes*** contains zeros.
+
+***CheckBytes*** is used to check integrity and to authorize the packet. DCFB-AES has property of error propagation, so if
+one encrypted byte was altered then block containing that byte and all following blocks will be altered. Because of that,
+if any encrypted byte was altered, key or IV was invalid then ***CheckBytes*** field will be invalid.
+
+## Block
+Controller sends one block of second stage bootloader.
+
+| Enc | Off | Size   | Name         | Description                         |
+|-----|-----|--------|--------------|-------------------------------------|
+|     | 0   | 2      | BlockIndex   | Block index                         |
+| Y   | 2   | 64     | Content      | Content of the block                |
+| Y   | 66  | 16     | CheckBytes   | Zeros                               |
+|     |     | **82** |              | **Total packet size**               |
+
+Packet is encrypted using DCFB-AES. IV is a concatenation of ***ConnID*** and ***BlockIndex***.
+
+***BlockIndex*** is an index of current second stage bootloader block. Second stage bootloader is divided into 64-byte blocks indexed from zero. Padding should added to the last block if needed.
+
+***CheckBytes*** are zeros and they are described in the **started** packet.
+
+## Start
+Controller sends hash of the second stage bootloader and requests start if valid.
+
+| Enc | Off | Size   | Name         | Description                         |
+|-----|-----|--------|--------------|-------------------------------------|
+|     | 0   | 2      | BlockIndex   | 0xFFFF                              |
+| Y   | 2   | 16     | Hash         | Hash of the bootloader              |
+| Y   | 18  | 48     | Padding      | Ignored                             |
+| Y   | 66  | 16     | CheckBytes   | Zeros                               |
+|     |     | **82** |              | **Total packet size**               |
+
+***BlockIndex*** is 0xFFFF to indicate that it is a **Start** packet.
+
+***Hash** is a hash of entire space for second stage bootloader including unused blocks.
+
+***CheckBytes*** are zeros and they are described in the **started** packet.
+
+------------------------------------------------------------
+
+# OLD IDEA
+
+Below approach probably needs more flash size than available in the MBR unused space.
+
+------------------------------------------------------------
+
 # First stage packets format
 
 First stage bootloader communication defines four types of packets.
