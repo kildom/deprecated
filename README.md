@@ -4,7 +4,7 @@
 
 ### Pilot
 * Pilot podczas produkcji jest programowany wraz unikalnym numerem seryjnym SN dla każdego kanału.
-* Pilot na końcu produkcji jest uruchamiany i zegar czasu rzeczywistego rozpoczyna odliczanie czasu T.
+* Pilot na końcu produkcji jest uruchamiany i zegar czasu rzeczywistego rozpoczyna odliczanie czasu T (krok co 2 sek.).
 * Pierwsze uruchomienie generuje unikalną parę kluczy (krzywa [Curve25519](https://en.wikipedia.org/wiki/Curve25519)):
   * Klucz prywatny `RSK`, ktróry jest generowany w pilocie i nigdy go nie opuszcza.
   * Klucz publiczny `RPK`, który będzie później udostępniony centralce podczas procesu parowania.
@@ -51,8 +51,8 @@
   * nadaje przez radio ciąg `S P` przez jakiś czas
 * Centralka po odebraniu danych
   * Odczytuje z pamięci `memory[S]` dane parowania
-  * Odszyfrowuje dane i sprawdza poprawność `SN` i `T +-5sek.`
-  * Zapisuje nowe `T` jeżeli się różni.
+  * Odszyfrowuje dane i sprawdza poprawność `SN` i `T` dopuszczając pewien błąd w częstotliwości kwarców, kwantyzacji czasu (2sek.) i czasu transmisji/obsługi pakietu.
+  * Zapisuje nowe `T` jeżeli się różni na poziomie błędu w częstotliwości kwarców.
   * Wykonuje nowe zdarzenia z kolejki `Q`
 
 ### Kolejka zdarzeń
@@ -62,3 +62,10 @@
   * Wartość 0 - koniec kolejki
   * Skala nieliniowa, np. 1: `0.2s`, N: `0.2*(3/0.2)^((N-1)/6)`, 7: `3s`
 
+## Utrata zasilania
+* Prez pilot:
+  * Powinna być unikana na poziomie elektronicznym, np. przez dodanie kondensatora/baterii podtrzymującej tylko RTC.
+  * Konieczne jest ponowne parowanie z centralką.
+* Przez centralkę:
+  * Powinna być unikana na poziomie elektronicznym, np. przez dodanie mocnej baterii podtrzymującej tylko RTC.
+  * Konieczne jest ponowne parowanie ze wszystkimi pilotami.
