@@ -1,6 +1,6 @@
 # Dropped
 
-Development of this project was dropped. It was replaced by different solution (triVM)[https://github.com/kildom/trivm/].
+Development of this project was dropped. It was replaced by different solution: [triVM](https://github.com/kildom/trivm/).
 
 # uvm-compiler
 Script compiler for uVM
