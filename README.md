@@ -1,3 +1,12 @@
+Development hold
+================
+
+Developement of this project was hold, because:
+ * Nordic switched to Zephyr based SDK without MBR,
+ * Footprint gone beyond available unused space of MBR on some chips.
+
+nRF5x Recovery Bootloader design must be rewritten to solve above issues before continuing this project.
+
 nRF5x Recovery Bootloader
 =========================
 
