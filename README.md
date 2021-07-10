@@ -65,11 +65,13 @@
 ## Utrata zasilania
 * Prez pilot:
   * Powinna być unikana na poziomie elektronicznym, np. przez dodanie kondensatora/baterii podtrzymującej tylko RTC.
-  * Konieczne jest ponowne parowanie z centralką.
+  * Konieczne jest:
+    * ponowne parowanie z centralką
+    * lub tylko zliżenie do centralki, bo centralka nadaje przez przez LED aktualny czas zaszyfrowany kluczem z ostatnio wciśniętego pilota.
 * Przez centralkę:
   * Powinna być unikana na poziomie elektronicznym, np. przez dodanie mocnej baterii podtrzymującej tylko RTC.
   * Konieczne jest:
-    * ponowne parowanie ze wszystkimi pilotami.
+    * ponowne parowanie ze wszystkimi pilotami
     * lub wybranie opcji synchronizacji zegara na podstawie czasu pilota.
       Centralka zignoruje błąd czasu z pilota i zapisze nowy czas jako swój aktualny.
       Wystarczy synchronizacja z jednym pilotem, a wszystkie inne powinny zacząć znowu działać.
