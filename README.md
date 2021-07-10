@@ -68,4 +68,8 @@
   * Konieczne jest ponowne parowanie z centralką.
 * Przez centralkę:
   * Powinna być unikana na poziomie elektronicznym, np. przez dodanie mocnej baterii podtrzymującej tylko RTC.
-  * Konieczne jest ponowne parowanie ze wszystkimi pilotami.
+  * Konieczne jest:
+    * ponowne parowanie ze wszystkimi pilotami.
+    * lub wybranie opcji synchronizacji zegara na podstawie czasu pilota.
+      Centralka zignoruje błąd czasu z pilota i zapisze nowy czas jako swój aktualny.
+      Wystarczy synchronizacja z jednym pilotem, a wszystkie inne powinny zacząć znowu działać.
