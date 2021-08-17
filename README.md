@@ -8,3 +8,4 @@ List of projects added so far:
  - [tcplimit](https://github.com/kildom/deprecated/tree/tcplimit) - a simple tunneling application that limits the speed and divides it equally for each connection.
  - [Clicker](https://github.com/kildom/deprecated/tree/Clicker) - an application that allows creating and executing a sequence of movements and clicks of the mouse.
  - [Gesty](https://github.com/kildom/deprecated/tree/gesty) - an application that adds mouse gestures in places where they are not available by default.
+ - [libusb-Mouse](https://github.com/kildom/deprecated/tree/libusb-Mouse) - a Windows service that communicates with the USB mouse and controls current UI session.
