@@ -1,0 +1,61 @@
+/*     penPROTECT
+Copyright (C) 2009-2010 Dominik Kilian
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+
+#include "resource.h"
+
+STRINGTABLE 
+BEGIN
+
+	IDS_WITAJ       "\r\n" "            penPROTECT    0.0.2 alpha\r\n" "\r\n" "    Program  umo\xBEliwia zablokowanie  przeno\x98nego no\x98nika  danych przed  atakiem\r\n" " z\x88o\x98liwego  oprogramowania  infekuj\xA5cego pliki  startowe no\x98nika.  Aby uzyska\x86\r\n" " wi\xA9cej informacji  na temat dzia\x88ania programu,  naci\x98nij W.  Program znajduje\r\n" " si\xA9 w fazie rozwoju. Oznacza to,  \xBEe nie zosta\x88 jeszcze odpowiednio przetesto-\r\n" " wany,  dlatego  autor  nie  bierze  odpowiedzialno\x98ci  za  ewentualne   szkody\r\n" " wyrz\xA5dzone przez program,  nie gwarantuje r\xA2wnie\xBE skuteczno\x98ci jego dzia\x88ania.\r\n" " Zaleca si\xA9 sporz\xA5dzenie kopii bezpiecze\xE4stwa  danych umieszczonych na no\x98niku.\r\n" "\r\n" "  W      Wi\xA9cej informacji\r\n" "  Enter  Kontynuuj\r\n" "  Esc    Zako\xE4cz\r\n" "\r\n" 
+	IDM_WITAJ       "w\r\x1B"
+
+    IDS_INFO        "\r\n" "\r\n" "\r\n" "\r\n" "\r\n" "\r\n" " Z\x88o\x98liwe oprogramowanie, najcz\xA9\x98ciej po skopiowaniu si\xA9 na no\x98nik, tworzy plik\r\n" " \x22autorun.inf\x22,  dzi\xA9ki kt\xA2remu  mo\xBEe si\xA9 automatycznie  aktywowa\x86  po w\x88o\xBEeniu\r\n" " no\x98nika do innego komputera.  Zadaniem niniejszego programu  jest zablokowanie\r\n" " mo\xBEliwo\x98ci  utworzenia pliku \x22autorun.inf\x22.  Cel ten zostaje osi\xA5gni\xA9ty dzi\xA9ki\r\n" " utworzeniu niepustego  ukrytego systemowego  katalogu  o tej nazwie  (pierwszy\r\n" " etap).  Cz\xA9\x98\x86 z\x88o\x98liwego  oprogramowania w takiej sytuacji  potrafi go usun\xA5\x86,\r\n" " dlatego utworzony katalog zostaje  zabezpieczony przed usuni\xA9ciem dzi\xA9ki doko-\r\n" " naniu celowego  uszkodzenia  integralno\x98ci  systemu plik\xA2w  FAT  (drugi etap).\r\n" " Uszkodzenie nie jest gro\xABne i nie zagra\xBEa plikom spoza tego katalogu. Oprogra-\r\n" " mowanie  naprawcze dla dysk\xA2w  (np. Scandisk) rozpozna  te zabezpieczenie jako\r\n" " b\x88\xA5d systemu plik\xA2w i je usunie,  dlatego w takiej sytuacji konieczne jest do-\r\n" " konanie ponownego zabezpieczenia. Program r\xA2wnie\xBE tworzy inne pliki i katalogi\r\n" " i zabezpiecza je przed usuni\xA9ciem.\r\n" "\r\n" "  Enter  Kontynuuj\r\n" "  L      Licencja\r\n" "  Esc    Zako\xE4cz\r\n" "\r\n" 
+    IDM_INFO        "\rL\x1B"
+
+    IDS_LIC         "\r\n\r\n\r\n\r\n" "Copyright (C) 2009 Dominik Kilian\r\n" "\r\n" "This program is free software; you can redistribute it and/or\r\n" "modify it under the terms of the GNU General Public License\r\n" "as published by the Free Software Foundation; either version 2\r\n" "of the License, or (at your option) any later version.\r\n" "\r\n" "This program is distributed in the hope that it will be useful,\r\n" "but WITHOUT ANY WARRANTY; without even the implied warranty of\r\n" "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\r\n" "GNU General Public License for more details.\r\n" "\r\n" "You should have received a copy of the GNU General Public License\r\n" "along with this program; if not, write to the Free Software Foundation,\r\n" "Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.\r\n" "\r\n" "  Enter  Kontynuuj\r\n" "  Esc    Zako\xE4cz\r\n" "\r\n" 
+    IDM_LIC         "\r\x1B"
+
+	IDS_DISKS               "\r\n\r\n\r\nWybierz dysk do zabezpieczenia:\r\n\r\nNazwa       Typ     Rozmiar     Wolnych     FS  Etykieta\r\n"
+	IDS_DISKS2              "\r\n  Enter  Od\x98wie\xBE\r\n  Esc    Zako\xE4cz\r\n\r\n"
+	IDS_DISKSNONE           "\r\n   brak kompatybilnych dysk\xA2w\r\n\r\n"
+
+	IDS_WAIT                "\r\n Czekaj . . . \r\n\r\n"
+
+	IDS_PASS1START          "\r\n Rozpoczynam pierwszy etap. To mo\xBEe potrwa\x86 kilka minut.\r\n Aby kontynuowa\x86, naci\x98nij dowolny klawisz . . .\r\n\r\n"
+	IDS_PASS1ERROR          "\r\n Pierwszy etap zosta\x88 zako\xE4czony b\x88\xA9dem.\r\n Aby zako\xE4czy\x86 program, naci\x98nij dowolny klawisz . . .\r\n\r\n"
+
+	IDS_PASS2START          "\r\n" "\r\n" "\r\n" " Zako\xE4czono pierwszy etap.\r\n" " Wysu\xE4  no\x98nik u\xBEywaj\xA5c  bezpiecznego usuwania sprz\xA9tu.  Nast\xA9pnie w\x88\xA2\xBE go\r\n" " ponownie i po upewnieniu si\xA9, \xBEe zosta\x88 poprawnie zainstalowany, naci\x98nij\r\n" " ENTER.\r\n" "\r\n" "  Enter  Rozpocznij drugi etap\r\n" "  Esc    Zako\xE4cz\r\n" "\r\n"
+	IDS_PASS2ERROR          "\r\n Drugi etap zosta\x88 zako\xE4czony b\x88\xA9dem.\r\n Aby zako\xE4czy\x86 program, naci\x98nij dowolny klawisz . . .\r\n\r\n"
+	IDS_PASS2INVALID        "\r\n Drugi etap mo\xBEna dokona\x86 tylko dla systemu plik\xA2w FAT lub FAT32 i noœników z 512-bajtowym sektorem. No\x98nik zosta\x88\r\n" " zabezpieczony cz\xA9\x98ciowo.\r\n Aby zako\xE4czy\x86 program, naci\x98nij dowolny klawisz . . .\r\n\r\n"
+
+	IDS_DONE                "\r\n\r\n Zako\xE4czono blokowanie. Usu\xE4 jak najszybciej no\x98nik NIE U\xBDYWAJ\xA4C bezpiecznego\r\n" " usuwania sprz\xA9tu.\r\n Aby zako\xE4czy\x86 program, naci\x98nij dowolny klawisz . . .\r\n\r\n"
+
+
+	IDS_DRIVE_REMOVABLE            "Wymienny"
+	IDS_DRIVE_FIXED                "Twardy"
+	IDS_DRIVE_REMOTE               "Sieciowy"
+	IDS_DRIVE_CDROM                "Optyczny"
+	IDS_DRIVE_RAMDISK              "Wirtualny"
+	IDS_DRIVE_UNKNOWN              "Nieznany"
+
+END
+
+101 ICON "icon.ico"
+
