@@ -1,0 +1,3 @@
+ Program w pewnym stopniu zabezpiecza nośniki pamięci z systemem plików FAT32 przed instalacją złośliwego oprogramowania. Jego działanie powoduje utworzenie plików na nośniku w miejscach, gdzie najczęściej instaluje się złośliwe oprogramowanie, a następnie celowo uszkadza integralność systemu plików. Uszkodzenie to powoduje, że większość systemów operacyjnych nie jest w stanie zmodyfikować utworzonych plików. Narzędzia do sprawdzania systemów plików są w stanie usunąć to uszkodzenie.
+
+UWAGA! Skutkiem opisanego powyżej działania jest to, że program może być niebezpieczny i należy go używać ze szczególną ostrożnością. Nie ma żadnej gwarancji bezpieczeństwa danych na nośniku zmodyfikowanym tym programem. 
