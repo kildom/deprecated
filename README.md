@@ -11,5 +11,4 @@ List of projects added so far:
  - [libusb-Mouse](https://github.com/kildom/deprecated/tree/libusb-Mouse) - a Windows service that communicates with the USB mouse and controls current UI session.
  - [StartShellExecute](https://github.com/kildom/deprecated/tree/StartShellExecute) - simple command line utility that calls StartShellExecute Windows API function.
  - [penProtect](https://github.com/kildom/deprecated/tree/penProtect) - tool that breaks FAT32 filesystem structure to prevent some viruses to install on removeble media.
- 
- 
+ - [Shader-Preparser](https://github.com/kildom/deprecated/tree/Shader-Preparser) - tool for simplyfied embeding shaders scource codes into C++ code.
