@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pen_service", "pen_service.vcproj", "{4C8EEE03-5628-46ED-A979-2458A9A95F33}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gui", "gui\gui.vcproj", "{1E99CEC2-501B-4D68-A328-F121F78FCFE4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4C8EEE03-5628-46ED-A979-2458A9A95F33}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4C8EEE03-5628-46ED-A979-2458A9A95F33}.Debug|Win32.Build.0 = Debug|Win32
+		{4C8EEE03-5628-46ED-A979-2458A9A95F33}.Release|Win32.ActiveCfg = Release|Win32
+		{4C8EEE03-5628-46ED-A979-2458A9A95F33}.Release|Win32.Build.0 = Release|Win32
+		{1E99CEC2-501B-4D68-A328-F121F78FCFE4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1E99CEC2-501B-4D68-A328-F121F78FCFE4}.Debug|Win32.Build.0 = Debug|Win32
+		{1E99CEC2-501B-4D68-A328-F121F78FCFE4}.Release|Win32.ActiveCfg = Release|Win32
+		{1E99CEC2-501B-4D68-A328-F121F78FCFE4}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

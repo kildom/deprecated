@@ -1,0 +1,24 @@
+
+http://www.cplusplus.com/forum/articles/11168/
+	Komunikacja przez pipe z servisem. SECURITY_ATTRIBUTES nie potrzebne
+
+__VA_ARGS__
+	Makra ze zmienn¹ d³ugoœcia parametrów
+
+http://msdn.microsoft.com/en-us/library/windows/desktop/aa379295(v=vs.85).aspx
+	OpenProcessToken - pobiera access token aktualnego procesu
+
+http://msdn.microsoft.com/en-us/library/windows/desktop/bb530719(v=vs.85).aspx
+	TOKEN_LINKED_TOKEN - pobera po³¹czony z aktualnym tokenem token o zmienionym
+	poziomie uprawnieñ (np. uruchom jako administrator)
+
+http://msdn.microsoft.com/en-us/library/windows/desktop/ms682429(v=vs.85).aspx
+	CreateProcessAsUser - tworzy proces jako inny urzytkownik
+
+http://msdn.microsoft.com/en-us/library/windows/desktop/aa383840(v=vs.85).aspx
+	WTSQueryUserToken - pobiera token uzytkownika, do którego nale¿y zadana sesja
+
+http://msdn.microsoft.com/en-us/library/aa378275(VS.85).aspx
+	LsaEnumerateLogonSessions - pobiera listê wszystkich sesji sytemu
+	LsaGetLogonSessionData - pobiera informacje o sesji
+
