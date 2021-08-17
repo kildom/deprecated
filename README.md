@@ -10,4 +10,6 @@ List of projects added so far:
  - [Gesty](https://github.com/kildom/deprecated/tree/gesty) - an application that adds mouse gestures in places where they are not available by default.
  - [libusb-Mouse](https://github.com/kildom/deprecated/tree/libusb-Mouse) - a Windows service that communicates with the USB mouse and controls current UI session.
  - [StartShellExecute](https://github.com/kildom/deprecated/tree/StartShellExecute) - simple command line utility that calls StartShellExecute Windows API function.
+ - [penProtect](https://github.com/kildom/deprecated/tree/penProtect) - tool that breaks FAT32 filesystem structure to prevent some viruses to install on removeble media.
+ 
  
