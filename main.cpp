@@ -1,7 +1,9 @@
 
 #include <iostream>
+#include <string>
 
 #include "mongoose/mongoose.h"
+#include "cJSON/cJSON.h"
 
 static inline std::string mg_to_std_str(const mg_str& str) {
     return std::string(str.ptr, str.len);
@@ -11,8 +13,44 @@ static inline std::string mg_to_std_str(const mg_str* str) {
     return std::string(str->ptr, str->len);
 }
 
+static cJSON* executeCmd(cJSON* input)
+{
+  cJSON* idValue = cJSON_GetObjectItemCaseSensitive(input, "id");
+  if (!idValue || !cJSON_IsString(idValue)) throw "Invalid request";
+  const char* id = cJSON_GetStringValue(idValue);
+  if (strcmp(id, ""))
+}
+
 static void serve_http(mg_connection *c, mg_http_message* message) {
-  struct mg_http_serve_opts opts = {.root_dir = "./www"};   // Serve local dir
+  if (mg_to_std_str(message->uri) == "/msg") {
+    cJSON* input = nullptr;
+    cJSON* output = nullptr;
+    char* rsp = nullptr;
+    try {
+      input = cJSON_ParseWithLength(message->body.ptr, message->body.len);
+      if (!input) throw "Invalid input JSON";
+      output = executeCmd(input);
+      cJSON_Delete(input);
+      input = nullptr;
+      rsp = cJSON_Print(output);
+      if (!rsp) throw "Out of memory";
+      cJSON_Delete(output);
+      output = nullptr;
+      mg_http_reply(c, 200, NULL, "%s", rsp);
+      cJSON_free(rsp);
+    } catch (const char* exception) {
+      cJSON_Delete(input);
+      cJSON_Delete(output);
+      if (rsp != nullptr)
+        cJSON_free(rsp);
+      std::cerr << exception << std::endl;
+      mg_http_reply(c, 200, NULL, "{\"error\":\"%s\"}", rsp);
+    }
+    // TODO: error handling
+  } else {
+    struct mg_http_serve_opts opts = {.root_dir = "./www"};
+    mg_http_serve_dir(c, message, &opts);
+  }
   auto url = mg_to_std_str(message->uri);
   auto query = mg_to_std_str(message->query);
   std::cout << "URL:" << url << std::endl;
@@ -21,7 +59,6 @@ static void serve_http(mg_connection *c, mg_http_message* message) {
   std::cout << "Message:" << mg_to_std_str(message->message) << std::endl;
   std::cout << "Method:" << mg_to_std_str(message->method) << std::endl;
   std::cout << "Chunk:" << mg_to_std_str(message->chunk) << std::endl;
-  mg_http_serve_dir(c, message, &opts);
 }
 
 static void fn(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {

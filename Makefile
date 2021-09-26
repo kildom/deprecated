@@ -21,7 +21,7 @@ ASMFLAGS =
 
 LIBS = -lm -lkernel32 -luser32 -lgdi32 -lws2_32
 
-OBJ = main.o mongoose/mongoose.o
+OBJ = main.o mongoose/mongoose.o cJSON/cJSON.o
 
 all: $(TARGET).exe
 
