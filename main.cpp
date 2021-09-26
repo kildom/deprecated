@@ -1,7 +1,7 @@
 
 #include <iostream>
 
-#include "mongoose.h"
+#include "mongoose/mongoose.h"
 
 static inline std::string mg_to_std_str(const mg_str& str) {
     return std::string(str.ptr, str.len);
