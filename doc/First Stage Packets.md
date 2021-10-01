@@ -7,6 +7,31 @@
 4. Controller sends ***Start*** packet and waits for second stage bootloader response.
 5. If second stage bootloader did not start, controller repeats the procedure starting from point 3.
 
+
+## started
+
+8 salt
+4 key verification 
+1 couter
+1 hw id
+=
+14
+
+## block
+
+2  block index
+32 content
+
+## start
+
+2 block index = ffff
+16 hash
+16 unused
+
+
+
+#-------- old approach
+
 # Packets
 
 ## Started
