@@ -35,7 +35,7 @@ static bool decodeRequestPacket()
 	uint8_t* buffer = getRecvBuffer();
 
 	// validate state and buffer length
-	if (!connValid || buffer[0] < 17 || buffer[0] > MAX_PACKET_SIZE)
+	if (!connValid || buffer[0] < 17 || buffer[0] > MAX_RECV_SIZE)
 	{
 		return false;
 	}

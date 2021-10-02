@@ -104,7 +104,7 @@ EXTERN bool recv(uint32_t timeout)
 		bufferIndex ^= 1;
 		// parse current recvBuffer
 		recvBuffer = swappingBuffers[bufferIndex];
-	} while (recvBuffer[0] < 16 || recvBuffer[0] > MAX_PACKET_SIZE);
+	} while (recvBuffer[0] < 16 || recvBuffer[0] > MAX_RECV_SIZE);
 	return true;
 }
 

@@ -22,7 +22,7 @@ SECTIONS
     _LS_STACK_SIZE = 512;
 
     _LS_BL_MBR_COPY = 0x800;
-    _LS_BL_CONF = 0xFB0;
+    _LS_BL_CONF = 0xFA2;
     _LS_BL_MBR_CONF = 0xFF0;
 
     .text :
