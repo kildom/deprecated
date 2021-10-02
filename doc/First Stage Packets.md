@@ -74,3 +74,42 @@ Content of the area reserved for second stage bootloader:
 When the device receives last block it will decode entire second stage bootloader area (including *IV* and verification block) without writing the result.
 Bootlaoder is valid when the last 16-bytes of the decode data are zeros. If it is valid, the device will decode evrything again, this time writing back to RAM.
 Next, it will start the second stage bootloader by jumping to the beginning of RAM.
+
+Encryption
+----------
+
+AES-DCFB (Double Cipher Feedback) is a block cipher mode of operation that runs CFB two times.
+First, normall CFB encryption is executed using first half of the key. Next, CFB decryption is executed using second half of the key.
+In both stages the same *IV* is used.
+
+AES-DCFB decryption algorithm is the same, except halfs of the key are switched.
+
+AES-DCFB provides:
+   * full data security
+   * error propagation
+   * almost the same algorithm for encryption and decryption
+
+```
+AES1(...) is AES block cipher with first half of the key
+AES2(...) is AES block cipher with second half of the key
+C[n] is cipher text block n
+P[n] is plain text block n
+T[n] is temporary block
+
+C[0] = AES2(IV) ^ T[0] ; T[0] = AES1(IV) ^ P[0]
+C[1] = AES2(T[0]) ^ T[1] ; T[1] = AES1(T[0]) ^ P[1]
+C[2] = AES2(T[1]) ^ T[2] ; T[2] = AES1(T[1]) ^ P[2]
+...
+P[0] = AES1(IV) ^ T[0] ; T[0] = AES2(IV) ^ C[0]
+P[1] = AES1(T[0]) ^ T[1] ; T[1] = AES2(T[0]) ^ C[1]
+P[2] = AES1(T[1]) ^ T[2] ; T[2] = AES2(T[1]) ^ C[2]
+````
+
+Euqlivement:
+```
+   AES_DCFB_ENCRYPT(key, iv, plain) = AES_CFB_DECRYPT(key2, iv, AES_CFB_ENCRYPT(key1, iv, plain))
+   AES_DCFB_DECRYPT(key, iv, cipher) = AES_CFB_DECRYPT(key1, iv, AES_CFB_ENCRYPT(key2, iv, cipher))
+```
+
+[![DCFB](img/DCFB.svg)](https://kildom.github.io/drawio/#img%2FDCFB.svg)<br/>
+**Double Cipher Feedback (DCFB)** encryption and decryption.
