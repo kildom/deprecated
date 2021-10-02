@@ -84,6 +84,8 @@ In both stages the same *IV* is used.
 
 AES-DCFB decryption algorithm is the same, except halfs of the key are switched.
 
+Key is 32 bytes long. It must be chosen randomly. Halfs of the key must be unrelated to provide full security.
+
 AES-DCFB provides:
    * full data security
    * error propagation
