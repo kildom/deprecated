@@ -42,8 +42,14 @@ goto main
 		-mcpu=cortex-m0 ^
 		-mfloat-abi=soft ^
 		-Tlinker.ld ^
-        -Wl,--defsym=_LS_RAM_APP_SIZE=0x3DC0 ^
         -Wl,--defsym=_LS_RAM_SIZE=0x4000 ^
+        -Wl,--defsym=_LS_BL_START=0x12000 ^
+        -Wl,--defsym=_LS_RAM_USAGE=1024 ^
+        -DTARGET_RAM_SIZE=0x4000 ^
+        -DTARGET_BL_START=0x12000 ^
+        -DTARGET_RAM_USAGE=1024 ^
+        -DTARGET_RAM_ADDR=0x20000000 ^
+        -DTARGET_HWID=1 ^
 		-DNRF51 ^
 		-DNRF51822_XXAA ^
         -DWITH_SOFT_DEVICE ^
@@ -51,20 +57,22 @@ goto main
 
     echo. > %TARGET%.c
     call :add_source .\src\main.c 
-    call :add_source .\src\startup.c 
-    call :add_source .\src\conf.c 
-    call :add_source .\src\utils.c
-    call :add_source .\src\crypto.c
-    call :add_source .\src\radio.c
-    call :add_source .\src\timer.c
-    call :add_source .\src\rand.c
-    call :add_source .\src\conn.c
-    call :add_source .\src\req.c
+    ::call :add_source .\src\startup.c 
+    ::call :add_source .\src\conf.c 
+    ::call :add_source .\src\utils.c
+    ::call :add_source .\src\crypto.c
+    ::call :add_source .\src\radio.c
+    ::call :add_source .\src\timer.c
+    ::call :add_source .\src\rand.c
+    ::call :add_source .\src\conn.c
+    ::call :add_source .\src\req.c
 
     echo Compiling %TARGET%...
     %CC% %CFLAGS% %INCLUDE% %LIBS% %TARGET%.c -Wl,-Map=%TARGET%.map -o %TARGET%.elf || goto error
     %OBJDUMP% -d %TARGET%.elf > %TARGET%.lst                                            || goto error
-    %OBJCOPY% -O ihex -j .text %TARGET%.elf %TARGET%.hex                                         || goto error
+    %OBJDUMP% -x %TARGET%.elf > %TARGET%.txt                                            || goto error
+    %OBJCOPY% -O ihex -j .text -j .data %TARGET%.elf %TARGET%.hex                                         || goto error
+    %OBJCOPY% -O binary -j .publicinfo %TARGET%.elf %TARGET%.info.bin                                         || goto error
     echo Success
     %PAUSE%
 

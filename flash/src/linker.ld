@@ -2,6 +2,8 @@
 /*
 Input symbols (for gcc use "-Wl,--defsym=NAME=VALUE"):
 _LS_RAM_SIZE = total RAM size
+_LS_BL_START = start address of the first stage bootloader
+_LS_RAM_USAGE = size of RAM used by the first stage bootloader
 */
 
 SEARCH_DIR(.)
@@ -9,69 +11,57 @@ GROUP(-lgcc -lc -lnosys)
 
 MEMORY
 {
-  FLASH      (rx)  : ORIGIN = 0x00000000, LENGTH = 0x001000
+  FLASH      (rx)  : ORIGIN = _LS_BL_START, LENGTH = ((_LS_BL_START + 0x1000) & 0x7FFFF000) - _LS_BL_START
   RAM        (rw)  : ORIGIN = 0x20000000, LENGTH = _LS_RAM_SIZE
-  EMPTY      (rwx) : ORIGIN = 0x30000000, LENGTH = 0x000000
+  DUMMY      (rw)  : ORIGIN = 0x40000000, LENGTH = 8
 }
 
 OUTPUT_FORMAT ("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 
 SECTIONS
 {
-    _LS_RAM_USAGE = 648;
     _LS_STACK_SIZE = 512;
-
-    _LS_BL_MBR_COPY = 0x800;
-    _LS_BL_CONF = 0xFA2;
-    _LS_BL_MBR_CONF = 0xFF0;
 
     .text :
     {
-        FILL(0xFF)
-        KEEP(*(.isr_vector))
-        . = _LS_BL_MBR_COPY;
         KEEP(*(.mbr_reset_copy))
+        KEEP(*(.startup))
         *(.text*)
         *(.rodata*)
-        . = _LS_BL_CONF;
-        KEEP(*(.conf*))
-        . = _LS_BL_MBR_CONF;
     } > FLASH
 
-    .ramapp :
-    {
-        __begin_ramapp = .;
-        KEEP(*(.ramapp))
-        . = ORIGIN(RAM) + LENGTH(RAM) - _LS_RAM_USAGE - _LS_STACK_SIZE;
-        __end_ramapp = .;
-    } > RAM
+    . = ALIGN(4);
+    __etext = .;
 
     .bss :
     {
-        __begin_rambss = .;
+        . = ORIGIN(RAM) + LENGTH(RAM) - _LS_RAM_USAGE;
         *(.bss*)
         *(COMMON*)
         . = ALIGN(4);
-        __end_rambss = .;
     } > RAM
 
-    __size_ramapp = __end_ramapp - __begin_ramapp;
-    __size_rambss = __end_rambss - __begin_rambss;
+    .data : AT (__etext)
+    {
+        __data_start__ = .;
+        *(.data*)
+        . = ALIGN(4);
+        __conf_start__ = .;
+        KEEP(*(.conf*))
+        . = ALIGN(4);
+        __data_end__ = .;
+    } > RAM
 
     .noinit :
     {
+        KEEP(*(.noinitconf*))
         *(.noinit*)
-        . = ALIGN(4);
-        __unused_begin = .;
         . = ORIGIN(RAM) + LENGTH(RAM) - _LS_STACK_SIZE;
-        __unused_end = .;
-        __stack_begin = .;
-        . = ORIGIN(RAM) + LENGTH(RAM);
-        __stack_end = .;
     } > RAM
 
-    .data :
+    .publicinfo :
     {
-        *(.data*)
-    } > EMPTY
+        KEEP(*(.publicinfo*))
+    } > DUMMY
+
 }
