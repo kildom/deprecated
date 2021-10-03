@@ -72,7 +72,6 @@ goto main
     %OBJDUMP% -d %TARGET%.elf > %TARGET%.lst                                            || goto error
     %OBJDUMP% -x %TARGET%.elf > %TARGET%.txt                                            || goto error
     %OBJCOPY% -O ihex -j .text -j .data %TARGET%.elf %TARGET%.hex                                         || goto error
-    %OBJCOPY% -O binary -j .publicinfo %TARGET%.elf %TARGET%.info.bin                                         || goto error
     echo Success
     %PAUSE%
 
