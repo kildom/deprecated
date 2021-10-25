@@ -67,7 +67,8 @@
   * Powinna być unikana na poziomie elektronicznym, np. przez dodanie kondensatora/baterii podtrzymującej tylko RTC.
   * Konieczne jest:
     * ponowne parowanie z centralką
-    * lub tylko zliżenie do centralki, bo centralka nadaje przez przez LED aktualny czas zaszyfrowany kluczem z ostatnio wciśniętego pilota.
+    * lub tylko zliżenie do centralki, bo centralka nadaje przez przez LED aktualny czas zaszyfrowany kluczem z ostatnio wciśniętego pilota
+      (albo tylko wystkich pilotów w pętli).
 * Przez centralkę:
   * Powinna być unikana na poziomie elektronicznym, np. przez dodanie mocnej baterii podtrzymującej tylko RTC.
   * Konieczne jest:
