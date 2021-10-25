@@ -89,6 +89,11 @@ Numer pakietu jest konieczny do identyfikacji, czy doszło.
 Retransmisja powinna posiadać nowy losowy ciąg, z wyjątkiem ostatniego pakietu.
 Pilot jest kontrolerem tej transmisji.
 
+Jezeli sprzęt na to pozwala, pilot może próbować nadawać ze słabszą mocą, żeby utrudnić przechwycenie klucza.
+Jak się nie uda, zwiększać moc.
+
+Jeżeli klucz okazał się niepoprawny, cała procedura powinna zostać powtórzona.
+
 Przykład:
 ```
 Pilot     Centralka
