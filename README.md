@@ -15,7 +15,10 @@
   * Klucz prywatny `CSK`, ktróry jest generowany w centralce i nigdy go nie opuszcza.
   * Klucz publiczny `CPK`, który będzie później udostępniony pilotom podczas procesu parowania.
 
-## Parowanie
+## Parowanie przy pomocy ECC (bezpieczniejsze)
+
+> ### *Prostrza metoda (dla pilota) jest w pairing.drawio*
+
 * Parowanie pilota i centralki rozpoczyna się po długim wciśnięciu przycisku. LED informuje o rozpoczęciu procesu parowania.
 * Centralka nadaje przez LED `CPK` i losowy ciąg danych `CR`.
 * Pilot po odebraniu przez czujnik światła danych z centralki:
@@ -76,3 +79,43 @@
     * lub wybranie opcji synchronizacji zegara na podstawie czasu pilota.
       Centralka zignoruje błąd czasu z pilota i zapisze nowy czas jako swój aktualny.
       Wystarczy synchronizacja z jednym pilotem, a wszystkie inne powinny zacząć znowu działać.
+
+# Parowanie bez ECC
+
+*Haker musi przechwycić całą transmisję LED, żeby posiadać klucz*
+
+Pilot i centralka wymieniają się losowymi 8-bajtowymi ciągami N razy. Klucz jest hashem tych ciągów.
+Numer pakietu jest konieczny do identyfikacji, czy doszło.
+Retransmisja powinna posiadać nowy losowy ciąg, z wyjątkiem ostatniego pakietu.
+Pilot jest kontrolerem tej transmisji.
+
+Przykład:
+```
+Pilot     Centralka
+(request) (response)
+0,X     -->
+        <--  0,U
+1,Z     --x
+1,B     -->
+        <--  1,T
+2,Q     -->
+        x--  2,D
+2,S     -->
+        <--  2,W
+...
+9,C     -->
+        x--  9,L
+             shared key is
+             HASH("XUTBSW...CL")
+9,C     -->
+        <--  9,L
+             shared key is
+             already computed
+shared key is
+HASH("XUTBSW...CL")
+...
+kontunuj parowanie używając "shared key":
+  wymień się SN (serial number) i ID (index of the remote)
+  wyślij akcję z pilota w celu synchronizacji czasu
+  i zatwierdzenia parowania po stronie centralki.
+```
