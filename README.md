@@ -179,3 +179,8 @@ kontunuj parowanie używając "shared key":
   wyślij akcję z pilota w celu synchronizacji czasu
   i zatwierdzenia parowania po stronie centralki.
 ```
+
+# Parowanie z jednokierunkową transmisją LED
+* Pilot po długim wciśnięciu przycisku nadaje przez LED: swój stały klucz i swój stały SN, a przez radio pustą kolejkę.
+* Centralka odbiera te informacje i zapisuje w pamięci, klucz, SN i czas T i informuje o tym użytkownika.
+* Po wciśnięciu przycisku pilota lub timeoutcie pilot przestaje nadawanie.
