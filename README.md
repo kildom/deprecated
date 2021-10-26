@@ -80,6 +80,60 @@
       Centralka zignoruje błąd czasu z pilota i zapisze nowy czas jako swój aktualny.
       Wystarczy synchronizacja z jednym pilotem, a wszystkie inne powinny zacząć znowu działać.
 
+# Transfer LED
+* LED w pilocie jest jednocześnie nadajnikiem i odbiornikiem (wykożystuje mały prąd generowany przez LED, gdy jest oświetlone)
+* W centralce jest oddzielnie obiornik (np. fototranzystor) i mocna LED jako nadajnik, żeby nadrobić słaby sprzęt pilota
+* Od strony pilota odbiór jest uproszczony, bo:
+  * On jest kontrolerem: wysyła pakiet i oczekuje odpowiedzi.
+  * Odpowiedź z centralki przychodzi w dokładnie określonym momencie (co do ułamka bitu), żeby pilot nie musiał wykonywać algorytmu synchronizacji.
+  * Długość bitu z centralki do pilota jest 3x większa, żeby zwiększyć dokładność synchronizacji i poprawić jakość sygnału
+* Od strony centralki odbiór jest bardziej skomplikowany, bo wymaga na początku algorytmu synchronizacji
+
+## Format transferu (z pilota do centralki)
+* Częstotliwość: F = 6kHz (albo coś takiego)
+* Kodowanie:
+  * poziom 0: sygnał 0 → LED off, 1 → LED on
+  * poziom 1: bit 0 → sygnał `01010101`, bit 1 → sygnał `10101010` (jak Manchester, tylko, że każdy bit jest powtórzony 4x)
+  * poziom 2: bajt → 8 x bit
+  * posiom 3: pakiet → losowa prelabuła (4 bytes), dane, crc-16
+* **Algorytm synchronizacji**. Centralka odbiera 3 sample z ADC na jeden bit i co trzeci bit przesyła sampla na oddzielną ścieżkę przetwarzania:
+  * póbka wchodzi na 8 elementowe sliding window, dekodujące jeden bit:
+    * Okno składa się z bufora cyklicznego i jednego bajtu przesównego
+    * Gdy próbka wchodzi do bufora:
+      * to jest prównywana z poprzednią (opertor `<=`) i wynik porównania (0 lub 1) jest wsuwany do bajta
+      * ostatnia próbka (po przesunięci bofora) jest prównywana z pierwszą i wynik wpisywany jest do najstarszego bita bajta przesównego
+    * w wyniku bajt przesówny ma wartość, np. `01010101`, i patrząc do lookup table to jest bit 1
+    * lookup table jest rozmiaru 256/8=64 bajty, bo zawiera jeden bit na element,
+    * lookup table przekształca ciąg zmian sygnału na najbardziej prawdopodobny bit, należy przy tym pamiętać,
+      że najstarszy bit jest mniej znaczący od innych bo reprezentuje zmianę bardziej od siebie oddalonych sygnałów.
+      np. `11111111` jest traktowany jak zniekształcony `01010101` (3 różnice znaczące + 1 mniej znacząca), a nie 10101010 (4 różnice znaczące)
+  * ze sliding window wychodzi 1 bit po każdym samplu, jest on wsuwany do jednego z 8 buforów detektujących patern (cyklicznie kolejny bufor przy każdej próbce).
+    * patern zawiera większą cześć z początku prelambuły, nie zawiera końca, który jest traktowany jako element naruszający pattern,
+      jeżeli zostaje wsunięty, dlatego końcówka prelambuły powinna być tak skonstrułowana, żeby szybko invalidowała pattern.
+    * jeżeli bofor zawiera spodziewany pattern, `1` jest wsuwane do jednego z 2 4-bitowych rejestrów przesównych
+      (nieparzyste bufory detektujące mają jeden rejestr, a parzyste drugi). jeżeli nie, to `0` jest wsuwane.
+    * jeżeli najstarszy bit rejestru przesównego jest `1`, lookup table jest użyta, żeby określić najbardziej prawdopodobny początek danych
+      (dokładną synchronizację), np. rejestr ma `1110` to oznacza, że dokładny koniec paternu był 2 bity rejestru przesównego temu (1 **1** 10).
+      Na tej podstawie należy dokładnie wyliczyć, gdzie zaczynają się dane.
+  * jeżeli początek danych został wyliczony, przechodzimy do odbierania danych
+  * jest też wyliczany dokładny czas rozpoczęcia transmisji z centralki do pilota.
+* **Odbieranie danych**
+  * Porównania próbek wchodzą do bajta jak to było w sliding window, tylko teraz wyjściowy bit jest wyciągany jak cały bajt się wypełni (co 8 próbek).
+    Ten sam lookup table jest wykożystany.
+  * Kolejne bity formują pakiet
+  * Na koniec crc-16 jest liczone i jeżeli nie jest ok, pakiet jest ignorowany.
+
+## Format transferu (z centralki do pilota)
+* Częstotliwość: F/3 = 2kHz (albo coś takiego)
+* Kodowanie:
+  * poziom 0: sygnał 0 → LED off, 1 → LED on
+  * poziom 1: bit 0 → sygnał `01010101`, bit 1 → sygnał `10101010` (jak Manchester, tylko, że każdy bit jest powtórzony 4x)
+  * poziom 2: bajt → 8 x bit
+  * posiom 3: pakiet → dane, crc-16
+* **Odbieranie danych**
+  * Odbieranie danych rozpoczyna się w ściśle określonym momencie w stosunku do początku prelambuły, tak aby samplowanie ADC wypadło dokładnie w połowie sygnału.
+  * Reszta odbierania danych wygląda jak z pilota do centralki, tylko nie ma algorytm synchronizacji, prelambuły i rozdzielania próbek na 3 ścieżki.
+
 # Parowanie bez ECC
 
 *Haker musi przechwycić całą transmisję LED, żeby posiadać klucz*
@@ -121,6 +175,7 @@ HASH("XUTBSW...CL")
 ...
 kontunuj parowanie używając "shared key":
   wymień się SN (serial number) i ID (index of the remote)
+  wymień sie jakimiś innymi danymi, potwiedzającymi, że wszystko jest ok.
   wyślij akcję z pilota w celu synchronizacji czasu
   i zatwierdzenia parowania po stronie centralki.
 ```
