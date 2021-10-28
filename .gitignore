@@ -13,3 +13,6 @@
 /flash/recovery-bootloader.hex
 /flash/recovery-bootloader.lst
 /flash/recovery-bootloader.map
+/first/CMSIS*/**
+/first/nrfx/**
+/first/first-bootloader.*

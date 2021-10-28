@@ -12,57 +12,71 @@
 #CMSIS_DIR= #Directory containing CMSIS
 #NRFJPROG_DIR= #Directory containing nrfjprog
 
-TARGET=blinky
-#PLATFORM=NRF52832_XXAA
-PLATFORM=NRF51822_XXAA
+TARGET=first-bootloader
+PLATFORM=NRF52832_XXAA
+#PLATFORM=NRF51822_XXAA
 
 build() {
 	find_CC
 	find_NRFX
 	find_CMSIS
 
-	SOURCE_FILES="./src/main.c
-		./src/startup.c"
-	INCLUDE="-I$NRFX/mdk -I$CMSIS"
-	LIBS="-L./src"
-	CFLAGS="-Os -g3 -fdata-sections -ffunction-sections -Wl,--gc-sections
+	SOURCE_FILES="./src/main.c"
+	CFLAGS="-nostdlib
+		-Os -g3 -fdata-sections -ffunction-sections -Wl,--gc-sections
 		-Wall -fno-strict-aliasing -fshort-enums
-		-mthumb -mabi=aapcs
-		--specs=nosys.specs -nostdlib
+		-mthumb -mabi=aapcs --specs=nosys.specs -nostdlib
+		-Tlinker.ld
+		-I./src
+		-I$NRFX/mdk
+		-I$CMSIS
+		-L./src
 		"
 
 	CFLAGS_NRF52832_XXAA="
 		-mcpu=cortex-m4 -march=armv7e-m
 		-mfloat-abi=hard -mfpu=fpv4-sp-d16
-		-Tnrf52832_xxaa.ld
 		-DNRF52
 		-DNRF52832_XXAA
+		-DTARGET_HWID=2
+		-Wl,--defsym=TARGET_RAM_SIZE=0x20000
+		           -DTARGET_RAM_SIZE=0x20000
+		-Wl,--defsym=TARGET_BL_START=0x0C00
+		           -DTARGET_BL_START=0x0C00
+		-Wl,--defsym=TARGET_RAM_USAGE=1024
+		           -DTARGET_RAM_USAGE=1024
+		-Wl,--defsym=TARGET_RAM_ADDR=0x20000000
+		           -DTARGET_RAM_ADDR=0x20000000
 		"
-	SOURCE_FILES_NRF52832_XXAA="
-		./src/system_nrf52.c"
 
 	CFLAGS_NRF51822_XXAA="
 		-mcpu=cortex-m0
 		-mfloat-abi=soft
-		-Tnrf51822_xxaa.ld
 		-DNRF51
 		-DNRF51822_XXAA
+		-DTARGET_HWID=1
+		-Wl,--defsym=TARGET_RAM_SIZE=0x4000
+		           -DTARGET_RAM_SIZE=0x4000
+		-Wl,--defsym=TARGET_BL_START=0x0C00
+		           -DTARGET_BL_START=0x0C00
+		-Wl,--defsym=TARGET_RAM_USAGE=1024
+		           -DTARGET_RAM_USAGE=1024
+		-Wl,--defsym=TARGET_RAM_ADDR=0x20000000
+		           -DTARGET_RAM_ADDR=0x20000000
 		"
-	SOURCE_FILES_NRF51822_XXAA="
-		./src/system_nrf51.c"
 
 	CFLAGS_PLATFORM=CFLAGS_${PLATFORM}
-	SOURCE_FILES_PLATFORM=SOURCE_FILES_${PLATFORM}
 
 	echo "Compiling ${TARGET}..."
-	echo $CC $CFLAGS ${!CFLAGS_PLATFORM} $INCLUDE $LIBS $SOURCE_FILES ${!SOURCE_FILES_PLATFORM} -Wl,-Map=${TARGET}.map -o ${TARGET}.elf
-	     $CC $CFLAGS ${!CFLAGS_PLATFORM} $INCLUDE $LIBS $SOURCE_FILES ${!SOURCE_FILES_PLATFORM} -Wl,-Map=${TARGET}.map -o ${TARGET}.elf
+	echo $CC $CFLAGS ${!CFLAGS_PLATFORM} $SOURCE_FILES -Wl,-Map=${TARGET}.map -o ${TARGET}.elf
+	     $CC $CFLAGS ${!CFLAGS_PLATFORM} $SOURCE_FILES -Wl,-Map=${TARGET}.map -o ${TARGET}.elf
 	echo $OBJDUMP -d ${TARGET}.elf > ${TARGET}.lst
 	     $OBJDUMP -d ${TARGET}.elf > ${TARGET}.lst
 	echo $OBJCOPY -R .noinit -O ihex ${TARGET}.elf ${TARGET}.hex
 	     $OBJCOPY -R .noinit -O ihex ${TARGET}.elf ${TARGET}.hex
 	echo $OBJCOPY -R .noinit -O binary ${TARGET}.elf ${TARGET}.bin
 	     $OBJCOPY -R .noinit -O binary ${TARGET}.elf ${TARGET}.bin
+	ls -l ${TARGET}.bin
 	echo "Success"
 }
 

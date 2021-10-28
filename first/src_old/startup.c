@@ -32,7 +32,7 @@ void ramAppStartup(void* connInfo)
 
 __attribute__((noinline))
 __attribute__((noreturn))
-void startRamApp()
+void startSecondBl()
 {
 	uint32_t buf[4];
 	copyMem((uint8_t*)&buf, NULL/*TODO: getConnState()*/, sizeof(buf));
@@ -67,7 +67,7 @@ static int resetHandler()
 
     main();
 
-	startRamApp();
+	startSecondBl();
 }
 
 __attribute__((noreturn))

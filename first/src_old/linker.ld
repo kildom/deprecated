@@ -2,8 +2,8 @@
 /*
 Input symbols (for gcc use "-Wl,--defsym=NAME=VALUE"):
 _LS_RAM_SIZE = total RAM size
-_LS_BL_START = start address of the first stage bootloader
-_LS_RAM_USAGE = size of RAM used by the first stage bootloader
+_LS_BL_START = start address of the first bootloader
+_LS_RAM_USAGE = size of RAM used by the first bootloader
 */
 
 SEARCH_DIR(.)
@@ -23,7 +23,7 @@ SECTIONS
 
     .text :
     {
-        KEEP(*(.boot_isr*))
+        KEEP(*(.firstBlIsr*))
         *(.text*)
         *(.rodata*)
         . = ALIGN(4);

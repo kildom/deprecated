@@ -33,7 +33,7 @@
 #endif
 
 #define AREA_SIZE ((32 + _AREA_I) * (1 << (7 + _AREA_P)))
-#define MAX_SIZE_FIELD ((_AREA_I << 3) | _AREA_P)
+#define CONF_MAX_SIZE_FIELD ((_AREA_I << 3) | _AREA_P)
 
 #define RESETREAS_EX_FLAG_POWER_ON (1 << 31)
 
@@ -43,51 +43,6 @@ struct {
 	uint32_t initial_sp;
 	uint32_t reset_address;
 } isr_copy;
-
-typedef struct {
-	// beginning of BOOT packet
-	uint8_t salt[8];
-	uint8_t keyConf[4];
-	uint8_t hwid;
-	uint8_t maxSize;
-	uint8_t counter;
-	// end of BOOT packet
-	uint8_t reserved;
-	uint32_t resetreas_flags;
-	uint8_t key[32];
-} boot_conf_t;
-
-__attribute__((used))
-__attribute__((section(".conf")))
-boot_conf_t boot_conf = {
-	.salt = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-	.keyConf = { 0xFF, 0xFF, 0xFF, 0xFF },
-	.hwid = TARGET_HWID,
-	.maxSize = MAX_SIZE_FIELD,
-	.counter = 4,
-	.reserved = 0,
-	.resetreas_flags = ~RESETREAS_EX_FLAG_POWER_ON,
-	.key = {
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	},
-};
-
-extern const boot_conf_t __conf_text_start__;
-#define boot_conf_flash __conf_text_start__
-
-__attribute__((used))
-__attribute__((section(".noinitconf")))
-uint8_t cipher_workspace[16 * 6 - 32];
-
-uint32_t *const key1 = (uint32_t *)&boot_conf.key[0];
-uint32_t *const pt1 = (uint32_t *)&boot_conf.key[16];
-uint32_t *const ct1 = (uint32_t *)&cipher_workspace[0];
-uint32_t *const key2 = (uint32_t *)&cipher_workspace[16];
-uint32_t *const pt2 = (uint32_t *)&cipher_workspace[32];
-uint32_t *const ct2 = (uint32_t *)&cipher_workspace[48];
 
 
 static void small_memcpy(void* dst, const void* src, size_t len)
@@ -111,7 +66,7 @@ static void small_memzero(void* dst, size_t len)
 
 __attribute__((naked))
 __attribute__((noreturn))
-static void ramAppEntry(uint32_t bootloaderAddr, uint32_t initialStack, uint32_t entryAddr)
+static void secondBlEntry(uint32_t bootloaderAddr, uint32_t initialStack, uint32_t entryAddr)
 {
 	__asm__ volatile (
 		"mov SP, r1 \n"
@@ -121,7 +76,7 @@ static void ramAppEntry(uint32_t bootloaderAddr, uint32_t initialStack, uint32_t
 }
 
 __attribute__((noreturn))
-static void startRamApp();
+static void startSecondBl();
 
 void main() {
 	initTimer();
@@ -169,29 +124,29 @@ void startup(void)
 
 	main();
 
-	startRamApp();
+	startSecondBl();
 
 	__builtin_unreachable();
 }
 
 __attribute__((used))
-__attribute__((section(".boot_isr")))
+__attribute__((section(".firstBlIsr")))
 const struct {
 	uint32_t initial_sp;
 	uint32_t reset_address;
-	uint32_t boot_conf_address;
-	uint32_t isr_copy_address;
-} boot_isr = {
+	uint32_t bootConfAddress;
+	uint32_t isrCopyAddress;
+} firstBlIsr = {
 	.initial_sp = TARGET_RAM_ADDR + TARGET_RAM_SIZE - 4,
 	.reset_address = (uint32_t)&startup,
-	.boot_conf_address = (uint32_t)&boot_conf_flash,
-	.isr_copy_address = (uint32_t)&isr_copy,
+	.bootConfAddress = (uint32_t)&boot_conf_flash,
+	.isrCopyAddress = (uint32_t)&isr_copy,
 };
 
 
 __attribute__((noreturn))
-static void startRamApp()
+static void startSecondBl()
 {
-	ramAppEntry((uint32_t)&boot_isr, TARGET_RAM_ADDR + TARGET_RAM_SIZE - 4, TARGET_RAM_ADDR);
+	secondBlEntry((uint32_t)&firstBlIsr, TARGET_RAM_ADDR + TARGET_RAM_SIZE - 4, TARGET_RAM_ADDR);
 	__builtin_unreachable();
 }
