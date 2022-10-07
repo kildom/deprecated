@@ -1,5 +1,6 @@
 
 
+from enum import Enum
 from io import SEEK_CUR, BufferedReader
 import math
 import struct
@@ -7,6 +8,7 @@ from types import SimpleNamespace
 from instr import INSTRUCTIONS, InstrCode
 from wasm_types import BlockKind, InstrInfo, ParseMethod, Section, WasmType
 
+MAX_PYTHON_NESTED_BLOCKS = 10
 
 class FunctionType(SimpleNamespace):
     params: 'list[WasmType]'
@@ -55,18 +57,35 @@ class Table(ModuleObject):
         super().__init__(id)
 
 
+
 class CodeBlock:
-    def __init__(self, kind, type, parent, instr) -> None:
+    def __init__(self, kind, type, parent:'CodeBlock', instr) -> None:
         self.kind = kind
         self.type = type
         self.parent = parent
         self.instr = instr
-        self.br_target = False
+        self.is_br_target = False
         self.else_block = None
         self.if_block = None
         self.body = []
         self.stack_base = 0
         self.break_level = 0
+        self.py_func_block = False
+        self.py_nested_function_index = 0
+
+
+class BranchKind(Enum):
+    RETURN = 0
+    FORWARD = 1
+    BACKWARD = 2
+
+
+class Branch():
+    def __init__(self, target: CodeBlock, kind: BranchKind) -> None:
+        self.target = target
+        self.kind = kind
+        self.py_outside_func = False
+
 
 class WasmModule(SimpleNamespace):
     types: 'list[FunctionType]'
@@ -245,6 +264,15 @@ class Parser:
         func.set_import(module_name, name)
         module.functions.append(func)
 
+    def parse_mem_import(self, module_name, name):
+        module = self.module
+        (limit_min, limit_max) = self.parse_limits()
+        mem = Memory(len(module.memories))
+        mem.min = limit_min
+        mem.max = limit_max
+        mem.set_import(module_name, name)
+        module.memories.append(mem)
+
     def parse_function_section(self):
         module = self.module
         module.func_import_count = len(module.functions)
@@ -346,7 +374,7 @@ class Parser:
                 block = instr.block
                 block_stack.append(block)
             elif op == InstrCode.ELSE:
-                block.body.append(SimpleNamespace(info=INSTRUCTIONS[InstrCode.END], op=InstrCode.END, block=block))
+                block.body.append(SimpleNamespace(info=INSTRUCTIONS[InstrCode.END], op=InstrCode.END, ends_block=block))
                 if_block = block
                 block_stack.pop()
                 block = block_stack[-1]
@@ -358,7 +386,7 @@ class Parser:
                 block = instr.block
                 block_stack.append(block)
             elif op == InstrCode.END:
-                block.body.append(SimpleNamespace(info=info, op=op, block=block))
+                block.body.append(SimpleNamespace(info=info, op=op, ends_block=block, br_targets=[block]))
                 if len(block_stack) > 1:
                     block_stack.pop()
                     block = block_stack[-1]
@@ -370,13 +398,16 @@ class Parser:
                     indexes = []
                     for i in range(0, count + 1):
                         indexes.append(self.read_u32())
-                    block.body.append(SimpleNamespace(info=info, op=op, imm=indexes))
+                    instr = SimpleNamespace(info=info, op=op, imm=indexes)
                 else:
                     indexes = [self.read_u32()]
-                    block.body.append(SimpleNamespace(info=info, op=op, imm=indexes[0]))
+                    instr = SimpleNamespace(info=info, op=op, imm=indexes[0])
+                instr.br_targets = list()
                 for idx in indexes:
+                    instr.br_targets.append(target)
                     target = block_stack[-(idx + 1)]
-                    target.br_target = True
+                    target.is_br_target = True
+                block.body.append(instr)
             elif op == InstrCode.F32_CONST:
                 block.body.append(SimpleNamespace(info=info, op=op, imm=self.read_bytes(4)))
             elif op == InstrCode.F64_CONST:
@@ -395,7 +426,7 @@ class Parser:
 
 class PyGenerator:
     def __init__(self) -> None:
-        pass
+        self.block_counter = 0
 
     def generate(self, module: WasmModule):
         self.module = module
@@ -406,6 +437,7 @@ class PyGenerator:
                 self.generate_imported_function(func)
             else:
                 self.generate_function(func)
+                break
         return '\n'.join(self.output)
 
     def generate_imported_function(self, func:Function):
@@ -430,7 +462,51 @@ class PyGenerator:
             else:
                 self.output.append(f'\t\tl{params_count + i} = 0')
             i += 1
+        self.divide_blocks(func)
         self.generate_block_body(func, func.body, '\t\t', 0, 0)
+
+    def divide_blocks(self, func:Function):
+
+        buckets:'list[list[CodeBlock]]' = list()
+
+        def put_to_bucket(block: CodeBlock, level):
+            if len(buckets) <= level:
+                buckets.append([block])
+            else:
+                buckets[level].append(block)
+            if block.is_br_target and (block.kind in (BlockKind.IF, BlockKind.ELSE)):
+                level += 1
+                if len(buckets) <= level:
+                    buckets.append([block])
+                else:
+                    buckets[level].append(block)
+            level += 1
+            for instr in block.body:
+                if hasattr(instr, 'block'):
+                    put_to_bucket(instr.block, level)
+
+        put_to_bucket(func.body, 0)
+
+        for i in range(len(buckets) - MAX_PYTHON_NESTED_BLOCKS, 0, -MAX_PYTHON_NESTED_BLOCKS):
+            for block in buckets[i]:
+                block.py_func_block = True
+
+        nested_function_index = 0
+        for bucket in buckets:
+            for block in bucket:
+                if block.py_func_block:
+                    nested_function_index += 1
+                block.py_nested_function_index = nested_function_index
+
+        def mark_long_branches(block: CodeBlock):
+            for instr in block.body:
+                if hasattr(instr, 'block') and (instr.block is not None):
+                    mark_long_branches(instr.block)
+                if hasattr(instr, 'br_targets') and (instr.br_targets is not None):
+                    
+
+        mark_long_branches(func.body)
+
 
     def generate_block_body(self, func:Function, block:CodeBlock, ind, initial_stack_size, break_level):
         block.break_level = break_level
@@ -466,7 +542,7 @@ class PyGenerator:
                 self.output.append(f'{ind}if s{stack_size - 1}:')
                 next_ind = ind + '\t'
                 next_break_level = break_level
-                if block.br_target:
+                if block.is_br_target:
                     self.output.append(f'{ind}while True:')
                     next_ind = ind + '\t\t'
                     next_break_level = break_level + 1
@@ -480,7 +556,7 @@ class PyGenerator:
                 self.output.append(f'{ind}else:')
                 next_ind = ind + '\t'
                 next_break_level = break_level
-                if block.br_target:
+                if block.is_br_target:
                     self.output.append(f'{ind}while True:')
                     next_ind = ind + '\t\t'
                     next_break_level = break_level + 1
@@ -507,7 +583,7 @@ class PyGenerator:
                 self.generate_break(func, block, ind + '\t', stack_size, instr.imm[-1])
                 break
             elif info.opcode == InstrCode.END:
-                if (block.kind not in (BlockKind.IF, BlockKind.ELSE)) or block.br_target:
+                if (block.kind not in (BlockKind.IF, BlockKind.ELSE)) or block.is_br_target:
                     self.generate_break(func, block, ind, stack_size, 0, True)
                 break
             elif info.opcode == InstrCode.RETURN:
@@ -591,7 +667,7 @@ class PyGenerator:
 
 m = Parser()
 try:
-    mod = m.parse(open('test.wasm', 'rb'))
+    mod = m.parse(open('test2.wasm', 'rb'))
     g = PyGenerator()
     print(g.generate(mod))
     #print(mod)
