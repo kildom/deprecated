@@ -8,6 +8,79 @@ Using `nonlocal` for stack should also be faster.
 
 ```python
 
+# BLOCK template:
+
+while True:            # BLOCK B12 @4
+	# ...
+	bt = 4; break  # BR 0 -> B12 @4
+	# ...
+	bt = 3; break  # BR 1 -> B8 @3
+              # ^-- Can also be `return` if branch target is outside this chunk function
+	# ...
+	bt = 4; break  # END B12 @4
+	#    ^--- Assignment and break are needed only if END instruction is reachable
+if bt < 4: break       # ^
+#  ^--- Checking `bt` is needed only if block breaks target outside itself.
+
+# IF/ELSE template:
+
+while s10 != 0:        # IF I33 @5
+	# ...
+	bt = 5; break  # BR 0 -> I33 @5
+	# ...
+	bt = 4; break  # BR 1 -> B31 @4
+	# ...
+	bt = 5; break              # ELSE i33 @5
+# start of part that exists only if ELSE exists
+else:                              # ^
+	bt = 6                     # ^
+while bt == 6:                     # ^
+	# ...
+	bt = 5; break  # BR 0 -> I33 @5
+	# ...
+	bt = 4; break  # BR 1 -> B31 @4
+	# ...
+	bt = 5; break  # END I33 @5
+# end of part that exists only if ELSE exists
+if bt < 5: break               # ^
+
+# LOOP template:
+
+while True:            # LOOP L123 @3
+	# ...
+	continue       # BR 0 -> L123 @3
+	# ...
+	while True:                   # BLOCK B188 @4
+		# ...
+		bt = 3; break;        # BR 1 -> L123 @3
+		# ...
+	if bt < 4:                    # END B188 @4
+		if bt == 3: continue  # ^
+		# ^--- Additional if is needed only if inner blocks target this LOOP
+		break                 # ^
+	# ...
+	bt = 2; break  # BR 1 -> I99 @2
+	# ...
+if bt < 3: break       # END L123 @3
+
+# Inserting block that is in a different chunk
+
+	# When chunk breaks targets outside itself
+	_ch18()              # LOOP L18 @8
+	if bt <= 7: break    # ^^^^^^^^^^
+	       # ^--- where 7 is current block index
+
+	# When chunk does not break targets outside itself
+	_ch12()              # LOOP L12
+
+		
+
+```
+
+### OLD
+
+```python
+
 def _f0(mod, *a):
 	return mod.imports.some_mod.some_func(*a)
 # ...
