@@ -73,7 +73,11 @@ if bt < 3: break       # END L123 @3
 	# When chunk does not break targets outside itself
 	_ch12()              # LOOP L12
 
-		
+	# When inserting chunk with IF/ELSE top-level block, top level while/else can be moved to expression:
+	_ch12() if s12 != 0 else _ch13()
+	
+	# When inserting chunk with BLOCK top-level block, top level while can be removed and calling it will be the same:
+	_ch12()
 
 ```
 
