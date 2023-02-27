@@ -152,3 +152,8 @@ m.start()
 res = m.exports.some_func2(1, 2, 3.4)
 
 ```
+
+### Note on LOOP:
+
+ * Branch to loop instruction takes top stack as parameters and clears below it if needed.
+ * End of loop exists the loop

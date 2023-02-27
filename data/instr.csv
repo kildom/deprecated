@@ -1,5 +1,5 @@
-[0] Instruction,[1] Binary Opcode,[2] Type,[3] Cust. parse,[4] Python code,[5] Features
- unreachable,0x00, []→[],,self._unreachable(),unreachable
+[0] Instruction,[1] Binary Opcode,[2] Type,[3] Cust. parse,[4] Python code,[5] Builtins
+ unreachable,0x00, []→[],,,unreachable
  nop,0x01, []→[],,# nop,
  block bt,0x02, [t1∗]→[t2∗],,,
  loop bt,0x03, [t1∗]→[t2∗],,,
@@ -32,38 +32,38 @@
 (reserved),0x1E,,,,
 (reserved),0x1F,,,,
  local.get x,0x20, []→[t],,{0} = l{imm},
- local.set x,0x21, [t]→[],,l{imm} = {-1},
- local.tee x,0x22, [t]→[t],,l{imm} = {-1},
+ local.set x,0x21, [t]→[],,,
+ local.tee x,0x22, [t]→[t],,,
  global.get x,0x23, []→[t],,,
  global.set x,0x24, [t]→[],,,
  table.get x,0x25,  [i32]→[t],,,
  table.set x,0x26,  [i32 t]→[],,,
 (reserved),0x27,,,,
-   i32.load memarg,0x28,   [i32]→[i32],,"{-1} = int.from_bytes(mem[{-1} + {imm}:{-1} + {imm} + 4], ""little"")",
-   i64.load memarg,0x29,   [i32]→[i64],,"{-1} = int.from_bytes(mem[{-1} + {imm}:{-1} + {imm} + 8], ""little"")",
-   f32.load memarg,0x2A,   [i32]→[f32],,"{-1} = unpack_from(""<f"", mem, {-1} + {imm})",unpack_from
-   f64.load memarg,0x2B,   [i32]→[f64],,"{-1} = unpack_from(""<d"", mem, {-1} + {imm})",unpack_from
-   i32.load8_s memarg,0x2C,   [i32]→[i32],,{-1} = mem[{-1} + {imm}]\nif {-1} & 0x80:\n\t{-1} |= 0xFFFFFF00,
-   i32.load8_u memarg,0x2D,   [i32]→[i32],,{-1} = mem[{-1} + {imm}],
-   i32.load16_s memarg,0x2E,   [i32]→[i32],,{-1} = mem[{-1} + {imm}] | (mem[{-1} + {imm} + 1] << 8)\nif {-1} & 0x8000:\n\t{-1} |= 0xFFFF0000,
-   i32.load16_u memarg,0x2F,   [i32]→[i32],,{-1} = mem[{-1} + {imm}] | (mem[{-1} + {imm} + 1] << 8),
-   i64.load8_s memarg,0x30,   [i32]→[i64],,{-1} = mem[{-1} + {imm}]\nif {-1} & 0x80:\n\t{-1} |= 0xFFFFFFFFFFFFFF00,
-   i64.load8_u memarg,0x31,   [i32]→[i64],,{-1} = mem[{-1} + {imm}],
-   i64.load16_s memarg,0x32,   [i32]→[i64],,{-1} = mem[{-1} + {imm}] | (mem[{-1} + {imm} + 1] << 8)\nif {-1} & 0x8000:\n\t{-1} |= 0xFFFFFFFFFFFF0000,
-   i64.load16_u memarg,0x33,   [i32]→[i64],,{-1} = mem[{-1} + {imm}] | (mem[{-1} + {imm} + 1] << 8),
-   i64.load32_s memarg,0x34,   [i32]→[i64],,{-1} = int.from_bytes(mem[{-1} + {imm}:{-1} + {imm} + 4])\nif {-1} & 0x80000000:\n\t{-1} |= 0xFFFFFFFF00000000,
-   i64.load32_u memarg,0x35,   [i32]→[i64],,{-1} = int.from_bytes(mem[{-1} + {imm}:{-1} + {imm} + 4]),
-   i32.store memarg,0x36,   [i32 i32]→[],,"mem[{-2} + {imm}:{-2} + {imm} + 4] = {-1}.to_bytes(4, ""little"")",
-   i64.store memarg,0x37,   [i32 i64]→[],,"mem[{-2} + {imm}:{-2} + {imm} + 8] = {-1}.to_bytes(8, ""little"")",
-   f32.store memarg,0x38,   [i32 f32]→[],,"pack_into(""<f"", mem, {-2} + {imm}, {-1})",pack_into
-   f64.store memarg,0x39,   [i32 f64]→[],,"pack_into(""<d"", mem, {-2} + {imm}, {-1})",pack_into
-   i32.store8 memarg,0x3A,   [i32 i32]→[],,mem[{-2} + {imm}] = {-1} & 0xFF,
-   i32.store16 memarg,0x3B,   [i32 i32]→[],,mem[{-2} + {imm}] = {-1} & 0xFF\nmem[{-2} + {imm} + 1] = ({-1} >> 8) & 0xFF,
-   i64.store8 memarg,0x3C,   [i32 i64]→[],,mem[{-2} + {imm}] = {-1} & 0xFF,
-   i64.store16 memarg,0x3D,   [i32 i64]→[],,mem[{-2} + {imm}] = {-1} & 0xFF\nmem[{-2} + {imm} + 1] = ({-1} >> 8) & 0xFF,
-   i64.store32 memarg,0x3E,   [i32 i64]→[],,"mem[{-2} + {imm}:{-2} + {imm} + 4] = ({-1} & 0xFFFFFFFF).to_bytes(4, ""little"")",
- memory.size,0x3F,  []→[i32],,{0} = len(mem) // 0x10000,
- memory.grow,0x40,   [i32]→[i32],,{-1} = self._memory_grow({-1}),memory_grow
+   i32.load memarg,0x28,   [i32]→[i32],,"{-1} = int.from_bytes(mem0[{-1} + {imm}:{-1} + {imm} + 4], ""little"")",
+   i64.load memarg,0x29,   [i32]→[i64],,"{-1} = int.from_bytes(mem0[{-1} + {imm}:{-1} + {imm} + 8], ""little"")",
+   f32.load memarg,0x2A,   [i32]→[f32],,"{-1} = unpack_from(""<f"", mem0, {-1} + {imm})[0]",unpack_from
+   f64.load memarg,0x2B,   [i32]→[f64],,"{-1} = unpack_from(""<d"", mem0, {-1} + {imm})[0]",unpack_from
+   i32.load8_s memarg,0x2C,   [i32]→[i32],,{-1} = mem0[{-1} + {imm}]\nif {-1} & 0x80:\n\t{-1} |= 0xFFFFFF00,
+   i32.load8_u memarg,0x2D,   [i32]→[i32],,{-1} = mem0[{-1} + {imm}],
+   i32.load16_s memarg,0x2E,   [i32]→[i32],,{-1} = mem0[{-1} + {imm}] | (mem0[{-1} + {imm} + 1] << 8)\nif {-1} & 0x8000:\n\t{-1} |= 0xFFFF0000,
+   i32.load16_u memarg,0x2F,   [i32]→[i32],,{-1} = mem0[{-1} + {imm}] | (mem0[{-1} + {imm} + 1] << 8),
+   i64.load8_s memarg,0x30,   [i32]→[i64],,{-1} = mem0[{-1} + {imm}]\nif {-1} & 0x80:\n\t{-1} |= 0xFFFFFFFFFFFFFF00,
+   i64.load8_u memarg,0x31,   [i32]→[i64],,{-1} = mem0[{-1} + {imm}],
+   i64.load16_s memarg,0x32,   [i32]→[i64],,{-1} = mem0[{-1} + {imm}] | (mem0[{-1} + {imm} + 1] << 8)\nif {-1} & 0x8000:\n\t{-1} |= 0xFFFFFFFFFFFF0000,
+   i64.load16_u memarg,0x33,   [i32]→[i64],,{-1} = mem0[{-1} + {imm}] | (mem0[{-1} + {imm} + 1] << 8),
+   i64.load32_s memarg,0x34,   [i32]→[i64],,"{-1} = int.from_bytes(mem0[{-1} + {imm}:{-1} + {imm} + 4], ""little"")\nif {-1} & 0x80000000:\n\t{-1} |= 0xFFFFFFFF00000000",
+   i64.load32_u memarg,0x35,   [i32]→[i64],,"{-1} = int.from_bytes(mem0[{-1} + {imm}:{-1} + {imm} + 4], ""little"")",
+   i32.store memarg,0x36,   [i32 i32]→[],,"mem0[{-2} + {imm}:{-2} + {imm} + 4] = {-1}.to_bytes(4, ""little"")",
+   i64.store memarg,0x37,   [i32 i64]→[],,"mem0[{-2} + {imm}:{-2} + {imm} + 8] = {-1}.to_bytes(8, ""little"")",
+   f32.store memarg,0x38,   [i32 f32]→[],,"pack_into(""<f"", mem0, {-2} + {imm}, {-1})",pack_into
+   f64.store memarg,0x39,   [i32 f64]→[],,"pack_into(""<d"", mem0, {-2} + {imm}, {-1})",pack_into
+   i32.store8 memarg,0x3A,   [i32 i32]→[],,mem0[{-2} + {imm}] = {-1} & 0xFF,
+   i32.store16 memarg,0x3B,   [i32 i32]→[],,mem0[{-2} + {imm}] = {-1} & 0xFF\nmem0[{-2} + {imm} + 1] = ({-1} >> 8) & 0xFF,
+   i64.store8 memarg,0x3C,   [i32 i64]→[],,mem0[{-2} + {imm}] = {-1} & 0xFF,
+   i64.store16 memarg,0x3D,   [i32 i64]→[],,mem0[{-2} + {imm}] = {-1} & 0xFF\nmem0[{-2} + {imm} + 1] = ({-1} >> 8) & 0xFF,
+   i64.store32 memarg,0x3E,   [i32 i64]→[],,"mem0[{-2} + {imm}:{-2} + {imm} + 4] = ({-1} & 0xFFFFFFFF).to_bytes(4, ""little"")",
+ memory.size x,0x3F,  []→[i32],,{0} = len(m::{imm}) // 0x10000,
+ memory.grow x,0x40,   [i32]→[i32],,"{-1} = memory_grow(m::{imm}, {-1}, self._W_m_lim{imm})",_W_memory_grow
    i32.const i32,0x41,  []→[i32],,{0} = {imm},
    i64.const i64,0x42,  []→[i64],,{0} = {imm},
    f32.const f32,0x43,  []→[f32],y,,
@@ -127,9 +127,9 @@
   i64.sub,0x7D,    [i64 i64]→[i64],,{-2} = ({-2} - {-1}) & 0xFFFFFFFFFFFFFFFF,
   i64.mul,0x7E,    [i64 i64]→[i64],,{-2} = ({-2} * {-1}) & 0xFFFFFFFFFFFFFFFF,
   i64.div_s,0x7F,    [i64 i64]→[i64],,"{-2} = _div_s64({-2}, {-1})",div_s64
-  i64.div_u,0x80,    [i64 i64]→[i64],,{-2} = {-2} // {-1},
+  i64.div_u,0x80,    [i64 i64]→[i64],,{-2} = {-2} // {-1} if {-1} != 0 else {-2},
   i64.rem_s,0x81,    [i64 i64]→[i64],,"{-2} = _rem_s64({-2}, {-1})",rem_s64
-  i64.rem_u,0x82,    [i64 i64]→[i64],,{-2} = {-2} % {-1},
+  i64.rem_u,0x82,    [i64 i64]→[i64],,{-2} = {-2} % {-1} if {-1} != 0 else {-2},
   i64.and,0x83,    [i64 i64]→[i64],,{-2} = {-2} & {-1},
   i64.or,0x84,    [i64 i64]→[i64],,{-2} = {-2} | {-1},
   i64.xor,0x85,    [i64 i64]→[i64],,{-2} = {-2} ^ {-1},
@@ -143,7 +143,7 @@
   f32.ceil,0x8D,   [f32]→[f32],,{-1} = float(ceil({-1})),ceil
   f32.floor,0x8E,   [f32]→[f32],,{-1} = float(floor({-1})),floor
   f32.trunc,0x8F,   [f32]→[f32],,{-1} = float(trunc({-1})),trunc
-  f32.nearest,0x90,   [f32]→[f32],,{-1} = float(round({-1})),round
+  f32.nearest,0x90,   [f32]→[f32],,{-1} = float(round({-1})),
   f32.sqrt,0x91,   [f32]→[f32],,{-1} = sqrt({-1}),sqrt
   f32.add,0x92,    [f32 f32]→[f32],,{-2} = {-2} + {-1},
   f32.sub,0x93,    [f32 f32]→[f32],,{-2} = {-2} - {-1},
@@ -165,7 +165,7 @@
   f64.div,0xA3,    [f64 f64]→[f64],,{-2} = {-2} / {-1},
   f64.min,0xA4,    [f64 f64]→[f64],,"{-2} = min({-2}, {-1})",
   f64.max,0xA5,    [f64 f64]→[f64],,"{-2} = max({-2}, {-1})",
-  f64.copysign,0xA6,    [f64 f64]→[f64],,"{-2} = copysign({-2}, {-1})",
+  f64.copysign,0xA6,    [f64 f64]→[f64],,"{-2} = copysign({-2}, {-1})",copysign
    i32.wrap_i64,0xA7,   [i64]→[i32],,{-1} = {-1} & 0xFFFFFFFF,
    i32.trunc_f32_s,0xA8,   [f32]→[i32],,{-1} = trunc({-1}) & 0xFFFFFFFF if abs({-1}) < 2.2e9 else 0,trunc
    i32.trunc_f32_u,0xA9,   [f32]→[i32],,{-1} = trunc({-1}) if ({-1} >= 0.0) and ({-1} < 4294967295.0) else 4294967295,trunc
@@ -189,8 +189,8 @@
    f64.promote_f32,0xBB,   [f32]→[f64],,# {-1}: 32-bit to 64-bit float,
    i32.reinterpret_f32,0xBC,   [f32]→[i32],,"{-1} = int.from_bytes(pack(""<f"", {-1}), ""little"")",pack
    i64.reinterpret_f64,0xBD,   [f64]→[i64],,"{-1} = int.from_bytes(pack(""<d"", {-1}), ""little"")",pack
-   f32.reinterpret_i32,0xBE,   [i32]→[f32],,"{-1} = unpack(""<f"", {-1}.to_bytes(4, ""little""))",unpack
-   f64.reinterpret_i64,0xBF,   [i64]→[f64],,"{-1} = unpack(""<d"", {-1}.to_bytes(8, ""little""))",unpack
+   f32.reinterpret_i32,0xBE,   [i32]→[f32],,"{-1} = unpack(""<f"", {-1}.to_bytes(4, ""little""))[0]",unpack
+   f64.reinterpret_i64,0xBF,   [i64]→[f64],,"{-1} = unpack(""<d"", {-1}.to_bytes(8, ""little""))[0]",unpack
   i32.extend8_s,0xC0,   [i32]→[i32],,if {-1} & 0x80:\n\t{-1} |= 0xFFFFFF00\nelse:\n\t{-1} &= 0xFF,
   i32.extend16_s,0xC1,   [i32]→[i32],,if {-1} & 0x8000:\n\t{-1} |= 0xFFFF0000\nelse:\n\t{-1} &= 0xFFFF,
   i64.extend8_s,0xC2,   [i64]→[i64],,if {-1} & 0x80:\n\t{-1} |= 0xFFFFFFFFFFFFFF00\nelse:\n\t{-1} &= 0xFF,
@@ -209,7 +209,7 @@
 (reserved),0xCF,,,,
  ref.null t,0xD0, []→[t],,{0} = None,
  ref.is_null,0xD1,  [t]→[i32],,{-1} = 1 if {-1} is None else 0,
- ref.func x,0xD2,  []→[funcref],,{0} = self._f{imm},
+ ref.func x,0xD2,  []→[funcref],,{0} = f::{imm},
 (reserved),0xD3,,,,
 (reserved),0xD4,,,,
 (reserved),0xD5,,,,
@@ -259,249 +259,249 @@
    i64.trunc_sat_f32_u,0xFC 0x05,   [f32]→[i64],,{-1} = trunc({-1}) if ({-1} >= 0.0) and ({-1} < 18446744073709549568.0) else  _trunc_sat_u64({-1}),"trunc, trunc_sat_u64"
    i64.trunc_sat_f64_s,0xFC 0x06,   [f64]→[i64],,{-1} = trunc({-1}) & 0xFFFFFFFFFFFFFFFF if abs({-1}) < 9.2e18 else  _trunc_sat_s64({-1}),"trunc, trunc_sat_s64"
    i64.trunc_sat_f64_u,0xFC 0x07,   [f64]→[i64],,{-1} = trunc({-1}) if ({-1} >= 0.0) and ({-1} < 18446744073709549568.0) else  _trunc_sat_u64({-1}),"trunc, trunc_sat_u64"
- memory.init x,0xFC 0x08,    [i32 i32 i32]→[],,"self._memory_init({imm}, {-3}, {-2}, {-1})",memory_init
- data.drop x,0xFC 0x09, []→[],,self._data_drop({imm}),data_drop
- memory.copy,0xFC 0x0A,    [i32 i32 i32]→[],,"self._memory_copy({-3}, {-2}, {-1})",memory_copy
- memory.fill,0xFC 0x0B,    [i32 i32 i32]→[],,"self._memory_fill({-3}, {-2}, {-1})",memory_fill
- table.init x y,0xFC 0x0C,    [i32 i32 i32]→[],,"self._table_init({imm0}, {imm1}, {-3}, {-2}, {-1})",table_init
- elem.drop x,0xFC 0x0D, []→[],,self._elem_drop({imm}),elem_drop
- table.copy x y,0xFC 0x0E,    [i32 i32 i32]→[],,"self._table_copy({imm0}, {imm1}, {-3}, {-2}, {-1})",table_copy
- table.grow x,0xFC 0x0F,   [t i32]→[i32],,"{-1} = self._table_grow({imm}, {-2}, {-1})",table_grow
- table.size x,0xFC 0x10,  []→[i32],,{-1} = self._table_size({imm}),table_size
- table.fill x,0xFC 0x11,   [i32 t i32]→[],,"self._table_fill({imm}, {-3}, {-2}, {-1})",table_fill
-   v128.load memarg,0xFD  0x00,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   v128.load8x8_s memarg,0xFD  0x01,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   v128.load8x8_u memarg,0xFD  0x02,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   v128.load16x4_s memarg,0xFD  0x03,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   v128.load16x4_u memarg,0xFD  0x04,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   v128.load32x2_s memarg,0xFD  0x05,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   v128.load32x2_u memarg,0xFD  0x06,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   v128.load8_splat memarg,0xFD  0x07,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   v128.load16_splat memarg,0xFD  0x08,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   v128.load32_splat memarg,0xFD  0x09,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   v128.load64_splat memarg,0xFD  0x0A,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   v128.store memarg,0xFD  0x0B,   [i32 v128]→[],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   v128.const i128,0xFD  0x0C,  []→[v128],y,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   i8x16.shuffle laneidx16,0xFD  0x0D,    [v128 v128]→[v128],y,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.swizzle,0xFD  0x0E,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.splat,0xFD  0x0F,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.splat,0xFD  0x10,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.splat,0xFD  0x11,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.splat,0xFD  0x12,   [i64]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.splat,0xFD  0x13,   [f32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.splat,0xFD  0x14,   [f64]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   i8x16.extract_lane_s laneidx,0xFD  0x15,   [v128]→[i32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   i8x16.extract_lane_u laneidx,0xFD  0x16,   [v128]→[i32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   i8x16.replace_lane laneidx,0xFD  0x17,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   i16x8.extract_lane_s laneidx,0xFD  0x18,   [v128]→[i32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   i16x8.extract_lane_u laneidx,0xFD  0x19,   [v128]→[i32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   i16x8.replace_lane laneidx,0xFD  0x1A,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   i32x4.extract_lane laneidx,0xFD  0x1B,   [v128]→[i32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   i32x4.replace_lane laneidx,0xFD  0x1C,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   i64x2.extract_lane laneidx,0xFD  0x1D,   [v128]→[i64],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   i64x2.replace_lane laneidx,0xFD  0x1E,    [v128 i64]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   f32x4.extract_lane laneidx,0xFD  0x1F,   [v128]→[f32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   f32x4.replace_lane laneidx,0xFD  0x20,    [v128 f32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   f64x2.extract_lane laneidx,0xFD  0x21,   [v128]→[f64],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-   f64x2.replace_lane laneidx,0xFD  0x22,    [v128 f64]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.eq,0xFD  0x23,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.ne,0xFD  0x24,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.lt_s,0xFD  0x25,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.lt_u,0xFD  0x26,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.gt_s,0xFD  0x27,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.gt_u,0xFD  0x28,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.le_s,0xFD  0x29,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.le_u,0xFD  0x2A,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.ge_s,0xFD  0x2B,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.ge_u,0xFD  0x2C,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.eq,0xFD  0x2D,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.ne,0xFD  0x2E,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.lt_s,0xFD  0x2F,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.lt_u,0xFD  0x30,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.gt_s,0xFD  0x31,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.gt_u,0xFD  0x32,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.le_s,0xFD  0x33,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.le_u,0xFD  0x34,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.ge_s,0xFD  0x35,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.ge_u,0xFD  0x36,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.eq,0xFD  0x37,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.ne,0xFD  0x38,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.lt_s,0xFD  0x39,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.lt_u,0xFD  0x3A,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.gt_s,0xFD  0x3B,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.gt_u,0xFD  0x3C,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.le_s,0xFD  0x3D,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.le_u,0xFD  0x3E,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.ge_s,0xFD  0x3F,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.ge_u,0xFD  0x40,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.eq,0xFD  0x41,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.ne,0xFD  0x42,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.lt,0xFD  0x43,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.gt,0xFD  0x44,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.le,0xFD  0x45,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.ge,0xFD  0x46,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.eq,0xFD  0x47,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.ne,0xFD  0x48,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.lt,0xFD  0x49,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.gt,0xFD  0x4A,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.le,0xFD  0x4B,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.ge,0xFD  0x4C,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  v128.not,0xFD  0x4D,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  v128.and,0xFD  0x4E,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  v128.andnot,0xFD  0x4F,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  v128.or,0xFD  0x50,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  v128.xor,0xFD  0x51,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  v128.bitselect,0xFD  0x52,     [v128 v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  v128.any_true,0xFD  0x53,   [v128]→[i32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-    v128.load8_lane memarg laneidx,0xFD  0x54,    [i32 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-    v128.load16_lane memarg laneidx,0xFD  0x55,    [i32 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-    v128.load32_lane memarg laneidx,0xFD  0x56,    [i32 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-    v128.load64_lane memarg laneidx,0xFD  0x57,    [i32 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-    v128.store8_lane memarg laneidx,0xFD  0x58,    [i32 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-    v128.store16_lane memarg laneidx,0xFD  0x59,    [i32 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-    v128.store32_lane memarg laneidx,0xFD  0x5A,    [i32 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-    v128.store64_lane memarg laneidx,0xFD  0x5B,    [i32 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-    v128.load32_zero memarg laneidx,0xFD  0x5C,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-    v128.load64_zero memarg laneidx,0xFD  0x5D,   [i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.demote_f64x2_zero,0xFD  0x5E,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.promote_low_f32x4,0xFD  0x5F,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.abs,0xFD  0x60,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.neg,0xFD  0x61,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.popcnt,0xFD  0x62,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.all_true,0xFD  0x63,   [v128]→[i32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.bitmask,0xFD  0x64,   [v128]→[i32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.narrow_i16x8_s,0xFD  0x65,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.narrow_i16x8_u,0xFD  0x66,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.ceil,0xFD  0x67,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.floor,0xFD  0x68,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.trunc,0xFD  0x69,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.nearest,0xFD  0x6A,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.shl,0xFD  0x6B,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.shr_s,0xFD  0x6C,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.shr_u,0xFD  0x6D,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.add,0xFD  0x6E,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.add_sat_s,0xFD  0x6F,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.add_sat_u,0xFD  0x70,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.sub,0xFD  0x71,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.sub_sat_s,0xFD  0x72,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.sub_sat_u,0xFD  0x73,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.ceil,0xFD  0x74,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.floor,0xFD  0x75,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.min_s,0xFD  0x76,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.min_u,0xFD  0x77,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.max_s,0xFD  0x78,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.max_u,0xFD  0x79,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.trunc,0xFD  0x7A,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i8x16.avgr_u,0xFD  0x7B,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.extadd_pairwise_i8x16_s,0xFD  0x7C,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.extadd_pairwise_i8x16_u,0xFD  0x7D,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.extadd_pairwise_i16x8_s,0xFD  0x7E,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.extadd_pairwise_i16x8_u,0xFD  0x7F,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.abs,0xFD  0x80  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.neg,0xFD  0x81  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.q15mulr_sat_s,0xFD  0x82  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.all_true,0xFD  0x83  0x01,   [v128]→[i32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.bitmask,0xFD  0x84  0x01,   [v128]→[i32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.narrow_i32x4_s,0xFD  0x85  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.narrow_i32x4_u,0xFD  0x86  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.extend_low_i8x16_s,0xFD  0x87  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.extend_high_i8x16_s,0xFD  0x88  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.extend_low_i8x16_u,0xFD  0x89  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.extend_high_i8x16_u,0xFD  0x8A  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.shl,0xFD  0x8B  0x01,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.shr_s,0xFD  0x8C  0x01,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.shr_u,0xFD  0x8D  0x01,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.add,0xFD  0x8E  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.add_sat_s,0xFD  0x8F  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.add_sat_u,0xFD  0x90  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.sub,0xFD  0x91  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.sub_sat_s,0xFD  0x92  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.sub_sat_u,0xFD  0x93  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.nearest,0xFD  0x94  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.mul,0xFD  0x95  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.min_s,0xFD  0x96  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.min_u,0xFD  0x97  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.max_s,0xFD  0x98  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.max_u,0xFD  0x99  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.avgr_u,0xFD  0x9B  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.extmul_low_i8x16_s,0xFD  0x9C  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.extmul_high_i8x16_s,0xFD  0x9D  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.extmul_low_i8x16_u,0xFD  0x9E  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i16x8.extmul_high_i8x16_u,0xFD  0x9F  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.abs,0xFD  0xA0  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.neg,0xFD  0xA1  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.all_true,0xFD  0xA3  0x01,   [v128]→[i32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.bitmask,0xFD  0xA4  0x01,   [v128]→[i32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.extend_low_i16x8_s,0xFD  0xA7  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.extend_high_i16x8_s,0xFD  0xA8  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.extend_low_i16x8_u,0xFD  0xA9  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.extend_high_i16x8_u,0xFD  0xAA  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.shl,0xFD  0xAB  0x01,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.shr_s,0xFD  0xAC  0x01,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.shr_u,0xFD  0xAD  0x01,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.add,0xFD  0xAE  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.sub,0xFD  0xB1  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.mul,0xFD  0xB5  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.min_s,0xFD  0xB6  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.min_u,0xFD  0xB7  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.max_s,0xFD  0xB8  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.max_u,0xFD  0xB9  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.dot_i16x8_s,0xFD  0xBA  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.extmul_low_i16x8_s,0xFD  0xBC  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.extmul_high_i16x8_s,0xFD  0xBD  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.extmul_low_i16x8_u,0xFD  0xBE  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.extmul_high_i16x8_u,0xFD  0xBF  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.abs,0xFD  0xC0  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.neg,0xFD  0xC1  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.all_true,0xFD  0xC3  0x01,   [v128]→[i32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.bitmask,0xFD  0xC4  0x01,   [v128]→[i32],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.extend_low_i32x4_s,0xFD  0xC7  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.extend_high_i32x4_s,0xFD  0xC8  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.extend_low_i32x4_u,0xFD  0xC9  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.extend_high_i32x4_u,0xFD  0xCA  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.shl,0xFD  0xCB  0x01,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.shr_s,0xFD  0xCC  0x01,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.shr_u,0xFD  0xCD  0x01,    [v128 i32]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.add,0xFD  0xCE  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.sub,0xFD  0xD1  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.mul,0xFD  0xD5  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.eq,0xFD  0xD6  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.ne,0xFD  0xD7  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.lt_s,0xFD  0xD8  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.gt_s,0xFD  0xD9  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.le_s,0xFD  0xDA  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.ge_s,0xFD  0xDB  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.extmul_low_i32x4_s,0xFD  0xDC  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.extmul_high_i32x4_s,0xFD  0xDD  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.extmul_low_i32x4_u,0xFD  0xDE  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i64x2.extmul_high_i32x4_u,0xFD  0xDF  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.abs,0xFD  0xE0  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.neg,0xFD  0xE1  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.sqrt,0xFD  0xE3  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.add,0xFD  0xE4  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.sub,0xFD  0xE5  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.mul,0xFD  0xE6  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.div,0xFD  0xE7  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.min,0xFD  0xE8  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.max,0xFD  0xE9  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.pmin,0xFD  0xEA  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.pmax,0xFD  0xEB  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.abs,0xFD  0xEC  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.neg,0xFD  0xED  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.sqrt,0xFD  0xEF  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.add,0xFD  0xF0  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.sub,0xFD  0xF1  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.mul,0xFD  0xF2  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.div,0xFD  0xF3  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.min,0xFD  0xF4  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.max,0xFD  0xF5  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.pmin,0xFD  0xF6  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.pmax,0xFD  0xF7  0x01,    [v128 v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.trunc_sat_f32x4_s,0xFD  0xF8  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.trunc_sat_f32x4_u,0xFD  0xF9  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.convert_i32x4_s,0xFD  0xFA  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f32x4.convert_i32x4_u,0xFD  0xFB  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.trunc_sat_f64x2_s_zero,0xFD  0xFC  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  i32x4.trunc_sat_f64x2_u_zero,0xFD  0xFD  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.convert_low_i32x4_s,0xFD  0xFE  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
-  f64x2.convert_low_i32x4_u,0xFD  0xFF  0x01,   [v128]→[v128],,"raise Exception(""Fixed-width SIMD is not implemented"")",
+ memory.init x y,0xFC 0x08,    [i32 i32 i32]→[],,m::{imm1}[{-3}:{-3} + {-1}] = self._W_dat{imm0}[{-2}:{-2} + {-1}],
+ data.drop x,0xFC 0x09, []→[],,"self._W_dat{imm} = b""""",
+ memory.copy x y,0xFC 0x0A,    [i32 i32 i32]→[],,m::{imm0}[{-3}:{-3} + {-1}] = m::{imm1}[{-2}:{-2} + {-1}],
+ memory.fill x,0xFC 0x0B,    [i32 i32 i32]→[],,m::{imm}[{-3}:{-3} + {-1}] = bytes([{-2} & 0xFF]) * {-1},
+ table.init x y,0xFC 0x0C,    [i32 i32 i32]→[],,t::{imm1}[{-3}:{-3} + {-1}] = self._W_el{imm0}[{-2}:{-2} + {-1}],
+ elem.drop x,0xFC 0x0D, []→[],,self._W_el{imm} = [],
+ table.copy x y,0xFC 0x0E,    [i32 i32 i32]→[],,t::{imm0}[{-3}:{-3} + {-1}] = t::{imm1}[{-2}:{-2} + {-1}],
+ table.grow x,0xFC 0x0F,   [t i32]→[i32],,"{-1} = self._W_table_grow(t::{imm}, {-2}, {-1}, self._W_t_lim{imm})",_W_table_grow
+ table.size x,0xFC 0x10,  []→[i32],,{0} = len(t::{imm}),
+ table.fill x,0xFC 0x11,   [i32 t i32]→[],,t::{imm}[{-3}:{-3} + {-1}] = [{-2}] * {-1},
+   v128.load memarg,0xFD  0x00,   [i32]→[v128],,# Not implemented,simd
+   v128.load8x8_s memarg,0xFD  0x01,   [i32]→[v128],,# Not implemented,simd
+   v128.load8x8_u memarg,0xFD  0x02,   [i32]→[v128],,# Not implemented,simd
+   v128.load16x4_s memarg,0xFD  0x03,   [i32]→[v128],,# Not implemented,simd
+   v128.load16x4_u memarg,0xFD  0x04,   [i32]→[v128],,# Not implemented,simd
+   v128.load32x2_s memarg,0xFD  0x05,   [i32]→[v128],,# Not implemented,simd
+   v128.load32x2_u memarg,0xFD  0x06,   [i32]→[v128],,# Not implemented,simd
+   v128.load8_splat memarg,0xFD  0x07,   [i32]→[v128],,# Not implemented,simd
+   v128.load16_splat memarg,0xFD  0x08,   [i32]→[v128],,# Not implemented,simd
+   v128.load32_splat memarg,0xFD  0x09,   [i32]→[v128],,# Not implemented,simd
+   v128.load64_splat memarg,0xFD  0x0A,   [i32]→[v128],,# Not implemented,simd
+   v128.store memarg,0xFD  0x0B,   [i32 v128]→[],,# Not implemented,simd
+   v128.const i128,0xFD  0x0C,  []→[v128],y,# Not implemented,simd
+   i8x16.shuffle laneidx16,0xFD  0x0D,    [v128 v128]→[v128],y,# Not implemented,simd
+  i8x16.swizzle,0xFD  0x0E,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.splat,0xFD  0x0F,   [i32]→[v128],,# Not implemented,simd
+  i16x8.splat,0xFD  0x10,   [i32]→[v128],,# Not implemented,simd
+  i32x4.splat,0xFD  0x11,   [i32]→[v128],,# Not implemented,simd
+  i64x2.splat,0xFD  0x12,   [i64]→[v128],,# Not implemented,simd
+  f32x4.splat,0xFD  0x13,   [f32]→[v128],,# Not implemented,simd
+  f64x2.splat,0xFD  0x14,   [f64]→[v128],,# Not implemented,simd
+   i8x16.extract_lane_s laneidx,0xFD  0x15,   [v128]→[i32],,# Not implemented,simd
+   i8x16.extract_lane_u laneidx,0xFD  0x16,   [v128]→[i32],,# Not implemented,simd
+   i8x16.replace_lane laneidx,0xFD  0x17,    [v128 i32]→[v128],,# Not implemented,simd
+   i16x8.extract_lane_s laneidx,0xFD  0x18,   [v128]→[i32],,# Not implemented,simd
+   i16x8.extract_lane_u laneidx,0xFD  0x19,   [v128]→[i32],,# Not implemented,simd
+   i16x8.replace_lane laneidx,0xFD  0x1A,    [v128 i32]→[v128],,# Not implemented,simd
+   i32x4.extract_lane laneidx,0xFD  0x1B,   [v128]→[i32],,# Not implemented,simd
+   i32x4.replace_lane laneidx,0xFD  0x1C,    [v128 i32]→[v128],,# Not implemented,simd
+   i64x2.extract_lane laneidx,0xFD  0x1D,   [v128]→[i64],,# Not implemented,simd
+   i64x2.replace_lane laneidx,0xFD  0x1E,    [v128 i64]→[v128],,# Not implemented,simd
+   f32x4.extract_lane laneidx,0xFD  0x1F,   [v128]→[f32],,# Not implemented,simd
+   f32x4.replace_lane laneidx,0xFD  0x20,    [v128 f32]→[v128],,# Not implemented,simd
+   f64x2.extract_lane laneidx,0xFD  0x21,   [v128]→[f64],,# Not implemented,simd
+   f64x2.replace_lane laneidx,0xFD  0x22,    [v128 f64]→[v128],,# Not implemented,simd
+  i8x16.eq,0xFD  0x23,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.ne,0xFD  0x24,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.lt_s,0xFD  0x25,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.lt_u,0xFD  0x26,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.gt_s,0xFD  0x27,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.gt_u,0xFD  0x28,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.le_s,0xFD  0x29,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.le_u,0xFD  0x2A,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.ge_s,0xFD  0x2B,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.ge_u,0xFD  0x2C,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.eq,0xFD  0x2D,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.ne,0xFD  0x2E,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.lt_s,0xFD  0x2F,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.lt_u,0xFD  0x30,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.gt_s,0xFD  0x31,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.gt_u,0xFD  0x32,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.le_s,0xFD  0x33,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.le_u,0xFD  0x34,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.ge_s,0xFD  0x35,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.ge_u,0xFD  0x36,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.eq,0xFD  0x37,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.ne,0xFD  0x38,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.lt_s,0xFD  0x39,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.lt_u,0xFD  0x3A,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.gt_s,0xFD  0x3B,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.gt_u,0xFD  0x3C,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.le_s,0xFD  0x3D,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.le_u,0xFD  0x3E,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.ge_s,0xFD  0x3F,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.ge_u,0xFD  0x40,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.eq,0xFD  0x41,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.ne,0xFD  0x42,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.lt,0xFD  0x43,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.gt,0xFD  0x44,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.le,0xFD  0x45,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.ge,0xFD  0x46,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.eq,0xFD  0x47,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.ne,0xFD  0x48,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.lt,0xFD  0x49,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.gt,0xFD  0x4A,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.le,0xFD  0x4B,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.ge,0xFD  0x4C,    [v128 v128]→[v128],,# Not implemented,simd
+  v128.not,0xFD  0x4D,   [v128]→[v128],,# Not implemented,simd
+  v128.and,0xFD  0x4E,    [v128 v128]→[v128],,# Not implemented,simd
+  v128.andnot,0xFD  0x4F,    [v128 v128]→[v128],,# Not implemented,simd
+  v128.or,0xFD  0x50,    [v128 v128]→[v128],,# Not implemented,simd
+  v128.xor,0xFD  0x51,    [v128 v128]→[v128],,# Not implemented,simd
+  v128.bitselect,0xFD  0x52,     [v128 v128 v128]→[v128],,# Not implemented,simd
+  v128.any_true,0xFD  0x53,   [v128]→[i32],,# Not implemented,simd
+    v128.load8_lane memarg laneidx,0xFD  0x54,    [i32 v128]→[v128],,# Not implemented,simd
+    v128.load16_lane memarg laneidx,0xFD  0x55,    [i32 v128]→[v128],,# Not implemented,simd
+    v128.load32_lane memarg laneidx,0xFD  0x56,    [i32 v128]→[v128],,# Not implemented,simd
+    v128.load64_lane memarg laneidx,0xFD  0x57,    [i32 v128]→[v128],,# Not implemented,simd
+    v128.store8_lane memarg laneidx,0xFD  0x58,    [i32 v128]→[v128],,# Not implemented,simd
+    v128.store16_lane memarg laneidx,0xFD  0x59,    [i32 v128]→[v128],,# Not implemented,simd
+    v128.store32_lane memarg laneidx,0xFD  0x5A,    [i32 v128]→[v128],,# Not implemented,simd
+    v128.store64_lane memarg laneidx,0xFD  0x5B,    [i32 v128]→[v128],,# Not implemented,simd
+    v128.load32_zero memarg laneidx,0xFD  0x5C,   [i32]→[v128],,# Not implemented,simd
+    v128.load64_zero memarg laneidx,0xFD  0x5D,   [i32]→[v128],,# Not implemented,simd
+  f32x4.demote_f64x2_zero,0xFD  0x5E,   [v128]→[v128],,# Not implemented,simd
+  f64x2.promote_low_f32x4,0xFD  0x5F,   [v128]→[v128],,# Not implemented,simd
+  i8x16.abs,0xFD  0x60,   [v128]→[v128],,# Not implemented,simd
+  i8x16.neg,0xFD  0x61,   [v128]→[v128],,# Not implemented,simd
+  i8x16.popcnt,0xFD  0x62,   [v128]→[v128],,# Not implemented,simd
+  i8x16.all_true,0xFD  0x63,   [v128]→[i32],,# Not implemented,simd
+  i8x16.bitmask,0xFD  0x64,   [v128]→[i32],,# Not implemented,simd
+  i8x16.narrow_i16x8_s,0xFD  0x65,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.narrow_i16x8_u,0xFD  0x66,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.ceil,0xFD  0x67,   [v128]→[v128],,# Not implemented,simd
+  f32x4.floor,0xFD  0x68,   [v128]→[v128],,# Not implemented,simd
+  f32x4.trunc,0xFD  0x69,   [v128]→[v128],,# Not implemented,simd
+  f32x4.nearest,0xFD  0x6A,   [v128]→[v128],,# Not implemented,simd
+  i8x16.shl,0xFD  0x6B,    [v128 i32]→[v128],,# Not implemented,simd
+  i8x16.shr_s,0xFD  0x6C,    [v128 i32]→[v128],,# Not implemented,simd
+  i8x16.shr_u,0xFD  0x6D,    [v128 i32]→[v128],,# Not implemented,simd
+  i8x16.add,0xFD  0x6E,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.add_sat_s,0xFD  0x6F,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.add_sat_u,0xFD  0x70,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.sub,0xFD  0x71,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.sub_sat_s,0xFD  0x72,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.sub_sat_u,0xFD  0x73,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.ceil,0xFD  0x74,   [v128]→[v128],,# Not implemented,simd
+  f64x2.floor,0xFD  0x75,   [v128]→[v128],,# Not implemented,simd
+  i8x16.min_s,0xFD  0x76,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.min_u,0xFD  0x77,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.max_s,0xFD  0x78,    [v128 v128]→[v128],,# Not implemented,simd
+  i8x16.max_u,0xFD  0x79,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.trunc,0xFD  0x7A,   [v128]→[v128],,# Not implemented,simd
+  i8x16.avgr_u,0xFD  0x7B,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.extadd_pairwise_i8x16_s,0xFD  0x7C,   [v128]→[v128],,# Not implemented,simd
+  i16x8.extadd_pairwise_i8x16_u,0xFD  0x7D,   [v128]→[v128],,# Not implemented,simd
+  i32x4.extadd_pairwise_i16x8_s,0xFD  0x7E,   [v128]→[v128],,# Not implemented,simd
+  i32x4.extadd_pairwise_i16x8_u,0xFD  0x7F,   [v128]→[v128],,# Not implemented,simd
+  i16x8.abs,0xFD  0x80  0x01,   [v128]→[v128],,# Not implemented,simd
+  i16x8.neg,0xFD  0x81  0x01,   [v128]→[v128],,# Not implemented,simd
+  i16x8.q15mulr_sat_s,0xFD  0x82  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.all_true,0xFD  0x83  0x01,   [v128]→[i32],,# Not implemented,simd
+  i16x8.bitmask,0xFD  0x84  0x01,   [v128]→[i32],,# Not implemented,simd
+  i16x8.narrow_i32x4_s,0xFD  0x85  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.narrow_i32x4_u,0xFD  0x86  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.extend_low_i8x16_s,0xFD  0x87  0x01,   [v128]→[v128],,# Not implemented,simd
+  i16x8.extend_high_i8x16_s,0xFD  0x88  0x01,   [v128]→[v128],,# Not implemented,simd
+  i16x8.extend_low_i8x16_u,0xFD  0x89  0x01,   [v128]→[v128],,# Not implemented,simd
+  i16x8.extend_high_i8x16_u,0xFD  0x8A  0x01,   [v128]→[v128],,# Not implemented,simd
+  i16x8.shl,0xFD  0x8B  0x01,    [v128 i32]→[v128],,# Not implemented,simd
+  i16x8.shr_s,0xFD  0x8C  0x01,    [v128 i32]→[v128],,# Not implemented,simd
+  i16x8.shr_u,0xFD  0x8D  0x01,    [v128 i32]→[v128],,# Not implemented,simd
+  i16x8.add,0xFD  0x8E  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.add_sat_s,0xFD  0x8F  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.add_sat_u,0xFD  0x90  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.sub,0xFD  0x91  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.sub_sat_s,0xFD  0x92  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.sub_sat_u,0xFD  0x93  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.nearest,0xFD  0x94  0x01,   [v128]→[v128],,# Not implemented,simd
+  i16x8.mul,0xFD  0x95  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.min_s,0xFD  0x96  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.min_u,0xFD  0x97  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.max_s,0xFD  0x98  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.max_u,0xFD  0x99  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.avgr_u,0xFD  0x9B  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.extmul_low_i8x16_s,0xFD  0x9C  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.extmul_high_i8x16_s,0xFD  0x9D  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.extmul_low_i8x16_u,0xFD  0x9E  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i16x8.extmul_high_i8x16_u,0xFD  0x9F  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.abs,0xFD  0xA0  0x01,   [v128]→[v128],,# Not implemented,simd
+  i32x4.neg,0xFD  0xA1  0x01,   [v128]→[v128],,# Not implemented,simd
+  i32x4.all_true,0xFD  0xA3  0x01,   [v128]→[i32],,# Not implemented,simd
+  i32x4.bitmask,0xFD  0xA4  0x01,   [v128]→[i32],,# Not implemented,simd
+  i32x4.extend_low_i16x8_s,0xFD  0xA7  0x01,   [v128]→[v128],,# Not implemented,simd
+  i32x4.extend_high_i16x8_s,0xFD  0xA8  0x01,   [v128]→[v128],,# Not implemented,simd
+  i32x4.extend_low_i16x8_u,0xFD  0xA9  0x01,   [v128]→[v128],,# Not implemented,simd
+  i32x4.extend_high_i16x8_u,0xFD  0xAA  0x01,   [v128]→[v128],,# Not implemented,simd
+  i32x4.shl,0xFD  0xAB  0x01,    [v128 i32]→[v128],,# Not implemented,simd
+  i32x4.shr_s,0xFD  0xAC  0x01,    [v128 i32]→[v128],,# Not implemented,simd
+  i32x4.shr_u,0xFD  0xAD  0x01,    [v128 i32]→[v128],,# Not implemented,simd
+  i32x4.add,0xFD  0xAE  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.sub,0xFD  0xB1  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.mul,0xFD  0xB5  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.min_s,0xFD  0xB6  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.min_u,0xFD  0xB7  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.max_s,0xFD  0xB8  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.max_u,0xFD  0xB9  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.dot_i16x8_s,0xFD  0xBA  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.extmul_low_i16x8_s,0xFD  0xBC  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.extmul_high_i16x8_s,0xFD  0xBD  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.extmul_low_i16x8_u,0xFD  0xBE  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.extmul_high_i16x8_u,0xFD  0xBF  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i64x2.abs,0xFD  0xC0  0x01,   [v128]→[v128],,# Not implemented,simd
+  i64x2.neg,0xFD  0xC1  0x01,   [v128]→[v128],,# Not implemented,simd
+  i64x2.all_true,0xFD  0xC3  0x01,   [v128]→[i32],,# Not implemented,simd
+  i64x2.bitmask,0xFD  0xC4  0x01,   [v128]→[i32],,# Not implemented,simd
+  i64x2.extend_low_i32x4_s,0xFD  0xC7  0x01,   [v128]→[v128],,# Not implemented,simd
+  i64x2.extend_high_i32x4_s,0xFD  0xC8  0x01,   [v128]→[v128],,# Not implemented,simd
+  i64x2.extend_low_i32x4_u,0xFD  0xC9  0x01,   [v128]→[v128],,# Not implemented,simd
+  i64x2.extend_high_i32x4_u,0xFD  0xCA  0x01,   [v128]→[v128],,# Not implemented,simd
+  i64x2.shl,0xFD  0xCB  0x01,    [v128 i32]→[v128],,# Not implemented,simd
+  i64x2.shr_s,0xFD  0xCC  0x01,    [v128 i32]→[v128],,# Not implemented,simd
+  i64x2.shr_u,0xFD  0xCD  0x01,    [v128 i32]→[v128],,# Not implemented,simd
+  i64x2.add,0xFD  0xCE  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i64x2.sub,0xFD  0xD1  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i64x2.mul,0xFD  0xD5  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i64x2.eq,0xFD  0xD6  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i64x2.ne,0xFD  0xD7  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i64x2.lt_s,0xFD  0xD8  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i64x2.gt_s,0xFD  0xD9  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i64x2.le_s,0xFD  0xDA  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i64x2.ge_s,0xFD  0xDB  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i64x2.extmul_low_i32x4_s,0xFD  0xDC  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i64x2.extmul_high_i32x4_s,0xFD  0xDD  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i64x2.extmul_low_i32x4_u,0xFD  0xDE  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i64x2.extmul_high_i32x4_u,0xFD  0xDF  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.abs,0xFD  0xE0  0x01,   [v128]→[v128],,# Not implemented,simd
+  f32x4.neg,0xFD  0xE1  0x01,   [v128]→[v128],,# Not implemented,simd
+  f32x4.sqrt,0xFD  0xE3  0x01,   [v128]→[v128],,# Not implemented,simd
+  f32x4.add,0xFD  0xE4  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.sub,0xFD  0xE5  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.mul,0xFD  0xE6  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.div,0xFD  0xE7  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.min,0xFD  0xE8  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.max,0xFD  0xE9  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.pmin,0xFD  0xEA  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f32x4.pmax,0xFD  0xEB  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.abs,0xFD  0xEC  0x01,   [v128]→[v128],,# Not implemented,simd
+  f64x2.neg,0xFD  0xED  0x01,   [v128]→[v128],,# Not implemented,simd
+  f64x2.sqrt,0xFD  0xEF  0x01,   [v128]→[v128],,# Not implemented,simd
+  f64x2.add,0xFD  0xF0  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.sub,0xFD  0xF1  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.mul,0xFD  0xF2  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.div,0xFD  0xF3  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.min,0xFD  0xF4  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.max,0xFD  0xF5  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.pmin,0xFD  0xF6  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  f64x2.pmax,0xFD  0xF7  0x01,    [v128 v128]→[v128],,# Not implemented,simd
+  i32x4.trunc_sat_f32x4_s,0xFD  0xF8  0x01,   [v128]→[v128],,# Not implemented,simd
+  i32x4.trunc_sat_f32x4_u,0xFD  0xF9  0x01,   [v128]→[v128],,# Not implemented,simd
+  f32x4.convert_i32x4_s,0xFD  0xFA  0x01,   [v128]→[v128],,# Not implemented,simd
+  f32x4.convert_i32x4_u,0xFD  0xFB  0x01,   [v128]→[v128],,# Not implemented,simd
+  i32x4.trunc_sat_f64x2_s_zero,0xFD  0xFC  0x01,   [v128]→[v128],,# Not implemented,simd
+  i32x4.trunc_sat_f64x2_u_zero,0xFD  0xFD  0x01,   [v128]→[v128],,# Not implemented,simd
+  f64x2.convert_low_i32x4_s,0xFD  0xFE  0x01,   [v128]→[v128],,# Not implemented,simd
+  f64x2.convert_low_i32x4_u,0xFD  0xFF  0x01,   [v128]→[v128],,# Not implemented,simd

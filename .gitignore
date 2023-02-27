@@ -1,1 +1,6 @@
-/__pycache__/
+__pycache__
+/tests/workdir/
+/tests/wabt/
+/test_as/**
+!/test_as/fib.ts
+!/test_as/package.json

@@ -31,7 +31,7 @@ PARSE_METHODS = {
     'bt': 'ParseMethod.BLOCK',
     'l': 'ParseMethod.U64',
     'x': 'ParseMethod.U64',
-    'i32': 'ParseMethod.U64',
+    'i32': 'ParseMethod.U32',
     'i64': 'ParseMethod.U64',
     'x y': 'ParseMethod.U64U64',
     't': 'ParseMethod.BYTE',
@@ -48,6 +48,7 @@ class Instruction(SimpleNamespace):
         stack_types = row[2].replace('\xA0', ' ').strip()
         custom_parse = row[3].replace('\xA0', ' ').strip()
         python_code = row[4].replace('\xA0', ' ').strip()
+        builtins = row[5].replace('\xA0', ' ').strip()
 
         tab = text.split(' ', 1)
         self.name = tab[0].strip()
@@ -88,6 +89,13 @@ class Instruction(SimpleNamespace):
 
         self.code = python_code if len(python_code) else None
 
+        if len(builtins):
+            tab = builtins.split(' ')
+            tab = list(x.strip(',;') for x in tab)
+            self.builtins = tab
+        else:
+            self.builtins = None
+
         if (self.code is not None) and (self.stack is None):
             raise Exception(f'Stack handling for "{stack_types}" is not defied ({self.name}).')
 
@@ -119,6 +127,9 @@ class Instruction(SimpleNamespace):
             params.append(f'stack={"+" if self.stack > 0 else ""}{self.stack}')
         if self.code is not None:
             params.append(f'code=\'{self.code}\'')
+        if self.builtins is not None:
+            tab = '\', \''.join(self.builtins)
+            params.append(f'builtins=(\'{tab}\'{"," if len(self.builtins) == 1 else ""})')
         
         params = ', '.join(params)
 
