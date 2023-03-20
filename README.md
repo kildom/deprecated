@@ -12,4 +12,5 @@ List of projects added so far:
  - [StartShellExecute](https://github.com/kildom/deprecated/tree/StartShellExecute) - simple command line utility that calls StartShellExecute Windows API function.
  - [penProtect](https://github.com/kildom/deprecated/tree/penProtect) - tool that breaks FAT32 filesystem structure to prevent some viruses to install on removeble media.
  - [Shader-Preparser](https://github.com/kildom/deprecated/tree/Shader-Preparser) - tool for simplyfied embeding shaders scource codes into C++ code.
+ - [myES](https://github.com/kildom/deprecated/tree/myes) - JavaScript engine, small (for embedded devices), up to date with newest ES, AoT compiler to bytecode.
  - and more...
