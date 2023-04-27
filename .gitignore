@@ -1,0 +1,17 @@
+.venv
+__pycache__
+/img/**/*.png
+/img/**/*.raw
+/img/**/*.gz
+/logs/
+/model/
+/model.tf*
+/checkpoint*
+/model-*/
+/models/
+/tmp/
+/x/
+/y/
+*.nd2
+/*.png
+/native/a.out

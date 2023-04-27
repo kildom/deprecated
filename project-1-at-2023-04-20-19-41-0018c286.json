@@ -1,0 +1,6394 @@
+[
+  {
+    "img": "\/data\/upload\/1\/10fab9b8-G_684_2019_500mGy_Cs137_od5um_co0.5um_30s004.png",
+    "id": 1,
+    "point": [
+      {
+        "x": 31.721988576195134,
+        "y": 39.69810278924602,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 33.524013267451146,
+        "y": 37.25843859185328,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 35.520102156227026,
+        "y": 35.3177966166545,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.379529316672205,
+        "y": 38.395100320183985,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.379529316672205,
+        "y": 39.642655875668915,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 40.14303482587064,
+        "y": 47.91666666666667,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.83208955223881,
+        "y": 47.35696517412936,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.21019900497513,
+        "y": 46.92164179104478,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 42.506218905472636,
+        "y": 45.98880597014925,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 43.936567164179095,
+        "y": 43.376865671641795,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.35199004975124,
+        "y": 42.3818407960199,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.787313432835816,
+        "y": 40.70273631840796,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.657960199004975,
+        "y": 40.95149253731343,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 51.150497512437816,
+        "y": 53.76243781094528,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 52.45646766169155,
+        "y": 54.384328358208954,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.787313432835816,
+        "y": 53.07835820895522,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.22761194029851,
+        "y": 55.130597014925364,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 50.96393034825871,
+        "y": 59.67039800995024,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 52.332089552238806,
+        "y": 58.42661691542289,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 54.19776119402985,
+        "y": 57.431592039801,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 57.10161711954482,
+        "y": 58.82045915737846,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 56.260279182599405,
+        "y": 61.17040305022599,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 56.05719761161258,
+        "y": 56.847666753506445,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 56.985570507552346,
+        "y": 55.60016567458739,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 58.436153157458236,
+        "y": 53.13417516974738,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 59.68365423637729,
+        "y": 56.64458518251962,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 61.77249325224178,
+        "y": 57.137783283487614,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.42615747313448,
+        "y": 50.610161358911135,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 55.73806942863329,
+        "y": 49.4206835859883,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.9185269172055,
+        "y": 48.95649713801842,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 45.84509575627514,
+        "y": 50.17498656393937,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.396317163239374,
+        "y": 58.70441254538598,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 44.74265294234666,
+        "y": 61.34447296821469,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.12341254506244,
+        "y": 67.52395505681376,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 61.859528211236125,
+        "y": 66.36348893688906,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 50.57399519496833,
+        "y": 65.87029083592105,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 43.35009359843702,
+        "y": 67.69802497480245,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 45.293874349310904,
+        "y": 69.46773580768766,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 42.24765078450854,
+        "y": 57.02173667149515,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 51.585820895522396,
+        "y": 47.29477611940299,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 31.37437810945274,
+        "y": 27.953980099502488,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 27.82960199004975,
+        "y": 41.01368159203981,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.89427860696517,
+        "y": 52.39427860696519,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.14800995024877,
+        "y": 52.518656716417915,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 47.79228855721393,
+        "y": 39.14800995024877,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.909203980099505,
+        "y": 59.483830845771145,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.14800995024877,
+        "y": 61.10074626865672,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 41.200248756218905,
+        "y": 62.03358208955224,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.458955223880594,
+        "y": 58.17786069651741,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 37.96641791044776,
+        "y": 64.33457711442786,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 35.47885572139304,
+        "y": 61.349502487562184,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 34.235074626865675,
+        "y": 60.29228855721392,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 35.04353233830845,
+        "y": 58.799751243781095,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.34950248756218,
+        "y": 50.27985074626866,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 33.115671641791046,
+        "y": 75.90174129353237,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 32.493781094527364,
+        "y": 74.53358208955224,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 32.92910447761194,
+        "y": 70.3047263681592,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 34.919154228855724,
+        "y": 68.75,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 34.35945273631841,
+        "y": 67.63059701492537,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 34.60820895522388,
+        "y": 65.95149253731344,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 32.55597014925373,
+        "y": 65.39179104477611,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 31.187810945273633,
+        "y": 64.33457711442786,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 33.61318407960199,
+        "y": 63.526119402985074,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 31.37437810945274,
+        "y": 61.349502487562184,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 31.37437810945274,
+        "y": 59.42164179104478,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 33.05348258706468,
+        "y": 54.633084577114424,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 54.8818407960199,
+        "y": 72.97885572139302,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 55.50373134328358,
+        "y": 73.53855721393035,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 56.747512437810954,
+        "y": 74.09825870646763,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 57.80472636815921,
+        "y": 74.03606965174129,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.53855721393035,
+        "y": 76.15049751243781,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.60074626865672,
+        "y": 72.60572139303483,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 47.54353233830845,
+        "y": 74.53358208955224,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.70771144278608,
+        "y": 77.26990049751245,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 42.81716417910447,
+        "y": 77.1455223880597,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 42.630597014925364,
+        "y": 76.02611940298507,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 45.366915422885576,
+        "y": 80.06840796019901,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.47636815920399,
+        "y": 80.2549751243781,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.160447761194035,
+        "y": 80.50373134328358,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.844527363184085,
+        "y": 80.81467661691542,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.098258706467675,
+        "y": 85.85199004975125,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 40.32960199004975,
+        "y": 85.04353233830847,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 60.60323383084577,
+        "y": 76.15049751243781,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 59.42164179104478,
+        "y": 76.21268656716418,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 57.05845771144278,
+        "y": 77.08333333333334,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 64.39676616915423,
+        "y": 66.32462686567163,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 65.6405472636816,
+        "y": 65.6405472636816,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 65.01865671641791,
+        "y": 58.67537313432837,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 65.08084577114427,
+        "y": 55.44154228855721,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 66.0136815920398,
+        "y": 50.5907960199005,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 66.51119402985076,
+        "y": 51.648009950248756,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 56.93407960199005,
+        "y": 48.041044776119406,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 57.68034825870646,
+        "y": 47.419154228855724,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 60.541044776119406,
+        "y": 47.29477611940298,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 24.4092039800995,
+        "y": 54.819651741293534,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 21.921641791044774,
+        "y": 54.50870646766169,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 27.145522388059703,
+        "y": 49.90671641791045,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 26.58582089552239,
+        "y": 45.74004975124378,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 26.337064676616915,
+        "y": 43.50124378109452,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 28.824626865671643,
+        "y": 44.43407960199005,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 30.56592039800995,
+        "y": 42.44402985074627,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 25.031094527363184,
+        "y": 45.05597014925373,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 35.354477611940304,
+        "y": 42.3818407960199,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.14800995024877,
+        "y": 41.63557213930349,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 38.961442786069654,
+        "y": 43.68781094527363,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 30.379353233830845,
+        "y": 49.22263681592039,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 30.00621890547264,
+        "y": 51.27487562189055,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 26.896766169154226,
+        "y": 53.949004975124375,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 24.906716417910452,
+        "y": 53.264925373134325,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 23.725124378109452,
+        "y": 53.20273631840796,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 25.093283582089548,
+        "y": 66.20024875621893,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 24.4092039800995,
+        "y": 66.32462686567163,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 27.021144278606965,
+        "y": 67.9415422885572,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 22.667910447761194,
+        "y": 69.30970149253731,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 19.807213930348254,
+        "y": 57.929104477611936,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 26.648009950248756,
+        "y": 59.483830845771145,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 22.481343283582092,
+        "y": 59.919154228855724,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 53.264925373134325,
+        "y": 69.93159203980099,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 55.006218905472636,
+        "y": 71.36194029850746,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 62.22014925373135,
+        "y": 73.41417910447763,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.712686567164184,
+        "y": 84.60820895522389,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 64.33457711442786,
+        "y": 84.91915422885573,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 65.6405472636816,
+        "y": 84.23507462686565,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 54.44651741293533,
+        "y": 77.64303482587064,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 52.20771144278608,
+        "y": 76.27487562189056,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 53.57587064676618,
+        "y": 79.6952736318408,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 58.115671641791046,
+        "y": 78.76243781094527,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 62.59328358208955,
+        "y": 76.52363184079601,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.463930348258714,
+        "y": 75.96393034825871,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 64.33457711442786,
+        "y": 74.65796019900499,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 65.45398009950249,
+        "y": 75.21766169154229,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 66.26243781094527,
+        "y": 74.78233830845771,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 44.309701492537314,
+        "y": 59.919154228855724,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.16293532338309,
+        "y": 75.52860696517415,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 37.15796019900498,
+        "y": 81.37437810945273,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 35.976368159203986,
+        "y": 76.08830845771145,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 43.2899564676617,
+        "y": 62.771654794210804,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 45.20202736318409,
+        "y": 62.86270578923568,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.46113184079603,
+        "y": 67.96156151062871,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 19.616697761194036,
+        "y": 65.4121336499322,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 18.34198383084578,
+        "y": 64.77477668475807,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 19.252493781094532,
+        "y": 64.04636872455906,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 18.706187810945277,
+        "y": 62.86270578923568,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 19.707748756218905,
+        "y": 61.58799185888742,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 18.979340796019905,
+        "y": 47.01983265490732,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 15.792555970149257,
+        "y": 47.1108836499322,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 14.790995024875624,
+        "y": 46.92878165988244,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 16.520963930348262,
+        "y": 45.65406772953419,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 16.61201492537314,
+        "y": 50.02451549072822,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 15.70150497512438,
+        "y": 50.66187245590234,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 12.332618159203983,
+        "y": 58.49225802804165,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 14.517842039801,
+        "y": 64.22847071460882,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 16.79411691542289,
+        "y": 63.864266734509314,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 24.897655472636814,
+        "y": 74.06197817729537,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 35.36851990049753,
+        "y": 74.24408016734513,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 35.45957089552239,
+        "y": 72.5141112618725,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 52.21295398009951,
+        "y": 67.41525554047946,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 51.02929104477614,
+        "y": 66.77789857530533,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 50.11878109452738,
+        "y": 67.05105156037996,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.75301616915424,
+        "y": 70.87519335142476,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.840945273631846,
+        "y": 71.69465230664862,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.11253731343285,
+        "y": 71.14834633649937,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 47.56935323383086,
+        "y": 69.78258141112623,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 37.82689676616916,
+        "y": 66.86894957033022,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 34.91326492537314,
+        "y": 64.6837256897332,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 38.712686567164184,
+        "y": 39.21019900497513,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.95646766169155,
+        "y": 38.090796019900495,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 38.58830845771144,
+        "y": 32.493781094527364,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 38.65049751243782,
+        "y": 30.87686567164179,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.458955223880594,
+        "y": 30.56592039800995,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 37.842039800995025,
+        "y": 27.891791044776124,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 38.090796019900495,
+        "y": 26.52363184079602,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 40.516169154228855,
+        "y": 27.332089552238806,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 40.20522388059701,
+        "y": 25.96393034825871,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.23756218905472,
+        "y": 26.088308457711445,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 45.67786069651741,
+        "y": 25.715174129353233,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 43.99875621890548,
+        "y": 27.083333333333336,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 51.27487562189055,
+        "y": 18.563432835820894,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 45.42910447761194,
+        "y": 19.99378109452736,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 43.190298507462686,
+        "y": 21.050995024875622,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 41.38681592039801,
+        "y": 19.247512437810947,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 40.39179104477612,
+        "y": 18.62562189054726,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.769900497512445,
+        "y": 21.11318407960199,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 41.200248756218905,
+        "y": 22.17039800995025,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 29.57089552238806,
+        "y": 31.93407960199005,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 32.86691542288556,
+        "y": 33.115671641791046,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 33.48880597014925,
+        "y": 33.92412935323384,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 34.60820895522388,
+        "y": 27.580845771144283,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 24.595771144278604,
+        "y": 28.57587064676617,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 26.02611940298507,
+        "y": 27.705223880597018,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 26.58582089552239,
+        "y": 31.00124378109453,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 29.259950248756216,
+        "y": 34.54601990049752,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 23.787313432835816,
+        "y": 39.27238805970149,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 21.610696517412933,
+        "y": 41.32462686567165,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 57.74253731343283,
+        "y": 18.62562189054726,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 58.98631840796019,
+        "y": 16.449004975124378,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 59.235074626865675,
+        "y": 15.453980099502488,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 56.99626865671642,
+        "y": 14.645522388059701,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 56.747512437810954,
+        "y": 16.07587064676617,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 44.49626865671642,
+        "y": 13.774875621890546,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 45.1181592039801,
+        "y": 13.215174129353235,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 43.81218905472637,
+        "y": 13.526119402985076,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.050995024875625,
+        "y": 10.727611940298509,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 47.91666666666667,
+        "y": 16.13805970149254,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 53.07835820895522,
+        "y": 20.491293532338307,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 54.32213930348259,
+        "y": 21.42412935323383,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 54.81965174129354,
+        "y": 23.351990049751244,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 55.44154228855722,
+        "y": 24.968905472636816,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 59.981343283582085,
+        "y": 26.337064676616915,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 57.245024875621894,
+        "y": 26.896766169154233,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 53.76243781094528,
+        "y": 30.628109452736325,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 58.24004975124378,
+        "y": 32.18283582089553,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 62.40671641791045,
+        "y": 32.36940298507463,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.15298507462686,
+        "y": 34.04850746268657,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 53.38930348258706,
+        "y": 32.8047263681592,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 55.130597014925364,
+        "y": 32.431592039801,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 50.96393034825871,
+        "y": 31.62313432835821,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 50.5907960199005,
+        "y": 32.99129353233831,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 47.667910447761194,
+        "y": 29.259950248756223,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.35199004975124,
+        "y": 29.50870646766169,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 47.54353233830845,
+        "y": 35.1679104477612,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.10323383084577,
+        "y": 35.3544776119403,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.787313432835816,
+        "y": 35.3544776119403,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 52.39427860696517,
+        "y": 38.77487562189054,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 53.45149253731344,
+        "y": 39.27238805970149,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.849502487562184,
+        "y": 33.799751243781095,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.849502487562184,
+        "y": 36.7226368159204,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 53.45149253731344,
+        "y": 34.79477611940298,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.339552238805965,
+        "y": 29.6952736318408,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 43.252487562189046,
+        "y": 33.17786069651741,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.299751243781095,
+        "y": 32.05845771144279,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 45.1181592039801,
+        "y": 34.919154228855724,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 45.864427860696516,
+        "y": 37.03358208955224,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 47.04601990049751,
+        "y": 39.583333333333336,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 47.23258706467662,
+        "y": 38.77487562189054,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 68.25248756218905,
+        "y": 47.54353233830845,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 67.94154228855722,
+        "y": 50.528606965174134,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 68.06592039800995,
+        "y": 44.931592039801,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 67.56840796019901,
+        "y": 44.55845771144279,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 68.00373134328358,
+        "y": 40.578358208955216,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 67.3818407960199,
+        "y": 40.39179104477612,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 64.39676616915423,
+        "y": 27.021144278606965,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 65.95149253731344,
+        "y": 18.128109452736318,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.712686567164184,
+        "y": 16.07587064676617,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 52.45646766169155,
+        "y": 17.692786069651746,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.34701492537314,
+        "y": 21.983830845771145,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.471393034825866,
+        "y": 15.578358208955226,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.787313432835816,
+        "y": 13.961442786069654,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 47.97885572139304,
+        "y": 12.220149253731345,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.59825870646766,
+        "y": 15.32960199004975,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 50.7773631840796,
+        "y": 12.904228855721394,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 44.80721393034826,
+        "y": 48.227611940298516,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 35.72761194029851,
+        "y": 48.41417910447761,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.287313432835816,
+        "y": 22.97885572139304,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 35.851990049751244,
+        "y": 24.4092039800995,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 32.74253731343284,
+        "y": 24.4092039800995,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 26.399253731343286,
+        "y": 19.99378109452736,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 25.031094527363184,
+        "y": 20.55348258706468,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.22512437810946,
+        "y": 13.837064676616919,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 42.00870646766169,
+        "y": 14.832089552238806,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 42.630597014925364,
+        "y": 14.956467661691544,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 33.42661691542288,
+        "y": 22.294776119402982,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 24.782338308457707,
+        "y": 26.150497512437813,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 20.864427860696516,
+        "y": 28.016169154228855,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 59.60820895522387,
+        "y": 29.259950248756223,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 67.87935323383086,
+        "y": 29.197761194029848,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 72.41915422885573,
+        "y": 41.200248756218905,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 76.08830845771145,
+        "y": 40.453980099502495,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 77.82960199004974,
+        "y": 37.09577114427861,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 76.95895522388061,
+        "y": 36.34950248756218,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 76.08830845771145,
+        "y": 36.53606965174129,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 77.26990049751245,
+        "y": 32.05845771144279,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 76.5858208955224,
+        "y": 31.56094527363184,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 79.63308457711443,
+        "y": 31.498756218905477,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 78.26492537313435,
+        "y": 30.56592039800995,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 75.15547263681592,
+        "y": 32.18283582089552,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 75.5907960199005,
+        "y": 29.384328358208958,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 73.41417910447763,
+        "y": 32.12064676616916,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 80.81467661691543,
+        "y": 39.21019900497513,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 80.62810945273633,
+        "y": 36.47388059701493,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 83.05348258706469,
+        "y": 33.48880597014925,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 83.42661691542288,
+        "y": 47.60572139303483,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 87.28233830845771,
+        "y": 46.299751243781095,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 86.47388059701494,
+        "y": 44.12313432835821,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 72.48134328358209,
+        "y": 49.4092039800995,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 72.79228855721394,
+        "y": 51.958955223880594,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 69.49626865671642,
+        "y": 52.20771144278607,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 69.24751243781095,
+        "y": 47.60572139303483,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 69.93159203980099,
+        "y": 46.735074626865675,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 70.30472636815921,
+        "y": 45.366915422885576,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 80.25497512437812,
+        "y": 43.563432835820905,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 78.1405472636816,
+        "y": 48.22761194029851,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 75.96393034825871,
+        "y": 48.351990049751244,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 84.23507462686568,
+        "y": 67.3818407960199,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 84.73258706467662,
+        "y": 64.08582089552239,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 90.14303482587066,
+        "y": 54.07338308457711,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 89.70771144278608,
+        "y": 52.518656716417915,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 84.17288557213932,
+        "y": 51.33706467661691,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 84.11069651741293,
+        "y": 50.65298507462686,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 82.43159203980099,
+        "y": 50.90174129353234,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 69.68283582089552,
+        "y": 59.67039800995025,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 69.7450248756219,
+        "y": 60.354477611940304,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 79.94402985074629,
+        "y": 60.23009950248756,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 79.38432835820896,
+        "y": 59.60820895522388,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 64.45895522388061,
+        "y": 62.28233830845771,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.028606965174134,
+        "y": 62.46890547263682,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 69.18532338308458,
+        "y": 40.453980099502495,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 82.6181592039801,
+        "y": 29.13557213930348,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 82.99129353233832,
+        "y": 66.386815920398,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 81.8718905472637,
+        "y": 66.63557213930348,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 79.75746268656715,
+        "y": 68.12810945273633,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 78.70024875621893,
+        "y": 63.40174129353234,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 77.82960199004974,
+        "y": 63.96144278606966,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 77.58084577114427,
+        "y": 62.40671641791045,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 74.16044776119404,
+        "y": 63.712686567164184,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 71.36194029850746,
+        "y": 63.96144278606966,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 79.38432835820896,
+        "y": 52.145522388059696,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 79.01119402985076,
+        "y": 53.88681592039801,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 71.05099502487565,
+        "y": 56.374378109452735,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 69.06094527363184,
+        "y": 54.75746268656716,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 68.81218905472637,
+        "y": 38.090796019900495,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 64.33457711442786,
+        "y": 37.655472636815915,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 74.96890547263682,
+        "y": 43.190298507462686,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 75.77736318407962,
+        "y": 43.12810945273632,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 22.547770700636942,
+        "y": 26.751592356687897,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      }
+    ],
+    "noise": [
+      {
+        "x": 59.235074626865675,
+        "y": 42.31965174129354,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 60.541044776119406,
+        "y": 36.53606965174129,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 35.47885572139304,
+        "y": 46.050995024875625,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.583333333333336,
+        "y": 49.844527363184085,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.2226368159204,
+        "y": 46.42412935323382,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 55.31716417910447,
+        "y": 45.42910447761194,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 64.08582089552239,
+        "y": 44.745024875621894,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 37.28233830845772,
+        "y": 61.84701492537314,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 43.190298507462686,
+        "y": 65.01865671641791,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.79726368159204,
+        "y": 36.10074626865672,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 42.13308457711443,
+        "y": 35.665422885572134,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 30.503731343283587,
+        "y": 37.03358208955224,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 29.446517412935325,
+        "y": 27.767412935323385,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 53.82462686567163,
+        "y": 37.344527363184085,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 60.60323383084577,
+        "y": 39.769900497512445,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 45.49129353233831,
+        "y": 54.81965174129354,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 27.021144278606965,
+        "y": 64.95646766169155,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 72.48134328358209,
+        "y": 27.891791044776124,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 56.00124378109453,
+        "y": 29.757462686567166,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 51.585820895522396,
+        "y": 30.068407960199007,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 34.35945273631841,
+        "y": 51.52363184079602,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 58.42661691542289,
+        "y": 54.570895522388064,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 59.85696517412936,
+        "y": 53.016169154228855,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 59.11069651741294,
+        "y": 72.48134328358209,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 64.14800995024876,
+        "y": 68.81218905472637,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 67.00870646766171,
+        "y": 67.25746268656715,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 71.8594527363184,
+        "y": 68.62562189054727,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 65.32960199004974,
+        "y": 66.51119402985074,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 55.192786069651746,
+        "y": 52.20771144278608,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 50.46641791044776,
+        "y": 86.41169154228855,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.4092039800995,
+        "y": 84.73258706467662,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 52.39427860696517,
+        "y": 79.8818407960199,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 41.200248756218905,
+        "y": 79.8818407960199,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 41.13805970149254,
+        "y": 76.5858208955224,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.76990049751244,
+        "y": 73.91169154228855,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.08582089552239,
+        "y": 70.98880597014926,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.02363184079602,
+        "y": 68.99875621890547,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 40.01865671641791,
+        "y": 61.3495024875622,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 67.07089552238807,
+        "y": 56.93407960199005,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 71.61069651741293,
+        "y": 54.384328358208954,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 70.74004975124379,
+        "y": 77.76741293532339,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 71.42412935323382,
+        "y": 79.25995024875621,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 68.81218905472637,
+        "y": 79.8818407960199,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 64.2723880597015,
+        "y": 82.6181592039801,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 65.88930348258707,
+        "y": 76.9589552238806,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 58.55099502487562,
+        "y": 69.68283582089552,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 59.60820895522387,
+        "y": 65.57835820895522,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 70.3047263681592,
+        "y": 65.26741293532339,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 74.72014925373135,
+        "y": 61.03855721393035,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 65.45398009950249,
+        "y": 15.764925373134329,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.96144278606966,
+        "y": 22.854477611940297,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 48.22761194029851,
+        "y": 19.247512437810947,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 50.40422885572139,
+        "y": 16.013681592039802,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 42.44402985074627,
+        "y": 18.190298507462686,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 42.568407960199,
+        "y": 25.03109452736319,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.23756218905472,
+        "y": 23.725124378109452,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 45.49129353233831,
+        "y": 21.42412935323383,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 53.76243781094528,
+        "y": 26.896766169154226,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 61.78482587064677,
+        "y": 19.682835820895523,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.650497512437816,
+        "y": 24.347014925373134,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 71.54850746268656,
+        "y": 19.807213930348254,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 72.97885572139302,
+        "y": 16.822139303482587,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 68.68781094527363,
+        "y": 34.235074626865675,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 73.16542288557216,
+        "y": 38.152985074626855,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 55.130597014925364,
+        "y": 43.06592039800995,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 58.24004975124378,
+        "y": 36.34950248756218,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 41.075870646766184,
+        "y": 30.69029850746269,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 41.51119402985075,
+        "y": 29.073383084577117,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.983830845771145,
+        "y": 33.73756218905472,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 41.82213930348259,
+        "y": 27.332089552238806,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.22512437810946,
+        "y": 18.936567164179106,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 53.82462686567163,
+        "y": 19.371890547263682,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 64.14800995024876,
+        "y": 13.463930348258707,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 69.30970149253731,
+        "y": 27.643034825870647,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 76.39925373134328,
+        "y": 34.29726368159204,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 83.05348258706468,
+        "y": 59.11069651741294,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 87.34452736318408,
+        "y": 62.15796019900497,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 88.02860696517412,
+        "y": 53.63805970149254,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 86.97139303482588,
+        "y": 45.36691542288557,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 83.86194029850746,
+        "y": 45.18034825870646,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 64.83208955223881,
+        "y": 54.01119402985074,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 70.3669154228856,
+        "y": 49.53358208955224,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 73.6629353233831,
+        "y": 51.77238805970149,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 78.886815920398,
+        "y": 49.657960199004975,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 83.36442786069652,
+        "y": 48.91169154228856,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 85.54104477611939,
+        "y": 49.28482587064677,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 56.49875621890548,
+        "y": 66.69776119402987,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 56.809701492537314,
+        "y": 65.32960199004974,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 53.76243781094528,
+        "y": 64.83208955223881,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 55.31716417910447,
+        "y": 68.50124378109453,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 54.63308457711443,
+        "y": 75.15547263681592,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 59.67039800995025,
+        "y": 81.12562189054727,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 75.15547263681592,
+        "y": 75.27985074626865,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 72.8544776119403,
+        "y": 72.91666666666666,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 25.777363184079604,
+        "y": 49.844527363184085,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 23.84950248756219,
+        "y": 45.98880597014925,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 20.802238805970152,
+        "y": 47.23258706467662,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 20.615671641791046,
+        "y": 56.31218905472637,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 16.635572139303484,
+        "y": 60.665422885572134,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 24.720149253731343,
+        "y": 62.15796019900497,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 28.26492537313433,
+        "y": 58.48880597014925,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 32.30721393034826,
+        "y": 62.03358208955224,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.03855721393035,
+        "y": 54.633084577114424,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 38.961442786069654,
+        "y": 54.19776119402986,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 42.692786069651746,
+        "y": 53.5136815920398,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 33.799751243781095,
+        "y": 47.79228855721393,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 20.05597014925373,
+        "y": 34.546019900497505,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 18.43905472636816,
+        "y": 28.886815920398003,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 27.207711442786067,
+        "y": 44.68283582089553,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 28.638059701492537,
+        "y": 42.07089552238806,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 26.088308457711445,
+        "y": 38.46393034825871,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 41.26243781094528,
+        "y": 43.252487562189046,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 41.82213930348259,
+        "y": 39.21019900497513,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 37.344527363184085,
+        "y": 44.993781094527364,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.78482587064677,
+        "y": 33.73756218905472,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 79.85074626865672,
+        "y": 63.33955223880598,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 77.11442786069652,
+        "y": 60.354477611940304,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 74.68905472636817,
+        "y": 58.61318407960199,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 75.9950248756219,
+        "y": 65.01865671641791,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 89.24129353233832,
+        "y": 59.608208955223894,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 77.05223880597013,
+        "y": 70.61567164179107,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 69.09203980099501,
+        "y": 74.65796019900499,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 61.56716417910447,
+        "y": 70.98880597014926,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 60.75870646766169,
+        "y": 77.89179104477613,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 66.85323383084577,
+        "y": 80.13059701492537,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 61.318407960199,
+        "y": 61.97139303482589,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 58.70646766169155,
+        "y": 60.29228855721394,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.80597014925373,
+        "y": 57.18283582089553,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 65.85820895522387,
+        "y": 47.6679104477612,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 70.7089552238806,
+        "y": 41.57338308457713,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.23756218905472,
+        "y": 42.3818407960199,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 52.332089552238806,
+        "y": 36.287313432835816,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 64.76990049751245,
+        "y": 31.00124378109453,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 64.58333333333334,
+        "y": 29.135572139303484,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 66.57338308457712,
+        "y": 26.710199004975124,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 70.61567164179104,
+        "y": 37.28233830845772,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 66.13805970149254,
+        "y": 37.96641791044776,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 59.3594527363184,
+        "y": 44.43407960199005,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 52.332089552238806,
+        "y": 50.7773631840796,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 55.006218905472636,
+        "y": 54.8818407960199,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 45.615671641791046,
+        "y": 52.145522388059696,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 42.31965174129354,
+        "y": 48.041044776119406,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.983830845771145,
+        "y": 46.17537313432837,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 33.17786069651741,
+        "y": 49.657960199004975,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 33.61318407960199,
+        "y": 44.060945273631845,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 44.968152866242036,
+        "y": 30.063694267515924,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 33.63057324840764,
+        "y": 30.573248407643312,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 27.898089171974522,
+        "y": 23.694267515923567,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 29.681528662420384,
+        "y": 22.929936305732483,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 32.86624203821656,
+        "y": 20.2547770700637,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 78.72611464968155,
+        "y": 28.02547770700637,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 75.79617834394902,
+        "y": 24.331210191082803,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 74.39490445859875,
+        "y": 22.1656050955414,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 65.35031847133756,
+        "y": 20.636942675159236,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 58.34394904458599,
+        "y": 22.547770700636942,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 37.5796178343949,
+        "y": 29.29936305732484,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 24.96815286624204,
+        "y": 34.26751592356687,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 24.331210191082803,
+        "y": 58.98089171974522,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 29.044585987261147,
+        "y": 55.28662420382165,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 29.936305732484076,
+        "y": 71.59235668789809,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 33.503184713375795,
+        "y": 72.48407643312102,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 35.41401273885349,
+        "y": 70.44585987261146,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.94267515923567,
+        "y": 71.97452229299363,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.87898089171974,
+        "y": 65.22292993630573,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 51.0828025477707,
+        "y": 61.65605095541401,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 56.17834394904459,
+        "y": 62.802547770700635,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 58.21656050955414,
+        "y": 63.31210191082803,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.18471337579618,
+        "y": 64.45859872611464,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.94904458598726,
+        "y": 65.85987261146497,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 66.49681528662418,
+        "y": 71.46496815286626,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 68.28025477707008,
+        "y": 69.42675159235671,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 78.59872611464968,
+        "y": 66.87898089171975,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 83.94904458598727,
+        "y": 54.01273885350319,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 73.63057324840764,
+        "y": 45.859872611464965,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 83.94904458598727,
+        "y": 42.038216560509554,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 29.426751592356688,
+        "y": 46.62420382165605,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 57.5796178343949,
+        "y": 38.72611464968153,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 65.22292993630573,
+        "y": 39.87261146496815,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 65.85987261146497,
+        "y": 34.77707006369427,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.439490445859875,
+        "y": 35.54140127388535,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 59.23566878980892,
+        "y": 34.01273885350319,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 61.65605095541401,
+        "y": 30.063694267515924,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 80.2547770700637,
+        "y": 34.64968152866242,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 78.85350318471338,
+        "y": 39.61783439490445,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 79.87261146496817,
+        "y": 44.71337579617835,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 82.16560509554138,
+        "y": 43.18471337579618,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 81.27388535031845,
+        "y": 56.94267515923567,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 86.7515923566879,
+        "y": 57.961783439490446,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 84.5859872611465,
+        "y": 61.40127388535032,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 82.92993630573248,
+        "y": 62.547770700636946,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 80.12738853503183,
+        "y": 70.44585987261146,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 74.64968152866244,
+        "y": 69.17197452229301,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 76.81528662420382,
+        "y": 68.78980891719745,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 44.45859872611465,
+        "y": 76.81528662420382,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 44.968152866242036,
+        "y": 73.88535031847134,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 24.331210191082803,
+        "y": 71.3375796178344,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 26.24203821656051,
+        "y": 70.70063694267516,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 16.178343949044585,
+        "y": 53.37579617834395,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 32.10191082802548,
+        "y": 52.99363057324841,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 29.171974522292995,
+        "y": 49.681528662420384,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 27.898089171974522,
+        "y": 48.152866242038215,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 33.63057324840764,
+        "y": 41.01910828025478,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 38.21656050955414,
+        "y": 37.19745222929937,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 40.89171974522293,
+        "y": 33.75796178343949,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 42.92993630573248,
+        "y": 41.656050955414,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.29936305732484,
+        "y": 44.07643312101911,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.93630573248408,
+        "y": 39.10828025477707,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 52.22929936305732,
+        "y": 45.095541401273884,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 55.6687898089172,
+        "y": 40.76433121019108,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 56.05095541401274,
+        "y": 35.41401273885349,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 60.254777070063696,
+        "y": 50.06369426751592,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 57.07006369426752,
+        "y": 51.0828025477707,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.044585987261144,
+        "y": 50.70063694267516,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 24.585987261146496,
+        "y": 41.910828025477706,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 17.32484076433121,
+        "y": 42.038216560509554,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 14.012738853503185,
+        "y": 44.71337579617835,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 13.503184713375797,
+        "y": 39.10828025477707,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 16.94267515923567,
+        "y": 34.01273885350319,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 21.146496815286625,
+        "y": 30.573248407643312,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 22.802547770700638,
+        "y": 24.96815286624204,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 27.898089171974522,
+        "y": 26.496815286624205,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 33.503184713375795,
+        "y": 26.369426751592357,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.43312101910827,
+        "y": 26.24203821656051,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 34.52229299363057,
+        "y": 17.197452229299362,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.10828025477707,
+        "y": 16.94267515923567,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 44.84076433121019,
+        "y": 16.687898089171973,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.87898089171974,
+        "y": 13.503184713375797,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 42.1656050955414,
+        "y": 13.121019108280255,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 52.611464968152866,
+        "y": 14.394904458598726,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 56.30573248407644,
+        "y": 17.57961783439491,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.56687898089172,
+        "y": 18.471337579617835,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 70.70063694267516,
+        "y": 25.85987261146497,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 70.31847133757964,
+        "y": 21.528662420382165,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 69.17197452229301,
+        "y": 23.94904458598726,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 74.01273885350317,
+        "y": 25.222929936305732,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 76.81528662420382,
+        "y": 26.62420382165605,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 71.21019108280255,
+        "y": 34.52229299363057,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 76.94267515923565,
+        "y": 47.13375796178344,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 73.12101910828025,
+        "y": 56.30573248407644,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      }
+    ],
+    "image-type": "many-small-points",
+    "annotator": 1,
+    "annotation_id": 2,
+    "created_at": "2023-04-20T12:51:57.133219Z",
+    "updated_at": "2023-04-20T19:40:41.589170Z",
+    "lead_time": 14043.588000000002
+  },
+  {
+    "img": "\/data\/upload\/1\/0432db1e-13_H1_01_C290_BF0_r%C3%B3wnol_od_0um_co_1um_60s001.nd2",
+    "id": 2,
+    "point": [
+      {
+        "x": 52.08333333333334,
+        "y": 26.399253731343286,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 43.50124378109453,
+        "y": 40.14303482587064,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 32.36940298507463,
+        "y": 47.54353233830845,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 46.67288557213931,
+        "y": 54.8818407960199,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 58.73756218905472,
+        "y": 53.82462686567163,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 67.7549751243781,
+        "y": 52.580845771144276,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 57.866915422885576,
+        "y": 64.52114427860697,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 61.473880597014926,
+        "y": 58.42661691542289,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 45.49129353233831,
+        "y": 61.97139303482588,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 47.60572139303483,
+        "y": 59.67039800995025,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 27.891791044776124,
+        "y": 51.585820895522396,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 26.710199004975124,
+        "y": 56.560945273631845,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 30.130597014925375,
+        "y": 67.25746268656715,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 27.82960199004975,
+        "y": 63.27736318407961,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.78482587064677,
+        "y": 36.847014925373145,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 36.287313432835816,
+        "y": 32.99129353233831,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 29.197761194029848,
+        "y": 26.399253731343286,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 29.011194029850746,
+        "y": 27.767412935323385,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 29.81965174129353,
+        "y": 36.660447761194035,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 27.953980099502488,
+        "y": 45.30472636815921,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 69.99378109452736,
+        "y": 51.08830845771144,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 72.10820895522389,
+        "y": 50.5907960199005,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 42.568407960199,
+        "y": 59.11069651741294,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 41.01368159203981,
+        "y": 59.981343283582085,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 50.46641791044776,
+        "y": 59.04850746268657,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 38.77487562189054,
+        "y": 50.21766169154229,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 40.516169154228855,
+        "y": 56.18781094527363,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 40.516169154228855,
+        "y": 55.56592039800995,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 26.274875621890548,
+        "y": 62.593283582089555,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 62.90422885572139,
+        "y": 24.471393034825873,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 78.94900497512435,
+        "y": 38.40174129353234,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 77.82960199004974,
+        "y": 47.91666666666667,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 86.41169154228855,
+        "y": 61.10074626865672,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 79.94402985074629,
+        "y": 59.79477611940299,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 81.80970149253731,
+        "y": 55.81467661691543,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 55.379353233830855,
+        "y": 83.7997512437811,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 55.62810945273632,
+        "y": 77.20771144278608,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 67.7549751243781,
+        "y": 78.57587064676618,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 71.113184079602,
+        "y": 82.2450248756219,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.78233830845771,
+        "y": 66.82213930348259,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 65.57835820895522,
+        "y": 58.799751243781095,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 58.36442786069651,
+        "y": 67.31965174129354,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 59.483830845771145,
+        "y": 70.3047263681592,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 34.17288557213931,
+        "y": 51.648009950248756,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 47.490770606935016,
+        "y": 38.698788793552914,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 43.81705875351732,
+        "y": 37.29413426136379,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 39.927246202839754,
+        "y": 37.29413426136379,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 22.60572139303483,
+        "y": 40.671641791044784,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 34.296451449005,
+        "y": 64.9572366666667,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 37.326173308457726,
+        "y": 61.563948184079635,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 70.1683582649254,
+        "y": 64.59367004353237,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 55.746882213930384,
+        "y": 53.686671349502525,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 63.26059242537316,
+        "y": 39.265195298507486,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 61.92751480721397,
+        "y": 39.14400642412937,
+        "width": 0.12738853503184713,
+        "keypointlabels": [
+          "Point"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      }
+    ],
+    "noise": [
+      {
+        "x": 42.67515923566879,
+        "y": 20.764331210191088,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 41.44900497512438,
+        "y": 28.638059701492537,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 47.419154228855724,
+        "y": 31.37437810945274,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 53.700248756218905,
+        "y": 37.842039800995025,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 59.04850746268658,
+        "y": 32.618159203980106,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 31.436567164179106,
+        "y": 30.379353233830845,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 34.919154228855724,
+        "y": 28.45149253731343,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 31.498756218905477,
+        "y": 39.334577114427866,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 25.279850746268657,
+        "y": 39.70771144278608,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 43.99875621890548,
+        "y": 45.55348258706467,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.96890547263682,
+        "y": 47.17039800995025,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 49.471393034825866,
+        "y": 40.8271144278607,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 58.92412935323382,
+        "y": 45.36691542288557,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 61.287313432835816,
+        "y": 49.098258706467675,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 41.51119402985075,
+        "y": 51.77238805970149,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      },
+      {
+        "x": 28.94900497512438,
+        "y": 48.66293532338309,
+        "width": 0.6369426751592356,
+        "keypointlabels": [
+          "Noise"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      }
+    ],
+    "line": [
+      {
+        "points": [
+          [
+            69.68152866242036,
+            74.77707006369427
+          ],
+          [
+            62.038216560509554,
+            67.26114649681529
+          ],
+          [
+            65.35031847133756,
+            70.19108280254777
+          ]
+        ],
+        "closed": true,
+        "polygonlabels": [
+          "Line"
+        ],
+        "original_width": 1608,
+        "original_height": 1608
+      }
+    ],
+    "image-type": "mixed",
+    "annotator": 1,
+    "annotation_id": 3,
+    "created_at": "2023-04-20T13:52:19.444400Z",
+    "updated_at": "2023-04-20T17:59:14.149638Z",
+    "lead_time": 926.9299999999998
+  }
+]
