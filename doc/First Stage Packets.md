@@ -13,19 +13,16 @@
 Device sends this packet to inform that the bootloader just started and it is waiting for further communication.
 It can be send more than once depending on the configuration.
 
-| Off | Size   | Name       | Description                                            |
+| Off (bits) | Size (bits)   | Name       | Description                                            |
 |----:|-------:|------------|--------------------------------------------------------|
-| 0   | 6      | `ExpProg`  | First 6 bytes of expected program hash                 |
-| 6   | 1      | `HWID`     | Value that identifies the hardware                     |
-| 7   | 1      | `Counter`  | Packet repeat counter                                  |
-|     | **8**  |            | **Total packet size**                                  |
+| 0   | 124    | `ExpProg`  | First 124 bits of expected program hash                |
+| 124 | 4      | `Counter`  | Packet repeat counter                                  |
+|     | **128**  |          | **Total packet size** (16 bytes)                       |
 
 **`ExpProg`** allows identification of second stage bootloader program that must be uploaded to the device.
 For security reasons, only a spcific program will be accepted.
 Full hash is hardcoded in the first stage bootloader.
 This field can also be used to identify the `Boot` packet.
-
-**`HWID`** field contains chip number. List of chip numbers is specific to this protocol.
 
 **`Counter`** contains integer that tells how many **`Boot`** packets will be send after this one.
 Last **`Boot`** packet will have **`Counter`** equals zero.
@@ -34,7 +31,7 @@ This field is used to calculate time to start sending **`Block`** packets.
 ## `Block`
 Controller sends a single block of the second stage bootloader.
 
-| Off | Size   | Name         | Description                         |
+| Off (bytes) | Size (bytes)   | Name         | Description                         |
 |----:|-------:|--------------|-------------------------------------|
 | 0   | 2      | BlockIndex   | Block index                         |
 | 2   | 16     | Content      | Content of the block                |
@@ -42,6 +39,10 @@ Controller sends a single block of the second stage bootloader.
 
 When the device receives last block it will verify hash.
 If it is valid, the device will start the second stage bootloader by jumping to the beginning of RAM.
+
+*(optional, if there is enough space)*
+If verification fails, send a single packet containing bitmap of received packets.
+The bitmap will be 128 bytes long, so multiple blocks can fit into a single bit.
 
 Hashing
 -------
