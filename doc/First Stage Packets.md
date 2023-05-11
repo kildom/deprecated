@@ -27,14 +27,6 @@ This field can also be used to identify the `Boot` packet.
 
 **`HWID`** field contains chip number. List of chip numbers is specific to this protocol.
 
-**`MaxSize`** contains byte with encoded size of the area reserved for the second stage bootloader. The area always starts at the beginning of a RAM.
-It is encoded in two bit fields as follows:
-```
-+MSB+---+---+---+---+---+---+LSB+
-|         I         |     P     |      size = (32 + I) * 2 ^ (7 + P)
-+---+---+---+---+---+---+---+---+
-```
-
 **`Counter`** contains integer that tells how many **`Boot`** packets will be send after this one.
 Last **`Boot`** packet will have **`Counter`** equals zero.
 This field is used to calculate time to start sending **`Block`** packets.
