@@ -259,9 +259,13 @@ void setProperty(MyesContext* ctx, Value object, Value key, Value value)
 // Better approach based on current Diagrams.drawio.svg
 /*------------------------------------------------------------------------------------ */
 
+enum FindValueMethod {
+    FindExisting,
+    FindOrAdd,
+    FindAndDelete,
+};
 
-
-Value* findValue(Value object, Value key, bool addIfNeeded) {
+Value* findValue(Value object, Value key, FindValueMethod method) {
 
     Value* keyPtr;
     Value* valuePtr;
@@ -269,57 +273,50 @@ Value* findValue(Value object, Value key, bool addIfNeeded) {
     intptr_t jumpSteps = 1;
 
     ObjectData* data = getObjectData(object);
-    if (data->rom == NULL) {
-        // RAM-only object
-        keyPtr = getObjectSlots(data);
-        valuePtr = &keyPtr[1];
-        jumpSteps = 2;
-    } else if (data->flags & ROM_ONLY_FLAG) {
-        // ROM-only object
-        keyPtr = getObjectSlots(data);
-        valuePtr = data->rom;
-    } else  {
-        // Mixed object
-        keyPtr = getObjectSlots(data->rom);
-        valuePtr = getObjectSlots(data);
-    }
+    keyPtr = data->romKeys;
+    valuePtr = getObjectSlots(data);
 
     while (true) {
         Value slotKey = *keyPtr;
         if (slotKey == VALUE_END) {
-            if (jumpSteps == 1) {
-                // Switching from mixed pairs to RAM-only
-                // It will also run at the end of ROM-only objects, but it will break on next iteration
-                emptySlotKeyPtr = NULL; // disallow reuse of any previous empty slot (from ROM)
-                keyPtr = valuePtr;
-                valuePtr++;
-                jumpSteps = 2;
-                continue;
-            } else {
-                break;
-            }
-        }
-        Value slotValue = *valuePtr;
-        if (slotValue == VALUE_EMPTY) {
-            // Skip deleted slots
-            if (emptySlotKeyPtr == NULL) {
-                // Save first deleted slot
-                emptySlotKeyPtr = keyPtr;
-            }
-        } else if (slotKey == key) {
-            // We got hit
-            return valuePtr;
+            break;
+        } else if (slotKey == VALUE_ROM_KEYS_END) {
+            // Switching from mixed pairs to RAM-only
+            emptySlotKeyPtr = NULL; // disallow reuse of any previous empty slot (from ROM)
+            keyPtr = valuePtr;
+            valuePtr++;
+            jumpSteps = 2;
         } else {
-            // Non-empty slot, so disallow reuse of any previous empty slot
-            emptySlotKeyPtr = NULL;
+            Value slotValue = *valuePtr;
+            if (slotValue == VALUE_EMPTY) {
+                // Skip deleted slots
+                if (emptySlotKeyPtr == NULL) {
+                    // Save first deleted slot
+                    emptySlotKeyPtr = keyPtr;
+                }
+            } else if (slotKey == key) {
+                // We got hit
+                if (method == FindAndDelete) {
+                    if (jumpSteps == 2) {
+                        decRef(slotKey);
+                        *keyPtr = VALUE_EMPTY;
+                    }
+                    decRef(slotValue);
+                    *valuePtr = VALUE_EMPTY;
+                }
+                return valuePtr;
+            } else {
+                // Non-empty slot, so disallow reuse of any previous empty slot
+                emptySlotKeyPtr = NULL;
+            }
+            // go to next pair
+            keyPtr += jumpSteps;
+            valuePtr += jumpSteps;
         }
-        // go to next pair
-        keyPtr += jumpSteps;
-        valuePtr += jumpSteps;
     }
 
     // no need to add new key, return immediately
-    if (!addIfNeeded) {
+    if (method != FindOrAdd) {
         return NULL;
     }
 
@@ -337,21 +334,17 @@ Value* findValue(Value object, Value key, bool addIfNeeded) {
             ObjectData* newData = getObjectData(object);
             keyPtr = (uint8_t*)newData + ((uint8_t*)keyPtr - (uint8_t*)data);
         }
-        incRef(key);
-        keyPtr[0] = key;
         keyPtr[1] = VALUE_EMPTY;
         keyPtr[2] = VALUE_END;
-        return keyPtr + 1;
-    } else {
-        incRef(key);
-        decRef(*emptySlotKeyPtr);
-        *emptySlotKeyPtr = key;
-        return emptySlotKeyPtr + 1;
+        emptySlotKeyPtr = keyPtr;
     }
+    incRef(key);
+    *emptySlotKeyPtr = key;
+    return emptySlotKeyPtr + 1;
 }
 
 Value getValue(Value object, Value key) {
-    Value* ptr = findValue(object, key, false);
+    Value* ptr = findValue(object, key, FindExisting);
     if (ptr != NULL) {
         return *ptr;
     } else {
@@ -362,7 +355,7 @@ Value getValue(Value object, Value key) {
 
 void setValue(Value object, Value key, Value value) {
     makeMutable(object);
-    Value* ptr = findValue(object, key, true);
+    Value* ptr = findValue(object, key, FindOrAdd);
     if (ptr != NULL) {
         incRef(value);
         decRef(*ptr);
@@ -372,9 +365,5 @@ void setValue(Value object, Value key, Value value) {
 
 void deleteValue(Value object, Value key) {
     makeMutable(object);
-    Value* ptr = findValue(object, key, false);
-    if (ptr != NULL) {
-        decRef(*ptr);
-        *ptr = EMPTY_VALUE;
-    }
+    findValue(object, key, FindAndDelete);
 }
