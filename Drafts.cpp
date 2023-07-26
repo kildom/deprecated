@@ -271,6 +271,8 @@ Value* findValue(Value object, Value key, FindValueMethod method) {
     Value* valuePtr;
     Value* emptySlotKeyPtr = NULL;
     intptr_t jumpSteps = 1;
+    int emptyCount = 0;
+    int usedCount = 0;
 
     ObjectData* data = getObjectData(object);
     keyPtr = data->romKeys;
@@ -286,6 +288,8 @@ Value* findValue(Value object, Value key, FindValueMethod method) {
             keyPtr = valuePtr;
             valuePtr++;
             jumpSteps = 2;
+            emptyCount = 0;
+            usedCount = 0;
         } else {
             Value slotValue = *valuePtr;
             if (slotValue == VALUE_EMPTY) {
@@ -294,6 +298,7 @@ Value* findValue(Value object, Value key, FindValueMethod method) {
                     // Save first deleted slot
                     emptySlotKeyPtr = keyPtr;
                 }
+                emptyCount++;
             } else if (slotKey == key) {
                 // We got hit
                 if (method == FindAndDelete) {
@@ -308,6 +313,7 @@ Value* findValue(Value object, Value key, FindValueMethod method) {
             } else {
                 // Non-empty slot, so disallow reuse of any previous empty slot
                 emptySlotKeyPtr = NULL;
+                usedCount++;
             }
             // go to next pair
             keyPtr += jumpSteps;
@@ -326,17 +332,20 @@ Value* findValue(Value object, Value key, FindValueMethod method) {
     if (emptySlotKeyPtr == NULL) {
         // if there is no available empty slot at the end, extend the object
         Value* endPtr = (Value*)getObjectEnd(data);
-        if (keyPtr + 2 >= endPtr) {
+        emptySlotKeyPtr = keyPtr;
+        if (emptySlotKeyPtr + 2 >= endPtr) {
             // slot will pass over allocated area, so resize it and calculate new pointer
-            if (!heapAppending(object, 2 * sizeof(Value))) {
+            if (emptyCount > 8 && emptyCount > usedCount) {
+                emptySlotKeyPtr = compactObject(object); // Remove empty RAM-only slots and move the reset, don't reallocate, return pointer to END, it will always success
+            } else if (heapAppending(object, 2 * sizeof(Value))) { // Not ready for compacting, so resize it and calculate new pointer
+                ObjectData* newData = getObjectData(object);
+                emptySlotKeyPtr = (uint8_t*)newData + ((uint8_t*)keyPtr - (uint8_t*)data);
+            } else {
                 return NULL;
             }
-            ObjectData* newData = getObjectData(object);
-            keyPtr = (uint8_t*)newData + ((uint8_t*)keyPtr - (uint8_t*)data);
         }
-        keyPtr[1] = VALUE_EMPTY;
-        keyPtr[2] = VALUE_END;
-        emptySlotKeyPtr = keyPtr;
+        emptySlotKeyPtr[1] = VALUE_EMPTY;
+        emptySlotKeyPtr[2] = VALUE_END;
     }
     incRef(key);
     *emptySlotKeyPtr = key;
