@@ -1,0 +1,17 @@
+{
+  "name": "predict01",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.10.0",
+    "chartist": "^1.3.0",
+    "chartist-svg": "^0.2.8",
+    "ts-node": "^10.9.1"
+  }
+}
