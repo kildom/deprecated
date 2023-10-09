@@ -88,7 +88,7 @@ class Interface {
     generate(): string {
         let out = '';
         let version = this.version ? `    // since ${this.version}` : '';
-        out += replaceTypes(`interface ${this.name} extends ${this.inheritance.join(', ')} {${version}\n`);
+        out += replaceTypes(`export interface Ast${this.name} extends Ast${this.inheritance.join(', Ast')} {${version}\n`);
         for (let [name, versions] of Object.entries(this.fields)) {
             let previous = versions.slice(0, -1);
             let current = versions.slice(-1)[0];
@@ -120,7 +120,7 @@ class Enum {
     generate(): string {
         let out = '';
         let version = this.version ? `    // since ${this.version}` : '';
-        out += `type ${this.name} = `;
+        out += `export type Ast${this.name} = `;
         let parts: string[] = [];
         for (let c of this.content) {
             let version = c.version ? `/* since ${c.version}: */ ` : '';
@@ -184,15 +184,15 @@ for (let file of files) {
 }
 
 function replaceTypes(text: string): string {
-    return text;
-    //.replace(interfaceReplacer, '$1Interface')
-    //.replace(enumReplacer, '$1Enum');
+    return text
+        .replace(interfaceReplacer, 'Ast$1')
+        .replace(enumReplacer, 'Ast$1');
 }
 
 let interfaceReplacer = new RegExp(`(?<!["A-Za-z0-9_])(${[...Object.keys(interfaces), ...skipInterfaces].join('|')})(?!["A-Za-z0-9_])`, 'g');
 let enumReplacer = new RegExp(`(?<!["A-Za-z0-9_])(${[...Object.keys(enums), ...skipInterfaces].join('|')})(?!["A-Za-z0-9_])`, 'g');
 
-let out = '\ninterface NodeInterface { }\n\n';
+let out = '\nexport interface AstNode { }\n\n';
 
 for (let e of Object.values(enums)) {
     out += e.generate();
@@ -203,5 +203,7 @@ for (let int of Object.values(interfaces)) {
     out += int.generate();
     out += '\n';
 }
+
+out = out.replace(/"/g, '\'');
 
 fs.writeFileSync('../tmp/estree.ts', out);

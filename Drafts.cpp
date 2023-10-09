@@ -13,26 +13,28 @@ HEAP: ||  Object table  |  Object dynamic memory  |  Stack  ||
 */
 
 enum class ValueType {
-    Object = (0 << 27),    // Object Index          prototypeIndex32/16, *keys32, *values32
-    Accessor = (1 << 27),  // Object Index          getterIndex, setterIndex
-    Scope = (2 << 27),     // Object Index          values[2]
-    FunctionRuntime = (3 << 27), // Object Index    stack
-    Double = (4 << 27),    // Object Index          low32, high32
-    String = (5 << 27),    // Object Index          length32/16, bytes32/16, *ptr32
-    BigInt = (6 << 27),    // Object Index          
-    Native = (7 << 27),    // Object Index          any[]
-    None = (8 << 27),      // 0 - empty slot, 1 - end of list
-    Undefined = (9 << 27), // none
-    Null = (10 << 27),      // none
-    Boolean = (11 << 27),   // 0, 1
-    Integer = (12 << 27),   // -2^27 .. 2^27-1
+    Integer = (0 << 27),   // -2^26 .. 2^26-1
+    Boolean = (1 << 27),   // 0, 1
+    Null = (2 << 27),      // none
+    Undefined = (3 << 27), // none
+    None = (4 << 27),      // 0 - empty slot (also used for uninitialized variables), 1 - end of list
+    Symbol = (7 << 27),    // Object Index          description string
+    Object = (8 << 27),    // Object Index          prototypeIndex32/16, *keys32, *values32
+    Accessor = (9 << 27),  // Object Index          getterIndex, setterIndex
+    Scope = (10 << 27),     // Object Index          values[2]
+    FunctionRuntime = (11 << 27), // Object Index    stack
+    Double = (12 << 27),    // Object Index          low32, high32
+    String = (13 << 27),    // Object Index          length32/16, bytes32/16, *ptr32
+    BigInt = (14 << 27),    // Object Index          
+    Native = (15 << 27),    // Object Index          any[]
 };
 
 enum Flags {
     ROM = (1 << 31), // Object index points to offset in ROM where const object is located
-    Configurable = (1 << 24),
-    Enumerable = (1 << 25),
-    Writable = (1 << 26),
+                     // TODO: this only applies to value with object index, so maybe it is better to move it to object index flag
+    Configurable = (1 << 24), // Only applies to object index
+    Enumerable = (1 << 25), // Only applies to object index
+    Writable = (1 << 26), // Only applies to object index
 };
 
 typedef uintptr_t Value;
