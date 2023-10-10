@@ -1,0 +1,5 @@
+
+
+interface CompilerOptions {
+    immutableGlobal: boolean;
+};

@@ -1,15 +1,21 @@
 import { BytecodeGenerator } from "../BytecodeGenerator";
-import { AstSuper, AstChainElement } from "../estree";
+import { DumpSink } from "../DumpSink";
+import { AstChainElement } from "../estree";
 import { AstExpression } from "./Expression";
+import { AstExpressionStatement } from "./ExpressionStatement";
 import { AstMemberExpression } from "./MemberExpression";
+import { AstNode } from "./Node";
 import { AstSpreadElement } from "./SpreadElement";
+import { ProcessVariablesStage } from "./Statement";
+import { AstSuper } from "./Super";
 
-export class AstCallExpression extends AstExpression implements AstChainElement {
+export class AstCallExpression extends AstNode implements AstExpression {
     type!: 'CallExpression';
     callee!: AstExpression | AstSuper;
     arguments!: (AstExpression | AstSpreadElement)[];
     // from AstChainElement
     optional!: boolean;
+    parent!: AstCallExpression | AstExpressionStatement | AstMemberExpression;
 
     protected initialize() {
         this.setParent(this.callee, this.arguments);
@@ -67,6 +73,27 @@ export class AstCallExpression extends AstExpression implements AstChainElement 
         if (normalArgCount > 0) {
             gen.emitPushInt(normalArgCount);
             gen.emitAdd();
+        }
+    }
+
+    dump(out: DumpSink): void {
+        super.dump(out);
+        out
+            .log('callee:').sub(this.callee)
+            .log('arguments:').sub(this.arguments)
+            .log('optional:', this.optional);
+    }
+
+    processVariables(stage: ProcessVariablesStage): void {
+        if (!(this.callee instanceof AstSuper)) {
+            this.callee.processVariables(stage);
+        }
+        for (let arg of this.arguments) {
+            if (arg instanceof AstSpreadElement) {
+                arg.argument.processVariables(stage);
+            } else {
+                arg.processVariables(stage);
+            }
         }
     }
 }

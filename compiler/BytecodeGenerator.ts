@@ -2,6 +2,9 @@
 
 
 export class BytecodeGenerator {
+    emitDebug() {
+        console.log('Debug');
+    }
     emitBranch(value?: string) {
         console.log('Branch', value);
     }

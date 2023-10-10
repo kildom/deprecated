@@ -65,3 +65,21 @@ FuncDataSet 1
 CopyStack -10 # also with objects are copied
 FuncDataSet 2
 ```
+
+## Variable resolving stages
+
+1. Collect
+    * All variables get assigned to their namespaces.
+    * Conflicts are detected.
+    * Detailed information on variables is not available yet.
+2. Bond
+    * All variables references are resolved and bounded to their
+      respective variables in namespaces.
+    * Filled information about usage.
+    * If the outer variables are used, the function uid stack is kept
+      for later.
+    * If variable references goes over a function, it is translated
+      into 'outerScope' by that function. The function keeps the
+      original reference.
+3. Allocate
+    * Variables are placed in 

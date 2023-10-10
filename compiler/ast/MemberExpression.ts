@@ -1,15 +1,22 @@
 import { BytecodeGenerator } from "../BytecodeGenerator";
-import { AstChainElement, AstPattern, AstPrivateIdentifier, AstSuper } from "../estree";
+import { DumpSink } from "../DumpSink";
+import { AstChainElement, AstPattern, AstPrivateIdentifier } from "../estree";
+import { AstCallExpression } from "./CallExpression";
 import { AstExpression } from "./Expression";
+import { AstExpressionStatement } from "./ExpressionStatement";
 import { AstIdentifier } from "./Identifier";
+import { AstNode } from "./Node";
+import { ProcessVariablesStage } from "./Statement";
+import { AstSuper } from "./Super";
 
-export class AstMemberExpression extends AstExpression implements AstPattern, AstChainElement {
+export class AstMemberExpression extends AstNode implements AstExpression {
     type!: 'MemberExpression';
     object!: AstExpression | AstSuper;
     property!: AstExpression;// TODO: | AstPrivateIdentifier;
     computed!: boolean;
     // from AstChainElement
     optional!: boolean; // TODO: Support chain elements
+    parent!: AstMemberExpression | AstCallExpression | AstExpressionStatement;
 
     protected initialize() {
         this.setParent(this.object, this.property);
@@ -35,5 +42,21 @@ export class AstMemberExpression extends AstExpression implements AstPattern, As
     generate(gen: BytecodeGenerator): void {
         this.generateAccessPair(gen);
         gen.emitGet();
+    }
+
+    dump(out: DumpSink): void {
+        super.dump(out);
+        out
+            .log('object:').sub(this.object)
+            .log('property:').sub(this.property)
+            .log('computed:', this.computed)
+            .log('optional:', this.optional);
+    }
+
+    processVariables(stage: ProcessVariablesStage): void {
+        if (!(this.object instanceof AstSuper)) {
+            this.object.processVariables(stage);
+        }
+        this.property.processVariables(stage);
     }
 }

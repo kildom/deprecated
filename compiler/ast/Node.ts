@@ -1,7 +1,15 @@
+import { Application } from "../Application";
+import { DumpSink } from "../DumpSink";
+//import { AstProgram } from "./Program";
 
 export class AstNode {
     start!: number;
     end!: number;
+    sourceFile!: string;
+    app!: Application;
+    uid!: number;
+    parent!: AstNode | null;
+
     protected initialize() {
     }
 
@@ -16,4 +24,26 @@ export class AstNode {
             }
         }
     }
+
+    public dump(out: DumpSink) {
+        out.log(`${(this as any).type || '!UNKNOWN!'} #${this.uid}`);
+        out.log(`location: ${this.sourceFile}:${this.start}:${this.end}`);
+        if ((this as any).parent) {
+            out.log('parent:', (this as any).parent);
+        }
+    }
+
+    /*public *parents(thisIncluded: boolean = false) {
+        if (thisIncluded) {
+            yield this;
+        }
+        let parent = (this as any).parent as AstNode;
+        while (parent) {
+            yield parent;
+            let nextParent = (parent as any).parent as AstNode;
+            if (!nextParent && !(parent instanceof AstProgram)) {
+                throw new Error('Internal error: Interrupted parent chain.');
+            }
+        }
+    }*/
 }

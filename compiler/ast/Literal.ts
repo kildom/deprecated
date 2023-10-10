@@ -1,10 +1,18 @@
 import { BytecodeGenerator } from "../BytecodeGenerator";
+import { DumpSink } from "../DumpSink";
+import { AstCallExpression } from "./CallExpression";
 import { AstExpression } from "./Expression";
+import { AstExpressionStatement } from "./ExpressionStatement";
+import { AstMemberExpression } from "./MemberExpression";
+import { AstNode } from "./Node";
 
-export class AstLiteral extends AstExpression {
+
+export class AstLiteral extends AstNode implements AstExpression {
     type!: 'Literal';
     value!: string | boolean | null | number | RegExp | bigint;
     raw!: string;
+    regex?: { pattern: string; flags: string; };
+    parent!: AstMemberExpression | AstExpressionStatement | AstCallExpression;
 
     generate(gen: BytecodeGenerator): void {
         switch (typeof this.value) {
@@ -29,4 +37,11 @@ export class AstLiteral extends AstExpression {
                 break;
         }
     }
+
+    public dump(out: DumpSink): void {
+        super.dump(out);
+        out.log('raw:', this.raw);
+    }
+
+    processVariables(): void { }
 }
