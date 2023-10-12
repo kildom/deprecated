@@ -6,4 +6,5 @@ export class AstSpreadElement extends AstNode {
     type!: 'SpreadElement';
     argument!: AstExpression;
     parent!: AstCallExpression;
+
 }

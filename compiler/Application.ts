@@ -1,9 +1,8 @@
 import acorn from "acorn";
 import { AstProgram } from "./ast/Program";
 import { ECMA_VERSION_NUMBER } from "./constants";
-import { convertNode } from "./ast/utils";
 import { DumpSink } from "./DumpSink";
-import { ProcessVariablesStage } from "./ast/Statement";
+import { NodeConverter } from "./ast/common";
 
 
 export class Application {
@@ -23,15 +22,17 @@ export class Application {
             directSourceFile: fileName,
         }, sourceCode);
 
+        let converter = new NodeConverter(this);
+
         let oldFinishNode = parser.finishNode;
         let oldFinishNodeAt = parser.finishNodeAt;
 
         parser.finishNode = (...args: any[]) => {
-            return convertNode(oldFinishNode.apply(parser, args as any), this);
+            return converter.convert(oldFinishNode.apply(parser, args as any));
         }
 
         parser.finishNodeAt = (...args: any[]) => {
-            return convertNode(oldFinishNodeAt.apply(parser, args as any), this);
+            return converter.convert(oldFinishNodeAt.apply(parser, args as any));
         }
 
         let program = parser.parse() as AstProgram;
@@ -40,9 +41,6 @@ export class Application {
     }
 
     public compile() {
-        for (let [name, mod] of this.modules) {
-            mod.processVariables(ProcessVariablesStage.Collect);
-        }
     }
 
     public dump() {

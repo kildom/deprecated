@@ -3,34 +3,36 @@ import { DumpSink } from "../DumpSink";
 //import { AstProgram } from "./Program";
 
 export class AstNode {
+    type!: string;
     start!: number;
     end!: number;
     sourceFile!: string;
     app!: Application;
     uid!: number;
     parent!: AstNode | null;
+    children!: AstNode[];
 
     protected initialize() {
-    }
-
-    protected setParent<Tthis>(this: Tthis, ...args: ({ parent: Tthis } | { parent: Tthis }[])[]) {
-        for (const arg of args) {
-            if (arg instanceof Array) {
-                for (const c of arg) {
-                    c.parent = this;
-                }
-            } else {
-                arg.parent = this;
-            }
-        }
     }
 
     public dump(out: DumpSink) {
         out.log(`${(this as any).type || '!UNKNOWN!'} #${this.uid}`);
         out.log(`location: ${this.sourceFile}:${this.start}:${this.end}`);
-        if ((this as any).parent) {
-            out.log('parent:', (this as any).parent);
+        out.log('parent:', (this as any).parent);
+        out.log('children:', this.children);
+    }
+
+    public scanPostInit(): void {
+        for (let child of this.children) {
+            child.scanPostInit();
         }
+    }
+
+    public scanCollectVariables() {
+        for (let child of this.children) {
+            child.scanCollectVariables();
+        }
+
     }
 
     /*public *parents(thisIncluded: boolean = false) {

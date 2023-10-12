@@ -1,13 +1,15 @@
 import { BytecodeGenerator } from "../BytecodeGenerator";
 import { DumpSink } from "../DumpSink";
-import { AstArrayPattern, AstBlockStatementBase, AstForInStatement, AstForInStatementBase, AstForStatement, AstPattern, AstRestElement } from "../estree";
+import { AstBlockStatement, AstBlockStatementBase } from "./BlockStatement";
 import { AstExpression } from "./Expression";
+import { AstForInStatementBase } from "./ForInStatement";
 import { AstFunction } from "./Function";
 import { AstIdentifier } from "./Identifier";
+import { AstForStatement } from "./ForStatement";
 import { AstNode } from "./Node";
-import { AstAssignmentProperty } from "./ObjectPattern";
 import { AstProgram } from "./Program";
-import { AstStatement, ProcessVariablesStage } from "./Statement";
+import { AstStatement} from "./Statement";
+import { AstPattern } from "./common";
 
 export class AstVariableDeclarator extends AstNode {
     type!: 'VariableDeclarator';
@@ -22,7 +24,7 @@ export class AstVariableDeclarator extends AstNode {
             .log('init').sub(this.init);
     }
 
-    processPattern(id: AstPattern | null, path: (number | string)[], stage: ProcessVariablesStage): void {
+    /*processPattern(id: AstPattern | null, path: (number | string)[], stage: scanCollectVariablesStage): void {
         if (id === null) {
             // do nothing
         } else if (id.type == 'Identifier') {
@@ -36,11 +38,11 @@ export class AstVariableDeclarator extends AstNode {
         }
     }
 
-    processIdentifier(id: AstIdentifier, path: (string | number)[], stage: ProcessVariablesStage) {
+    processIdentifier(id: AstIdentifier, path: (string | number)[], stage: scanCollectVariables) {
         throw new Error("Method not implemented.");
     }
 
-    processVariables(stage: ProcessVariablesStage): void {
+    scanCollectVariables(stage: scanCollectVariables): void {
         let parent: AstNode = this.parent.parent;
         let namespace: AstFunction | AstBlockStatementBase | AstForStatement | AstForInStatementBase;
         while (true) {
@@ -56,8 +58,8 @@ export class AstVariableDeclarator extends AstNode {
             }
         }
         this.processPattern(this.id, [], stage);
-        //this.init?.processVariables(stage);
-    }
+        //this.init?.scanCollectVariables(stage);
+    }*/
 
 }
 
@@ -68,15 +70,6 @@ export class AstVariableDeclaration extends AstNode implements AstStatement {
     //    'var';
     parent!: AstProgram;
 
-    protected initialize(): void {
-        this.setParent(this.declarations);
-    }
-
-    processVariables(stage: ProcessVariablesStage): void {
-        for (let decl of this.declarations) {
-            decl.processVariables(stage);
-        }
-    }
 
     generate(gen: BytecodeGenerator): void {
         throw new Error("Method not implemented.");

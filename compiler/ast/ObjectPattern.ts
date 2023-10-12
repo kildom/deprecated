@@ -1,13 +1,14 @@
 import { DumpSink } from "../DumpSink";
-import { AstPattern, AstRestElement } from "../estree";
+import { AstPattern } from "./common";
 import { AstNode } from "./Node";
 import { AstProperty } from "./Property";
+import { AstRestElement } from "./RestElement";
 
 export class AstAssignmentProperty extends AstProperty {
-    type: "Property"; // inherited
-    value: AstPattern;
-    kind: "init";
-    method: false;
+    type!: "Property"; // inherited
+    value!: AstPattern;
+    kind!: "init";
+    method!: false;
 }
 
 export class AstObjectPattern extends AstNode {    // since ES2015
@@ -19,4 +20,5 @@ export class AstObjectPattern extends AstNode {    // since ES2015
         super.dump(out);
         out.log('properties').sub(this.properties);
     }
+
 }

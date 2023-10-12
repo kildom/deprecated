@@ -3,14 +3,12 @@ import { CompileError } from "../Errors";
 import { AstIdentifier } from "./Identifier";
 import { AstNode } from "./Node";
 import { AstProgram } from "./Program";
-import { AstStatement, ProcessVariablesStage } from "./Statement";
+import { AstStatement} from "./Statement";
 
 export class AstBreakStatement extends AstNode implements AstStatement {
     type!: 'BreakStatement';
     label!: AstIdentifier | null;
     parent!: AstProgram;
-
-    processVariables() { }
 
     generate(gen: BytecodeGenerator): void {
         // TODO
@@ -22,7 +20,6 @@ export class AstContinueStatement extends AstNode implements AstStatement {
     label!: AstIdentifier | null;
     parent!: AstProgram;
 
-    processVariables() { }
 
     generate(gen: BytecodeGenerator): void {
         // TODO
@@ -41,10 +38,6 @@ export class AstLabeledStatement extends AstNode implements AstStatement {
         } else {
             throw new CompileError(this, 'Unexpected label');
         }
-    }
-
-    processVariables(stage: ProcessVariablesStage): void {
-        this.body.processVariables(stage);
     }
 
     generate(gen: BytecodeGenerator): void {

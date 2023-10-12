@@ -1,12 +1,10 @@
 import { BytecodeGenerator } from "../BytecodeGenerator";
 import { DumpSink } from "../DumpSink";
-import { AstChainElement, AstPattern, AstPrivateIdentifier } from "../estree";
 import { AstCallExpression } from "./CallExpression";
 import { AstExpression } from "./Expression";
 import { AstExpressionStatement } from "./ExpressionStatement";
 import { AstIdentifier } from "./Identifier";
 import { AstNode } from "./Node";
-import { ProcessVariablesStage } from "./Statement";
 import { AstSuper } from "./Super";
 
 export class AstMemberExpression extends AstNode implements AstExpression {
@@ -17,10 +15,6 @@ export class AstMemberExpression extends AstNode implements AstExpression {
     // from AstChainElement
     optional!: boolean; // TODO: Support chain elements
     parent!: AstMemberExpression | AstCallExpression | AstExpressionStatement;
-
-    protected initialize() {
-        this.setParent(this.object, this.property);
-    }
 
     generateAccessPair(gen: BytecodeGenerator, duplicateObj: boolean = false) {
         this.object.generate(gen);
@@ -53,10 +47,4 @@ export class AstMemberExpression extends AstNode implements AstExpression {
             .log('optional:', this.optional);
     }
 
-    processVariables(stage: ProcessVariablesStage): void {
-        if (!(this.object instanceof AstSuper)) {
-            this.object.processVariables(stage);
-        }
-        this.property.processVariables(stage);
-    }
 }

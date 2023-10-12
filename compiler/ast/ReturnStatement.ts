@@ -9,7 +9,6 @@ export class AstReturnStatement extends AstNode implements AstStatement {
     argument!: AstExpression | null;
     parent!: AstProgram;
 
-    processVariables() { }
 
     generate(gen: BytecodeGenerator): void {
         //TODO

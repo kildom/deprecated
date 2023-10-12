@@ -1,12 +1,11 @@
 import { BytecodeGenerator } from "../BytecodeGenerator";
 import { DumpSink } from "../DumpSink";
-import { AstChainElement } from "../estree";
+import { AstChainElement } from "./common";
 import { AstExpression } from "./Expression";
 import { AstExpressionStatement } from "./ExpressionStatement";
 import { AstMemberExpression } from "./MemberExpression";
 import { AstNode } from "./Node";
 import { AstSpreadElement } from "./SpreadElement";
-import { ProcessVariablesStage } from "./Statement";
 import { AstSuper } from "./Super";
 
 export class AstCallExpression extends AstNode implements AstExpression {
@@ -16,10 +15,6 @@ export class AstCallExpression extends AstNode implements AstExpression {
     // from AstChainElement
     optional!: boolean;
     parent!: AstCallExpression | AstExpressionStatement | AstMemberExpression;
-
-    protected initialize() {
-        this.setParent(this.callee, this.arguments);
-    }
 
     generate(gen: BytecodeGenerator) {
         if (this.callee instanceof AstMemberExpression) {
@@ -79,21 +74,21 @@ export class AstCallExpression extends AstNode implements AstExpression {
     dump(out: DumpSink): void {
         super.dump(out);
         out
+            .log('optional:', this.optional)
             .log('callee:').sub(this.callee)
-            .log('arguments:').sub(this.arguments)
-            .log('optional:', this.optional);
+            .log('arguments:').sub(this.arguments);
     }
 
-    processVariables(stage: ProcessVariablesStage): void {
+    /*scanCollectVariables(stage: scanCollectVariables): void {
         if (!(this.callee instanceof AstSuper)) {
-            this.callee.processVariables(stage);
+            this.callee.scanCollectVariables(stage);
         }
         for (let arg of this.arguments) {
             if (arg instanceof AstSpreadElement) {
-                arg.argument.processVariables(stage);
+                arg.argument.scanCollectVariables(stage);
             } else {
-                arg.processVariables(stage);
+                arg.scanCollectVariables(stage);
             }
         }
-    }
+    }*/
 }

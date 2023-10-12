@@ -10,3 +10,24 @@ export class Variable {
         public name: string
     ) {}
 };
+
+/*
+
+Sources of variables:
+    - var/let/const: AstVariableDeclarator
+      destructuring var/let/const: AstVariableDeclarator + AstPattern
+      function/class declaration
+        - 'stackScope' - declared here, but used also in inner function
+        - 'outerScope' - declared in parent function
+        - 'stack' - otherwise
+    - function parameters: AstFunctionBase
+      destructuring function parameters: AstFunctionBase + AstPattern
+        - 'stackScope' - declared here, but used also in inner function
+        - 'outerScope' - declared in parent function
+        - 'stack' - rest parameter, async/generator function parameter
+        - 'parameter' - otherwise
+    - imports - TODO
+    - globals
+        - 'global'
+
+*/

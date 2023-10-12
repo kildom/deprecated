@@ -15,8 +15,4 @@ export class AstWithStatement extends AstNode implements AstStatement {
         this.body.generate(gen);
         gen.emitPop();
     }
-
-    processVariables(): void {
-        throw new Error("Method not implemented.");
-    }
 }

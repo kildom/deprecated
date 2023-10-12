@@ -11,7 +11,10 @@ export class AstLiteral extends AstNode implements AstExpression {
     type!: 'Literal';
     value!: string | boolean | null | number | RegExp | bigint;
     raw!: string;
-    regex?: { pattern: string; flags: string; };
+    regex?: {
+        pattern: string; flags: string;
+    };
+    bigint?: string;
     parent!: AstMemberExpression | AstExpressionStatement | AstCallExpression;
 
     generate(gen: BytecodeGenerator): void {
@@ -43,5 +46,4 @@ export class AstLiteral extends AstNode implements AstExpression {
         out.log('raw:', this.raw);
     }
 
-    processVariables(): void { }
 }

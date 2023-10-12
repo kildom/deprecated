@@ -1,12 +1,12 @@
 
 import { AstNode } from "./Node";
-import { AstStatement, ProcessVariablesStage } from "./Statement";
-import { AstFunctionBody, AstImportOrExportDeclaration, AstPattern } from "../estree";
+import { AstStatement} from "./Statement";
+import { AstImportOrExportDeclaration, AstPattern } from "./common";
 import { BytecodeGenerator } from "../BytecodeGenerator";
 import { DumpSink } from "../DumpSink";
 import { AstIdentifier } from "./Identifier";
 import { AstExpression } from "./Expression";
-import { AstFunctionBase } from "./FunctionBase";
+import { AstFunctionBase } from "./Function";
 
 
 export class AstProgram extends AstFunctionBase {
@@ -23,15 +23,8 @@ export class AstProgram extends AstFunctionBase {
     }
 
     protected initialize() {
-        this.setParent(this.body);
         if (this.sourceType === 'script') {
             throw new Error(`Script mode not supported.`);
-        }
-    }
-
-    processVariables(stage: ProcessVariablesStage): void {
-        for (const statement of this.body) {
-            statement.processVariables(stage);
         }
     }
 

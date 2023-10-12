@@ -3,7 +3,7 @@ import { AstWithLabel } from "./BreakStatement";
 import { AstExpression } from "./Expression";
 import { AstNode } from "./Node";
 import { AstProgram } from "./Program";
-import { AstStatement, ProcessVariablesStage } from "./Statement";
+import { AstStatement} from "./Statement";
 import { AstVariableDeclaration } from "./VariableDeclaration";
 
 export class AstForStatement extends AstWithLabel implements AstStatement {
@@ -13,13 +13,6 @@ export class AstForStatement extends AstWithLabel implements AstStatement {
     update!: AstExpression | null;
     body!: AstStatement;
     parent!: AstProgram;
-
-    processVariables(stage: ProcessVariablesStage): void {
-        this.init?.processVariables(stage);
-        this.test?.processVariables(stage);
-        this.update?.processVariables(stage);
-        this.body?.processVariables(stage);
-    }
 
     generate(gen: BytecodeGenerator): void {
         // TODO:

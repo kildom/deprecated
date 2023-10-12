@@ -6,9 +6,9 @@ import { AstStatement } from "./Statement";
 
 export class AstDebuggerStatement extends AstNode implements AstStatement {
     type!: 'DebuggerStatement';
-    parent: AstProgram;
+    parent!: AstProgram;
 
-    processVariables() {}
+
 
     generate(gen: BytecodeGenerator): void {
         gen.emitDebug();

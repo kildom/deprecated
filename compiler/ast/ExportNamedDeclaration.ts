@@ -1,12 +1,12 @@
 import { BytecodeGenerator } from "../BytecodeGenerator";
 import { DumpSink } from "../DumpSink";
-import { AstDeclaration } from "../estree";
+import { AstDeclaration } from "./common";
 import { AstIdentifier } from "./Identifier";
 import { AstLiteral } from "./Literal";
 import { AstModuleSpecifierBase } from "./ModuleSpecifier";
 import { AstNode } from "./Node";
 import { AstProgram } from "./Program";
-import { AstStatement, ProcessVariablesStage } from "./Statement";
+import { AstStatement} from "./Statement";
 
 export class AstExportSpecifier extends AstModuleSpecifierBase {    // since ES2015
     type!: 'ExportSpecifier';
@@ -29,9 +29,6 @@ export class AstExportNamedDeclaration extends AstNode implements AstStatement {
     source!: AstLiteral | null;
     parent!: AstProgram;
 
-    processVariables(stage: ProcessVariablesStage): void {
-        throw new Error("Method not implemented.");
-    }
 
     generate(gen: BytecodeGenerator): void {
         throw new Error("Method not implemented.");

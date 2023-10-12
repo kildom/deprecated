@@ -3,17 +3,13 @@ import { DumpSink } from "../DumpSink";
 import { AstExpression } from "./Expression";
 import { AstNode } from "./Node";
 import { AstProgram } from "./Program";
-import { AstStatement, ProcessVariablesStage } from "./Statement";
+import { AstStatement} from "./Statement";
 
 export class AstExpressionStatement extends AstNode implements AstStatement {
     type!: 'ExpressionStatement';
     expression!: AstExpression;
     directive?: string;
     parent!: AstProgram;
-
-    protected initialize() {
-        this.setParent(this.expression);
-    }
 
     generate(gen: BytecodeGenerator) {
         this.expression.generate(gen);
@@ -25,9 +21,5 @@ export class AstExpressionStatement extends AstNode implements AstStatement {
         out
             .log('directive:', this.directive)
             .log('expression:').sub(this.expression);
-    }
-
-    processVariables(stage: ProcessVariablesStage): void {
-        this.expression.processVariables(stage);
     }
 }
