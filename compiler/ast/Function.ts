@@ -6,14 +6,29 @@ import { AstIdentifier } from "./Identifier";
 import { AstNode } from "./Node";
 import { AstProgram } from "./Program";
 import { AstStatement} from "./Statement";
+import { Variable, VariablesContainer } from "../Namespace";
+import { DumpSink } from "../DumpSink";
 
 
-export class AstFunctionBase extends AstNode {
+export class AstFunctionBase extends AstNode implements VariablesContainer {
     id!: AstIdentifier | null;
     params!: AstPattern[];
     body!: AstBlockStatement | AstExpression | (AstStatement | AstImportOrExportDeclaration)[];
     generator!: boolean;    // since ES2015
     async!: boolean;    // since ES2017
+
+    variables: Variable[] = [];
+
+    public dump(out: DumpSink): void {
+        super.dump(out);
+        out.log('generator:', this.generator);
+        out.log('async:', this.async);
+        out.log('variables:', this.variables);
+        out.log('id:');
+        out.sub(this.id);
+        out.log('params:');
+        out.sub(this.params);
+    }
 }
 
 export class AstFunction extends AstFunctionBase {

@@ -32,7 +32,16 @@ export class AstNode {
         for (let child of this.children) {
             child.scanCollectVariables();
         }
+    }
 
+    public walkParents(callback: (parent: AstNode) => boolean | undefined | void): boolean {
+        let parent: AstNode | null = this.parent;
+        while (parent) {
+            let stopIfTrue = callback(parent);
+            if (stopIfTrue === true) return true;
+            parent = parent.parent;
+        }
+        return false;
     }
 
     /*public *parents(thisIncluded: boolean = false) {

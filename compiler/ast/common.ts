@@ -53,13 +53,32 @@ import { AstDoWhileStatement, AstWhileStatement } from "./WhileStatement";
 
 export type AstDeclaration = AstFunctionDeclaration | AstVariableDeclaration | AstClassDeclaration;
 
-export type AstPattern = AstObjectPattern | AstArrayPattern | AstRestElement | AstAssignmentPattern | AstMemberExpression | AstIdentifier;
 
 export type AstImportOrExportDeclaration = AstImportDeclaration | AstExportNamedDeclaration | AstExportDefaultDeclaration | AstExportAllDeclaration;
 
 export type AstChainElement = AstCallExpression | AstMemberExpression;
 
 
+export type AstPattern = AstObjectPattern | AstArrayPattern | AstRestElement | AstAssignmentPattern | AstMemberExpression | AstIdentifier;
+
+/* directly / inside [] or {}
+*                                          var  param  assign  for in/of  catch
+* foo - AstIdentifier                       Y     Y      Y        Y         Y
+* foo.bar - AstMemberExpression             N     N      Y        Y         N
+* foo = "bar" - AstAssignmentPattern       N/Y    Y     N/Y      N/Y       N/Y
+* ...foo - AstRestElement                  N/Y    Y     N/Y      N/Y       N/Y
+* [foo, bar] - AstArrayPattern              Y     Y      Y        Y         Y
+* {foo: bar} - AstObjectPattern             Y     Y      Y        Y         Y
+* 
+* foo - AstIdentifier              foo: []
+* foo.bar - AstMemberExpression    foo.bar: []
+* [ foo = "bar"]  foo: [{type: array, index: 0}, {type: default, value: "bar"}]
+* { a, b, ...{x: a, [y]: c}}  c: [{type: rest}, {type: property, expression: y}]
+*/
+
+export interface AstPatternInterface {
+    getPatternLeafs(): (AstIdentifier | AstMemberExpression)[];
+};
 
 
 const classList: { [key: string]: Function } = {

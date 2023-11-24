@@ -1,5 +1,7 @@
 import { AstPattern } from "./common";
 import { AstExpression } from "./Expression";
+import { AstIdentifier } from "./Identifier";
+import { AstMemberExpression } from "./MemberExpression";
 import { AstNode } from "./Node";
 
 export class AstProperty extends AstNode {

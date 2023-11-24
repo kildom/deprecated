@@ -11,6 +11,11 @@ export class Variable {
     ) {}
 };
 
+
+export interface VariablesContainer {
+  variables: Variable[];
+}
+
 /*
 
 Sources of variables:

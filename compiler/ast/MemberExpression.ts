@@ -47,4 +47,7 @@ export class AstMemberExpression extends AstNode implements AstExpression {
             .log('optional:', this.optional);
     }
 
+    getPatternLeafs(): (AstMemberExpression | AstIdentifier)[] {
+        return [this];
+    }
 }
