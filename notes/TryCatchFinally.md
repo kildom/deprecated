@@ -3,10 +3,11 @@
 
 
 try {
+    // GetGlobalStackSize -- if pushing to local stack
     // Push finally:finally_label
 
     break outer_label;
-    // ClearStack, newSize=5 # stack size on branch target
+    // Pop 20 # stack size on branch target
     // Br outer_label_break
 
 } finally {
@@ -18,6 +19,7 @@ try {
 }
 
 try {
+    // GetGlobalStackSize -- if pushing to local stack
     // Push finally:finally_label
 
     return value;
@@ -36,6 +38,7 @@ try {
 }
 
 try {
+    // GetGlobalStackSize -- if pushing to local stack
     // Push finally:finally_label
 
     throw new Error();

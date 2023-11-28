@@ -33,7 +33,7 @@ export class DumpSink {
         return this;
     }
 
-    public sub(arg: AstNode | AstNode[] | null) {
+    public sub(arg: AstNode | (AstNode | null)[] | null) {
         if (arg === null) {
             console.log(`${this.indent}${INDENT}null`);
         } else if (arg instanceof Array) {
@@ -41,16 +41,19 @@ export class DumpSink {
                 console.log(`${this.indent}${INDENT}[]`);
             }
             for (let i = 0; i < arg.length; i++) {
-                if (this.done.has(arg[i])) {
-                    console.log(`${this.indent}[${i}] => #${arg[i].uid}`);
+                let cur = arg[i];
+                if (!cur) {
+                    console.log(`${this.indent}[${i}] => null`);
+                } else if (this.done.has(cur)) {
+                    console.log(`${this.indent}[${i}] => #${cur.uid}`);
                 } else {
-                    this.done.add(arg[i]);
+                    this.done.add(cur);
                     console.log(`${this.indent}[${i}]`);
                     this.indent += INDENT;
-                    if ('dump' in arg[i]) {
-                        arg[i].dump(this);
+                    if ('dump' in cur) {
+                        cur.dump(this);
                     } else {
-                        console.log(`${this.indent}${(arg[i] as any).type} - NOT IMPLEMENTED`)
+                        console.log(`${this.indent}${(cur as any).type} - NOT IMPLEMENTED`)
                     }
                     this.indent = this.indent.substring(0, this.indent.length - INDENT_LEN);
                 }

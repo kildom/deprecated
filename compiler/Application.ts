@@ -6,37 +6,6 @@ import { DumpSink } from "./DumpSink";
 import { NodeConverter } from "./ast/common";
 
 
-interface ExtParserOptions extends acorn.Options {
-    converter: NodeConverter;
-};
-
-
-const ExtParser = acorn.Parser.extend((BaseParser: typeof acorn.Parser): typeof acorn.Parser => {
-
-    class NewParser extends (BaseParser as any) {
-
-        extConverter: NodeConverter;
-
-        constructor(options: ExtParserOptions, ...args: any[]) {
-            super(options, ...args);
-            this.extConverter = options.converter;
-        }
-
-        finishNode (...args: any[]) {
-            return this.extConverter.convert(super.finishNode(...args));
-        };
-
-        finishNodeAt (...args: any[]) {
-            return this.extConverter.convert(super.finishNodeAt(...args));
-        };
-
-        copyNode(node: acorn.Node) {
-        }
-    };
-
-    return NewParser as unknown as typeof acorn.Parser;
-});
-
 
 export class Application {
 
@@ -49,23 +18,24 @@ export class Application {
 
         let converter = new NodeConverter(this);
 
-        let options: ExtParserOptions = {
-            converter,
+        let program = acorn.Parser.parse(sourceCode, {
             ecmaVersion: ECMA_VERSION_NUMBER,
             sourceType: "module",
             allowAwaitOutsideFunction: true,
             allowHashBang: true,
             directSourceFile: fileName,
-        };
+        });
 
-        let program = ExtParser.parse(sourceCode, options) as AstProgram;
+        converter.convert(program, program);
 
-        this.modules.set(moduleName, program);
+        this.modules.set(moduleName, program as AstProgram);
     }
 
     public compile() {
         for (let [moduleName, module] of this.modules) {
-            console.log(util.inspect(module, false, null, true /* enable colors */))
+            //console.log(util.inspect(module, false, null, true /* enable colors */))
+            module.scanPostInit();
+            module.scanStrict();
             module.scanCollectVariables();
         }
     }

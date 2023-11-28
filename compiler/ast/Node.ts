@@ -1,6 +1,5 @@
 import { Application } from "../Application";
 import { DumpSink } from "../DumpSink";
-//import { AstProgram } from "./Program";
 
 export class AstNode {
     type!: string;
@@ -8,6 +7,7 @@ export class AstNode {
     end!: number;
     sourceFile!: string;
     app!: Application;
+    program!: any;
     uid!: number;
     parent!: AstNode | null;
     children!: AstNode[];
@@ -28,33 +28,28 @@ export class AstNode {
         }
     }
 
+    public scanStrict(): void {
+        for (let child of this.children) {
+            child.scanStrict();
+        }
+    }
+
     public scanCollectVariables() {
         for (let child of this.children) {
             child.scanCollectVariables();
         }
     }
 
-    public walkParents(callback: (parent: AstNode) => boolean | undefined | void): boolean {
+    public walkParents<T>(callback: (parent: AstNode) => T | undefined | void): T | undefined {
         let parent: AstNode | null = this.parent;
         while (parent) {
-            let stopIfTrue = callback(parent);
-            if (stopIfTrue === true) return true;
+            let result = callback(parent);
+            if (result !== undefined) {
+                return result;
+            }
             parent = parent.parent;
         }
-        return false;
+        return undefined;
     }
 
-    /*public *parents(thisIncluded: boolean = false) {
-        if (thisIncluded) {
-            yield this;
-        }
-        let parent = (this as any).parent as AstNode;
-        while (parent) {
-            yield parent;
-            let nextParent = (parent as any).parent as AstNode;
-            if (!nextParent && !(parent instanceof AstProgram)) {
-                throw new Error('Internal error: Interrupted parent chain.');
-            }
-        }
-    }*/
 }

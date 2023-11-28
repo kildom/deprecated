@@ -33,7 +33,7 @@ export class AstProgram extends AstFunctionBase {
             statement.generate(gen);
         }
     }
-    
+
     public dump(out: DumpSink): void {
         super.dump(out);
         out.log('sourceType:', this.sourceType);

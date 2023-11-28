@@ -1,9 +1,19 @@
 
 
+export type VariableLocation =
+  'globalStack'         // Variables that are in block that doesn't have await or yield, are not used in inner function
+  | 'localStack'        // Variables that must be preserved during await or yield.
+  | 'globalStackScope'  // Like 'globalStack', but variables are used in inner function.
+  | 'localStackScope'   // Like 'localStack', but variables are used in inner function.
+  | 'outerScope'        // Variables from outer function.
+  | 'parameter'         // Simple function parameter (not deconstructed, not in async function, not used in inner function)
+  | 'global'            // Variable from global scope.
+  ;
+
 export class Variable {
     used: boolean = false;
     usedInInner: boolean = false;
-    type?: 'stack' | 'stackScope' | 'outerScope' | 'parameter' | 'global';
+    type?: VariableLocation;
     index?: number; // absolute stack index of the variable or the micro scope, or global head index (including prefix)
     microScopeIndex?: number; // index in micro scope if variable is used by inner function
     constructor(
@@ -15,24 +25,3 @@ export class Variable {
 export interface VariablesContainer {
   variables: Variable[];
 }
-
-/*
-
-Sources of variables:
-    - var/let/const: AstVariableDeclarator
-      destructuring var/let/const: AstVariableDeclarator + AstPattern
-      function/class declaration
-        - 'stackScope' - declared here, but used also in inner function
-        - 'outerScope' - declared in parent function
-        - 'stack' - otherwise
-    - function parameters: AstFunctionBase
-      destructuring function parameters: AstFunctionBase + AstPattern
-        - 'stackScope' - declared here, but used also in inner function
-        - 'outerScope' - declared in parent function
-        - 'stack' - rest parameter, async/generator function parameter
-        - 'parameter' - otherwise
-    - imports - TODO
-    - globals
-        - 'global'
-
-*/

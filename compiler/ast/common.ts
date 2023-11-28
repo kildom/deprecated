@@ -66,14 +66,12 @@ export type AstPattern = AstObjectPattern | AstArrayPattern | AstRestElement | A
 * foo - AstIdentifier                       Y     Y      Y        Y         Y
 * foo.bar - AstMemberExpression             N     N      Y        Y         N
 * foo = "bar" - AstAssignmentPattern       N/Y    Y     N/Y      N/Y       N/Y
-* ...foo - AstRestElement                  N/Y    Y     N/Y      N/Y       N/Y
+* ...foo - AstRestElement *1               N/Y    Y     N/Y      N/Y       N/Y
 * [foo, bar] - AstArrayPattern              Y     Y      Y        Y         Y
 * {foo: bar} - AstObjectPattern             Y     Y      Y        Y         Y
 * 
-* foo - AstIdentifier              foo: []
-* foo.bar - AstMemberExpression    foo.bar: []
-* [ foo = "bar"]  foo: [{type: array, index: 0}, {type: default, value: "bar"}]
-* { a, b, ...{x: a, [y]: c}}  c: [{type: rest}, {type: property, expression: y}]
+*  *1 - object reset element argument cannot be object pattern (it is ok for array pattern)
+* 
 */
 
 export interface AstPatternInterface {
@@ -161,15 +159,36 @@ export class NodeConverter {
         private app: Application
     ) { }
 
-    convert(node: any): any {
-        if (node.type in classList) {
-            node.children = [];
-            this.setParent(node, node);
+    convert(node: any, program: any, parent: any = null): void {
+        if (node === null || typeof node != 'object') {
+            // Noting to do.
+        } else if (node instanceof Array) {
+            for (let i = 0; i < node.length; i++) {
+                this.convert(node[i], program, parent);
+            }
+        } else if (!(node.type in classList)) {
+            for (let key of [...Object.getOwnPropertyNames(node)]) {
+                this.convert(node[key], program, parent);
+            }
+        } else if (node.app && node.uid && node.program) {
+            // Already converted.
+        } else {
             let proto = new (classList[node.type] as any)();
             Object.setPrototypeOf(node, proto);
+            node.children = [];
             node.app = this.app;
             node.uid = this.nextUid++;
-            node.parent = null;
+            node.program = program;
+            node.parent = parent;
+            if (parent && parent.children.indexOf(node) < 0) {
+                parent.children.push(node);
+            }
+            
+            for (let key of [...Object.getOwnPropertyNames(node)]) {
+                if (key != 'children' && key != 'app' && key != 'uid' && key != 'parent') {
+                    this.convert(node[key], program, node);
+                }
+            }
             let initList: any[] = [];
             for (let p = node; p; p = Object.getPrototypeOf(p)) {
                 if (Object.getOwnPropertyNames(p).indexOf('initialize') >= 0) {
@@ -178,28 +197,6 @@ export class NodeConverter {
             }
             for (let init of initList) {
                 init.call(node);
-            }
-        }
-        return node;
-    }
-
-    private setParent(parent: any, value: any) {
-        if (value === null || typeof value != 'object') {
-            return;
-        } else if (value instanceof Array) {
-            for (let i = 0; i < value.length; i++) {
-                this.setParent(parent, value[i]);
-            }
-        } else if (value instanceof AstNode) {
-            if (!value.parent) {
-                parent.children.push(value);
-                value.parent = parent;
-            } else if (parent != value.parent) {
-                throw new Error('Internal error: acorn node used in multiple parents!');
-            }
-        } else {
-            for (let key of Object.getOwnPropertyNames(value)) {
-                this.setParent(parent, value[key]);
             }
         }
     }

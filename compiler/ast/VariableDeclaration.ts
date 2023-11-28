@@ -10,9 +10,7 @@ import { AstNode } from "./Node";
 import { AstProgram } from "./Program";
 import { AstStatement } from "./Statement";
 import { AstPattern } from "./common";
-import { Variable, VariablesContainer } from "../Namespace";
-import { CompileError } from "../Errors";
-import { AstMemberExpression } from "./MemberExpression";
+import { collectVariables } from "../utils";
 
 export class AstVariableDeclarator extends AstNode {
     type!: 'VariableDeclarator';
@@ -29,27 +27,13 @@ export class AstVariableDeclarator extends AstNode {
         let found = this.walkParents((parent: AstNode) => {
             if (parent instanceof AstFunctionBase ||
                 (this.kind !== 'var' && (parent instanceof AstBlockStatementBase || parent instanceof AstForInStatementBase || parent instanceof AstForStatement))) {
-                this.collectVariables(parent);
+                collectVariables(parent, this.id.getPatternLeafs());
                 return true;
             }
         });
         if (!found) {
             throw new Error('Internal error: No scope to put a variable.');
         }
-    }
-
-    collectVariables(parent: VariablesContainer) {
-        let usedNames = new Set<string>();
-        for (let id of this.id.getPatternLeafs()) {
-            if (id instanceof AstMemberExpression) {
-                throw new CompileError(id, 'Member expression is not allowed in variable declarations.');
-            }
-            if (usedNames.has(id.name)) {
-                throw new CompileError(id, 'Identifier already declared.');
-            }
-            usedNames.add(id.name);
-            parent.variables.push(new Variable(id.name));
-        };
     }
 
     public dump(out: DumpSink): void {

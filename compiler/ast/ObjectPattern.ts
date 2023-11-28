@@ -24,12 +24,13 @@ export class AstObjectPattern extends AstNode {    // since ES2015
     }
 
     getPatternLeafs(): (AstMemberExpression | AstIdentifier)[] {
+        console.log('------', this.properties);
         return this.properties
             .reduce((arr, e) => {
-                console.log(e instanceof AstRestElement);
-                console.log(e instanceof AstProperty);
-                console.log((e as any).value);
-                console.log(Object.getPrototypeOf((e as any).value));
+                // console.log(e instanceof AstRestElement);
+                // console.log(e instanceof AstProperty);
+                // console.log((e as any).value);
+                // console.log(Object.getPrototypeOf((e as any).value));
                 if (e instanceof AstRestElement) {
                     return arr.concat(e.getPatternLeafs());
                 } else {

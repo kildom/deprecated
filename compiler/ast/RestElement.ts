@@ -1,3 +1,4 @@
+import { DumpSink } from "../DumpSink";
 import { AstPattern } from "./common";
 import { AstIdentifier } from "./Identifier";
 import { AstMemberExpression } from "./MemberExpression";
@@ -11,4 +12,11 @@ export class AstRestElement extends AstNode {
     getPatternLeafs(): (AstMemberExpression | AstIdentifier)[] {
         return this.argument.getPatternLeafs();
     }
+
+    public dump(out: DumpSink): void {
+        super.dump(out);
+        out
+            .log('argument').sub(this.argument);
+    }
+
 }
