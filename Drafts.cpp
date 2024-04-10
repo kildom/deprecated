@@ -261,6 +261,23 @@ void setProperty(MyesContext* ctx, Value object, Value key, Value value)
 // Better approach based on current Diagrams.drawio.svg
 /*------------------------------------------------------------------------------------ */
 
+ALWAYS_INLINE
+static inline bool stringKeyEq(Value a, Value b) {
+    if (!IS_STRING(a) || !IS_STRING(b)) return false;
+    StringHead* aHead = getHead<StringHead>(a);
+    StringHead* bHead = getHead<StringHead>(b);
+    if (aHead->length != bHead->length) return false;
+    StringData* aData = getData<StringData>(aHead);
+    StringData* bData = getData<StringData>(bHead);
+    if (aData->bytes != bData->bytes) return false;
+    uintptr_t aHash = aData->hash;
+    if (aHash == EMPTY_HASH) aHash = calculateStringHash(aData);
+    uintptr_t bHash = bData->hash;
+    if (bHash == EMPTY_HASH) bHash = calculateStringHash(bData);
+    if (aHash != bHash) return false;
+    return memcmp(aData->text, bData->text, aData->bytes) == 0;
+}
+
 enum FindValueMethod {
     FindExisting,
     FindOrAdd,
@@ -301,7 +318,7 @@ Value* findValue(Value object, Value key, FindValueMethod method) {
                     emptySlotKeyPtr = keyPtr;
                 }
                 emptyCount++;
-            } else if (slotKey == key) {
+            } else if (slotKey == key || stringKeyEq(slotKey, key)) {
                 // We got hit
                 if (method == FindAndDelete) {
                     if (jumpSteps == 2) {
