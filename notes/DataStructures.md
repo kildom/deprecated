@@ -242,6 +242,11 @@ Can be located on both ROM and RAM.
 ### Weak references
 
 * Weak references works the same as normal references during normal runtime
-* One of GC stages walks over all objects that holds weak references (WeakRef, WeakMap, WeakSet)
+* ~~One of GC stages walks over all objects that holds weak references (WeakRef, WeakMap, WeakSet)
   and checks if reference counter is `1`.
-  If yes, it removes reference which causes deallocation of referenced object.
+  If yes, it removes reference which causes deallocation of referenced object.~~
+* The solutin above is not valid. Weak reference may point to an object that is part of unreferenced cycle. The counter will be `2` or more, but cycle must be deallocated.
+* Maybe the following solution during GC:
+  1. When counting references to find roots, travel weak references the same as normal references.
+  1. When traveling graph to mark reachable objects, ignore weak references.
+  1. Walk over all weak references and clear those pointing to unreachable objects.
