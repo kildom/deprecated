@@ -286,6 +286,9 @@ enum FindValueMethod {
 
 Value* findValue(Value object, Value key, FindValueMethod method) {
 
+    /* TODO: Property ordering is more complicated: https://stackoverflow.com/a/38218582/292500
+    */
+
     Value* keyPtr;
     Value* valuePtr;
     Value* emptySlotKeyPtr = NULL;
