@@ -1,0 +1,9 @@
+git clone https://github.com/bytecodealliance/spidermonkey-wasm-build/
+mkdir obj
+cd mozilla-unified/
+./mach --no-interactive bootstrap --application-choice=js
+export MOZ_OBJDIR=`realpath ../obj`
+export MOZCONFIG=`realpath ../spidermonkey-wasm-build/mozconfigs/release`
+./mach build
+cd ../obj
+ls

@@ -1,0 +1,216 @@
+From e4c71d8bb4f701cb5bec5765f885eed1951fe316 Mon Sep 17 00:00:00 2001
+From: aaa <aaa@aaa.example.com>
+Date: Mon, 3 Jun 2024 16:35:56 +0000
+Subject: [PATCH] Patch cargos
+
+---
+ build/moz.configure/lto-pgo.configure        | 12 ++++++------
+ gfx/wr/Cargo.toml                            |  4 ++--
+ third_party/rust/ahash/.cargo-checksum.json  |  2 +-
+ third_party/rust/ahash/Cargo.toml            |  6 +++---
+ third_party/rust/base64/Cargo.toml           |  2 +-
+ third_party/rust/byteorder/Cargo.toml        |  2 +-
+ third_party/rust/clap/Cargo.toml             |  2 +-
+ third_party/rust/httparse/Cargo.toml         |  2 +-
+ third_party/rust/memchr/.cargo-checksum.json |  2 +-
+ third_party/rust/memchr/Cargo.toml           |  2 +-
+ third_party/rust/regex/Cargo.toml            |  4 ++--
+ third_party/rust/siphasher/Cargo.toml        |  2 +-
+ 12 files changed, 21 insertions(+), 21 deletions(-)
+
+diff --git a/build/moz.configure/lto-pgo.configure b/build/moz.configure/lto-pgo.configure
+index 5048b367e2686..ad62291b98fec 100644
+--- a/build/moz.configure/lto-pgo.configure
++++ b/build/moz.configure/lto-pgo.configure
+@@ -396,8 +396,8 @@ def lto(
+         ldflags.append("-mllvm:-import-instr-limit=10")
+     elif target.kernel == "Darwin":
+         ldflags.append("-Wl,-mllvm,-import-instr-limit=10")
+-    elif c_compiler.type == "clang":
+-        ldflags.append("-Wl,-plugin-opt=-import-instr-limit=10")
++    #elif c_compiler.type == "clang":
++    #    ldflags.append("-Wl,-plugin-opt=-import-instr-limit=10")
+ 
+     # If we're using the new pass manager, we can also enable the new PM
+     # during LTO. Further we can use the resulting size savings to increase
+@@ -410,10 +410,10 @@ def lto(
+                 ldflags.append("-mllvm:-import-hot-multiplier=30")
+         elif target.kernel == "Darwin":
+             ldflags.append("-Wl,-mllvm,-import-hot-multiplier=30")
+-        else:
+-            if c_compiler.version < "13.0.0":
+-                ldflags.append("-Wl,-plugin-opt=new-pass-manager")
+-            ldflags.append("-Wl,-plugin-opt=-import-hot-multiplier=30")
++        #else:
++        #    if c_compiler.version < "13.0.0":
++        #        ldflags.append("-Wl,-plugin-opt=new-pass-manager")
++        #    ldflags.append("-Wl,-plugin-opt=-import-hot-multiplier=30")
+ 
+     # Pick Rust LTO mode in case of cross lTO. Thin is the default.
+     if "cross" in values:
+diff --git a/gfx/wr/Cargo.toml b/gfx/wr/Cargo.toml
+index 6be188c09cebc..36c9b793702e7 100644
+--- a/gfx/wr/Cargo.toml
++++ b/gfx/wr/Cargo.toml
+@@ -16,10 +16,10 @@ panic = "abort"
+ 
+ # optimizing glsl more makes a big difference in swgl build times
+ [profile.dev.package.glsl]
+-opt-level = 2
++opt-level = "z"
+ 
+ [profile.release.package.glsl]
+-opt-level = 2
++opt-level = "z"
+ 
+ [patch.crates-io]
+ firefox-on-glean = { path = "fog" }
+diff --git a/third_party/rust/ahash/.cargo-checksum.json b/third_party/rust/ahash/.cargo-checksum.json
+index f72f808ffccd0..6e099d5ce58ea 100644
+--- a/third_party/rust/ahash/.cargo-checksum.json
++++ b/third_party/rust/ahash/.cargo-checksum.json
+@@ -1 +1 @@
+-{"files":{"Cargo.toml":"ddcbd9309cebf3ffd26f87e09bb8f971793535955ebfd9a7196eba31a53471f8","FAQ.md":"9eb41898523ee209a0a937f9bcb78afe45ad55ca0556f8a4d4063558098f6d1e","LICENSE-APACHE":"a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2","LICENSE-MIT":"0444c6991eead6822f7b9102e654448d51624431119546492e8b231db42c48bb","README.md":"d7f74d616a751bcca23d5d3b58a6daf556356a526c5f0b6aa0504715d176549a","build.rs":"23cbf4cf1b742e2c4da8bc58d06d1d021479dec80cec6a0bc3704c7172e2864a","rustfmt.toml":"e090969e99df9360705680cc0097cfaddae10c22dc2e01470592cf3b9787fd36","src/aes_hash.rs":"013602aec42150e59ba9ed6135525a624a4b42c1b1328b9857ec238aa12c3178","src/convert.rs":"54e49f93d51665366923d4d815cfd67790d3c769e84ab4386ba97f928d17d1bd","src/fallback_hash.rs":"a82451f6458a6e7a7e7da82a3c982e9bb825a2092ab79c41459d8011775fb0b1","src/hash_map.rs":"5ee97baa64fa528ba9c01bd018332c4974846c4813c6f8c30cee9f3546598f1c","src/hash_quality_test.rs":"1a560a181a804791bc6ad797df5352cdd87123fed7f19f659de0c2d883248bed","src/hash_set.rs":"360e55d066b44624f06e49efa140c03fda635fb17a59622cc29a83830bd1f263","src/lib.rs":"e2f4e7bfcf2807c73e3b8d3b1bd83c6789313b6b55edd59e15e04146e55e01b6","src/operations.rs":"38ed2b48a13d826c48ede5f304c9c2572c0c8f64ac8ac5a1ed4e112e536f3a97","src/random_state.rs":"03f40a654cfca2e00a2dabd21c85368ee50b8b6289efe98ea1745b25c721b9c6","src/specialize.rs":"56354db8a0f7e6ee1340a08f2ab6f79a0ff439fd61badac5e7e59fe4f4a653ba","tests/bench.rs":"7a425f564201560f9a8fb6c77f91f29bb88ec815b10bd27d15740c922a4f928e","tests/map_tests.rs":"e56b6f700e3b1176210e4b266d7a42b3263e966e5e565d53b1bc27af7a87168e","tests/nopanic.rs":"0d28a46248d77283941db1d9fd154c68b965c81a0e3db1fe4a43e06fc448da8f"},"package":"e89da841a80418a9b391ebaea17f5c112ffaaa96f621d2c285b5174da76b9011"}
+\ No newline at end of file
++{"files":{"Cargo.toml":"0f47af16323d4153cc47461924c0440c57d3835a874ca79964694646d5c2d671","FAQ.md":"9eb41898523ee209a0a937f9bcb78afe45ad55ca0556f8a4d4063558098f6d1e","LICENSE-APACHE":"a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2","LICENSE-MIT":"0444c6991eead6822f7b9102e654448d51624431119546492e8b231db42c48bb","README.md":"d7f74d616a751bcca23d5d3b58a6daf556356a526c5f0b6aa0504715d176549a","build.rs":"23cbf4cf1b742e2c4da8bc58d06d1d021479dec80cec6a0bc3704c7172e2864a","rustfmt.toml":"e090969e99df9360705680cc0097cfaddae10c22dc2e01470592cf3b9787fd36","src/aes_hash.rs":"013602aec42150e59ba9ed6135525a624a4b42c1b1328b9857ec238aa12c3178","src/convert.rs":"54e49f93d51665366923d4d815cfd67790d3c769e84ab4386ba97f928d17d1bd","src/fallback_hash.rs":"a82451f6458a6e7a7e7da82a3c982e9bb825a2092ab79c41459d8011775fb0b1","src/hash_map.rs":"5ee97baa64fa528ba9c01bd018332c4974846c4813c6f8c30cee9f3546598f1c","src/hash_quality_test.rs":"1a560a181a804791bc6ad797df5352cdd87123fed7f19f659de0c2d883248bed","src/hash_set.rs":"360e55d066b44624f06e49efa140c03fda635fb17a59622cc29a83830bd1f263","src/lib.rs":"e2f4e7bfcf2807c73e3b8d3b1bd83c6789313b6b55edd59e15e04146e55e01b6","src/operations.rs":"38ed2b48a13d826c48ede5f304c9c2572c0c8f64ac8ac5a1ed4e112e536f3a97","src/random_state.rs":"03f40a654cfca2e00a2dabd21c85368ee50b8b6289efe98ea1745b25c721b9c6","src/specialize.rs":"56354db8a0f7e6ee1340a08f2ab6f79a0ff439fd61badac5e7e59fe4f4a653ba","tests/bench.rs":"7a425f564201560f9a8fb6c77f91f29bb88ec815b10bd27d15740c922a4f928e","tests/map_tests.rs":"e56b6f700e3b1176210e4b266d7a42b3263e966e5e565d53b1bc27af7a87168e","tests/nopanic.rs":"0d28a46248d77283941db1d9fd154c68b965c81a0e3db1fe4a43e06fc448da8f"},"package":"e89da841a80418a9b391ebaea17f5c112ffaaa96f621d2c285b5174da76b9011"}
+\ No newline at end of file
+diff --git a/third_party/rust/ahash/Cargo.toml b/third_party/rust/ahash/Cargo.toml
+index 279954f9a7581..cd7d3af0f8e2a 100644
+--- a/third_party/rust/ahash/Cargo.toml
++++ b/third_party/rust/ahash/Cargo.toml
+@@ -50,21 +50,21 @@ rustdoc-args = [
+ ]
+ 
+ [profile.bench]
+-opt-level = 3
++opt-level = "z"
+ lto = "fat"
+ codegen-units = 1
+ debug = 0
+ debug-assertions = false
+ 
+ [profile.release]
+-opt-level = 3
++opt-level = "z"
+ lto = "fat"
+ codegen-units = 1
+ debug = 0
+ debug-assertions = false
+ 
+ [profile.test]
+-opt-level = 2
++opt-level = "z"
+ lto = "fat"
+ 
+ [lib]
+diff --git a/third_party/rust/base64/Cargo.toml b/third_party/rust/base64/Cargo.toml
+index c551663d43e9d..7264d41cc2eb6 100644
+--- a/third_party/rust/base64/Cargo.toml
++++ b/third_party/rust/base64/Cargo.toml
+@@ -39,7 +39,7 @@ rustdoc-args = ["--generate-link-to-definition"]
+ debug = 2
+ 
+ [profile.test]
+-opt-level = 3
++opt-level = "z"
+ 
+ [[bench]]
+ name = "benchmarks"
+diff --git a/third_party/rust/byteorder/Cargo.toml b/third_party/rust/byteorder/Cargo.toml
+index da515d9d900a1..375dbd2aca9b3 100644
+--- a/third_party/rust/byteorder/Cargo.toml
++++ b/third_party/rust/byteorder/Cargo.toml
+@@ -35,7 +35,7 @@ license = "Unlicense OR MIT"
+ repository = "https://github.com/BurntSushi/byteorder"
+ 
+ [profile.bench]
+-opt-level = 3
++opt-level = "z"
+ 
+ [lib]
+ name = "byteorder"
+diff --git a/third_party/rust/clap/Cargo.toml b/third_party/rust/clap/Cargo.toml
+index 19de2fe6f3bbe..6354324c5df67 100644
+--- a/third_party/rust/clap/Cargo.toml
++++ b/third_party/rust/clap/Cargo.toml
+@@ -105,7 +105,7 @@ lto = true
+ codegen-units = 1
+ 
+ [profile.test]
+-opt-level = 1
++opt-level = "z"
+ 
+ [lib]
+ bench = false
+diff --git a/third_party/rust/httparse/Cargo.toml b/third_party/rust/httparse/Cargo.toml
+index 610e371334123..3610bc8c8f295 100644
+--- a/third_party/rust/httparse/Cargo.toml
++++ b/third_party/rust/httparse/Cargo.toml
+@@ -33,7 +33,7 @@ license = "MIT/Apache-2.0"
+ repository = "https://github.com/seanmonstar/httparse"
+ 
+ [profile.bench]
+-opt-level = 3
++opt-level = "z"
+ lto = true
+ codegen-units = 1
+ 
+diff --git a/third_party/rust/memchr/.cargo-checksum.json b/third_party/rust/memchr/.cargo-checksum.json
+index f496380224b5a..eeb5968c31310 100644
+--- a/third_party/rust/memchr/.cargo-checksum.json
++++ b/third_party/rust/memchr/.cargo-checksum.json
+@@ -1 +1 @@
+-{"files":{"COPYING":"01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f","Cargo.toml":"fdeda7d32fa12e4a1589d13c74ae5fd4f1065d0219ba73f8492e28248d84d146","LICENSE-MIT":"0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f","README.md":"51d941627e004588863b137918e908e34c4d599d12e03afd3e489e2bb61e3704","UNLICENSE":"7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c","build.rs":"5638d9b60d40f44db96767ce32246de42158571364cce92531a85307ac7eda6c","rustfmt.toml":"1ca600239a27401c4a43f363cf3f38183a212affc1f31bff3ae93234bbaec228","scripts/make-byte-frequency-table":"21d1ded41fe5a780507bb88e1910d471b4081cc626a48891a408712e45b7b2bf","src/cow.rs":"a23c3b009e5215b5c3ac46627a5dd844235bef0136d76b3fc1eeeb744565c125","src/lib.rs":"9430cd37b13399df8f8c27a752ccdf6422a563e24171d1b4802424f9193a8f37","src/memchr/c.rs":"34f7caf79316f4b03908832fdbd4aff367f2bc30eae291478cc5a0a108ce6e76","src/memchr/fallback.rs":"48764f18b7ff1f00a9ac1c4ed8ec96ad11f7b09b2d062a8ed3fe81160add627d","src/memchr/iter.rs":"61463e7fa22ca8f212c2cbfb882af0c87b0fb1bc6b4676678a4822a581ec1037","src/memchr/mod.rs":"d5bfc881c7c089e1a0825209a4d21c3f792f38c6f16f3bc715d0d539477376b6","src/memchr/naive.rs":"c7453bc99cc4e58eb37cf5a50c88688833e50a270ee1849baefddb8acc0ccd94","src/memchr/x86/avx.rs":"3c2750174ce7ff033daa4096e7961bbee9a2da898068266b27dee22ef8cfddad","src/memchr/x86/mod.rs":"a642d5aefdb7452ead4ab7946b5c6cfb6cc6df636dcd0ebbd6f5e6e1ac8305c0","src/memchr/x86/sse2.rs":"79ede1aba71a655e86eb5873d682c5da26933bffa4fffd7042a2313f18cf4675","src/memchr/x86/sse42.rs":"de4c6f354dbfec170876cddb8d9157b35928f96ed2339a0c5d094cc953a2f52d","src/memmem/byte_frequencies.rs":"2fb85b381c038c1e44ce94294531cdcd339dca48b1e61f41455666e802cbbc9e","src/memmem/genericsimd.rs":"9ce7283db0994438eb6df2bea6ad984e80512b6f643ebae7ae7d82eb5d39fa11","src/memmem/mod.rs":"949fb8e11a23030d59b34fd8c7c196150f133e909a8448705c77a751c436907d","src/memmem/prefilter/fallback.rs":"d32248c41aa09701c2410c52f948bbe009dd1b13a01b444ce0fb8c4b4e404ede","src/memmem/prefilter/genericsimd.rs":"57d5523cf0299b37ef1dd1b351e3d387d5070f2f7ecffc9a9ca66528101ebd3f","src/memmem/prefilter/mod.rs":"ad8b4ac72c025f11d6b641c5fc0888468112758dcdc6bb72b43f932d2005ea4e","src/memmem/prefilter/wasm.rs":"14f684412fca35445a94760a6973d772dfd22d329ebae3b52b525d2a1f3acd63","src/memmem/prefilter/x86/avx.rs":"e344cae36a88b59c07a1c1d395edeb9c636a399e1528ce69b2bc7c94d8d8bb0b","src/memmem/prefilter/x86/mod.rs":"df2d84b23b22574383c281d33671a121b5faf7b1a48dd6f67c3085cd02cd4498","src/memmem/prefilter/x86/sse.rs":"daa648fc2a90d37299803a80d632e8a47a30ce8719d0ac2a2ea2cde3b30b6fef","src/memmem/rabinkarp.rs":"9b44eb092524a51792eba4deaca6c6d3cbc51db98cb548ea4fa7e5d8988cc71a","src/memmem/rarebytes.rs":"571082c71fc3dca5e4304171d41fb3c44e241df6dcd88bac4d7a15b52f9521e0","src/memmem/twoway.rs":"102f8bbb29696d5656cd2f5a1769a3af96d044fb09972881455cfb6424d6b50a","src/memmem/util.rs":"0194d40b912137e2352863af9cc1c0273baf97fdf6b27799628680846c06febd","src/memmem/vector.rs":"96e6f45f8ad11a822c4f18393839225d7f40f898ad657e109ba1b3288af0ef8f","src/memmem/wasm.rs":"87da03c964f054db30cc972d07a74e8902ec1248e2338ecd1dbac430f43fffc2","src/memmem/x86/avx.rs":"de85dbc415603c844baf94fbc92d676a738dd4b99246be468bd5f7be5921b25f","src/memmem/x86/mod.rs":"5012fca41b91caf229278aa221e8dd514ede497fe4938d64562d03fef2fc46e6","src/memmem/x86/sse.rs":"148a40c0952aca8b16d9eb3e724a5b9b60693bc7b2bcc5209bcc43c94faf560a","src/tests/memchr/iter.rs":"b68c7ecdb6222c5dbf61212e6863f78f98ad343868a74cb8612692fc790240b2","src/tests/memchr/memchr.rs":"09589c5899324c9b26ea4513c80389a2ffdf6ddc460031e2ca8da43bd493ae3f","src/tests/memchr/mod.rs":"29e0855f946c7babf603b3d610a29235a56a26a4c867fef0768542388eac4c95","src/tests/memchr/simple.rs":"b9997903ede972272c01c1750522a20692a28488cc7c5cf745ea83ff96d65fe3","src/tests/memchr/testdata.rs":"3e34377fe60eca3687d1ebc66127bd631af27ceaccc8f08806a293199b69a83f","src/tests/mod.rs":"9054a2a2f9af140f305ca29155d942fafbac9fb0874067611adc8a5990546be4","src/tests/x86_64-soft_float.json":"c0e416487fe9b4809534edb7db2a9eff3453dc40d9f1e23362c37f45a77ec717"},"package":"2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"}
+\ No newline at end of file
++{"files":{"COPYING":"01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f","Cargo.toml":"5133c5336c4ad1eb3d92c923564de8268e34e96418fca15e784099b56f4e2263","LICENSE-MIT":"0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f","README.md":"51d941627e004588863b137918e908e34c4d599d12e03afd3e489e2bb61e3704","UNLICENSE":"7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c","build.rs":"5638d9b60d40f44db96767ce32246de42158571364cce92531a85307ac7eda6c","rustfmt.toml":"1ca600239a27401c4a43f363cf3f38183a212affc1f31bff3ae93234bbaec228","scripts/make-byte-frequency-table":"21d1ded41fe5a780507bb88e1910d471b4081cc626a48891a408712e45b7b2bf","src/cow.rs":"a23c3b009e5215b5c3ac46627a5dd844235bef0136d76b3fc1eeeb744565c125","src/lib.rs":"9430cd37b13399df8f8c27a752ccdf6422a563e24171d1b4802424f9193a8f37","src/memchr/c.rs":"34f7caf79316f4b03908832fdbd4aff367f2bc30eae291478cc5a0a108ce6e76","src/memchr/fallback.rs":"48764f18b7ff1f00a9ac1c4ed8ec96ad11f7b09b2d062a8ed3fe81160add627d","src/memchr/iter.rs":"61463e7fa22ca8f212c2cbfb882af0c87b0fb1bc6b4676678a4822a581ec1037","src/memchr/mod.rs":"d5bfc881c7c089e1a0825209a4d21c3f792f38c6f16f3bc715d0d539477376b6","src/memchr/naive.rs":"c7453bc99cc4e58eb37cf5a50c88688833e50a270ee1849baefddb8acc0ccd94","src/memchr/x86/avx.rs":"3c2750174ce7ff033daa4096e7961bbee9a2da898068266b27dee22ef8cfddad","src/memchr/x86/mod.rs":"a642d5aefdb7452ead4ab7946b5c6cfb6cc6df636dcd0ebbd6f5e6e1ac8305c0","src/memchr/x86/sse2.rs":"79ede1aba71a655e86eb5873d682c5da26933bffa4fffd7042a2313f18cf4675","src/memchr/x86/sse42.rs":"de4c6f354dbfec170876cddb8d9157b35928f96ed2339a0c5d094cc953a2f52d","src/memmem/byte_frequencies.rs":"2fb85b381c038c1e44ce94294531cdcd339dca48b1e61f41455666e802cbbc9e","src/memmem/genericsimd.rs":"9ce7283db0994438eb6df2bea6ad984e80512b6f643ebae7ae7d82eb5d39fa11","src/memmem/mod.rs":"949fb8e11a23030d59b34fd8c7c196150f133e909a8448705c77a751c436907d","src/memmem/prefilter/fallback.rs":"d32248c41aa09701c2410c52f948bbe009dd1b13a01b444ce0fb8c4b4e404ede","src/memmem/prefilter/genericsimd.rs":"57d5523cf0299b37ef1dd1b351e3d387d5070f2f7ecffc9a9ca66528101ebd3f","src/memmem/prefilter/mod.rs":"ad8b4ac72c025f11d6b641c5fc0888468112758dcdc6bb72b43f932d2005ea4e","src/memmem/prefilter/wasm.rs":"14f684412fca35445a94760a6973d772dfd22d329ebae3b52b525d2a1f3acd63","src/memmem/prefilter/x86/avx.rs":"e344cae36a88b59c07a1c1d395edeb9c636a399e1528ce69b2bc7c94d8d8bb0b","src/memmem/prefilter/x86/mod.rs":"df2d84b23b22574383c281d33671a121b5faf7b1a48dd6f67c3085cd02cd4498","src/memmem/prefilter/x86/sse.rs":"daa648fc2a90d37299803a80d632e8a47a30ce8719d0ac2a2ea2cde3b30b6fef","src/memmem/rabinkarp.rs":"9b44eb092524a51792eba4deaca6c6d3cbc51db98cb548ea4fa7e5d8988cc71a","src/memmem/rarebytes.rs":"571082c71fc3dca5e4304171d41fb3c44e241df6dcd88bac4d7a15b52f9521e0","src/memmem/twoway.rs":"102f8bbb29696d5656cd2f5a1769a3af96d044fb09972881455cfb6424d6b50a","src/memmem/util.rs":"0194d40b912137e2352863af9cc1c0273baf97fdf6b27799628680846c06febd","src/memmem/vector.rs":"96e6f45f8ad11a822c4f18393839225d7f40f898ad657e109ba1b3288af0ef8f","src/memmem/wasm.rs":"87da03c964f054db30cc972d07a74e8902ec1248e2338ecd1dbac430f43fffc2","src/memmem/x86/avx.rs":"de85dbc415603c844baf94fbc92d676a738dd4b99246be468bd5f7be5921b25f","src/memmem/x86/mod.rs":"5012fca41b91caf229278aa221e8dd514ede497fe4938d64562d03fef2fc46e6","src/memmem/x86/sse.rs":"148a40c0952aca8b16d9eb3e724a5b9b60693bc7b2bcc5209bcc43c94faf560a","src/tests/memchr/iter.rs":"b68c7ecdb6222c5dbf61212e6863f78f98ad343868a74cb8612692fc790240b2","src/tests/memchr/memchr.rs":"09589c5899324c9b26ea4513c80389a2ffdf6ddc460031e2ca8da43bd493ae3f","src/tests/memchr/mod.rs":"29e0855f946c7babf603b3d610a29235a56a26a4c867fef0768542388eac4c95","src/tests/memchr/simple.rs":"b9997903ede972272c01c1750522a20692a28488cc7c5cf745ea83ff96d65fe3","src/tests/memchr/testdata.rs":"3e34377fe60eca3687d1ebc66127bd631af27ceaccc8f08806a293199b69a83f","src/tests/mod.rs":"9054a2a2f9af140f305ca29155d942fafbac9fb0874067611adc8a5990546be4","src/tests/x86_64-soft_float.json":"c0e416487fe9b4809534edb7db2a9eff3453dc40d9f1e23362c37f45a77ec717"},"package":"2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"}
+\ No newline at end of file
+diff --git a/third_party/rust/memchr/Cargo.toml b/third_party/rust/memchr/Cargo.toml
+index 630195281d86e..1dcac27a8b0d6 100644
+--- a/third_party/rust/memchr/Cargo.toml
++++ b/third_party/rust/memchr/Cargo.toml
+@@ -43,7 +43,7 @@ debug = true
+ debug = true
+ 
+ [profile.test]
+-opt-level = 3
++opt-level = "z"
+ debug = true
+ 
+ [lib]
+diff --git a/third_party/rust/regex/Cargo.toml b/third_party/rust/regex/Cargo.toml
+index f4812c7f2804c..d038f1825d45d 100644
+--- a/third_party/rust/regex/Cargo.toml
++++ b/third_party/rust/regex/Cargo.toml
+@@ -45,14 +45,14 @@ rustdoc-args = [
+ debug = 2
+ 
+ [profile.dev]
+-opt-level = 3
++opt-level = "z"
+ debug = 2
+ 
+ [profile.release]
+ debug = 2
+ 
+ [profile.test]
+-opt-level = 3
++opt-level = "z"
+ debug = 2
+ 
+ [[test]]
+diff --git a/third_party/rust/siphasher/Cargo.toml b/third_party/rust/siphasher/Cargo.toml
+index 8ad6e50d7ded3..e831fb21f52ba 100644
+--- a/third_party/rust/siphasher/Cargo.toml
++++ b/third_party/rust/siphasher/Cargo.toml
+@@ -31,7 +31,7 @@ license = "MIT/Apache-2.0"
+ repository = "https://github.com/jedisct1/rust-siphash"
+ 
+ [profile.release]
+-opt-level = 3
++opt-level = "z"
+ lto = true
+ panic = "abort"
+ 
+-- 
+2.39.2
+

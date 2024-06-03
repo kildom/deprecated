@@ -1,0 +1,223 @@
+    1  git clone https://github.com/mozilla-spidermonkey/spidermonkey-embedding-examples.git
+    2  cd spidermonkey-embedding-examples/examples/
+    3  gcc
+    4  clang --target=wasm32 hello.cpp boilerplate.cpp 
+    5  clang --target=wasm32 hello.cpp boilerplate.cpp 
+    6  clang --target=wasm32 -I /usr/local/src/obj/dist/system_wrappers hello.cpp boilerplate.cpp 
+    7  clang --target=wasm32 -I /usr/local/src/obj/dist/system_wrappers hello.cpp boilerplate.cpp 
+    8  clang --target=wasm32 -I /usr/local/src/obj/dist/system_wrappers /usr/local/src/obj/dist/include hello.cpp boilerplate.cpp 
+    9  clang --target=wasm32 -I /usr/local/src/obj/dist/system_wrappers -I /usr/local/src/obj/dist/include hello.cpp boilerplate.cpp 
+   10  clang --target=wasm32 --sysroot=/root/.mozbuild/sysroot-wasm32-wasi -I /usr/local/src/obj/dist/system_wrappers -I /usr/local/src/obj/dist/include hello.cpp boilerplate.cpp 
+   11  clang --version
+   12  cd ..
+   13  chmod 755 ./test.sh
+   14  cd ..
+   15  chmod 755 ./test.sh
+   16  ./test.sh 
+   17  ./test.sh 
+   18  ./test.sh 
+   19  ./test.sh 
+   20  ./test.sh 
+   21  ./test.sh 
+   22  ./test.sh 
+   23  ./test.sh 
+   24  ./test.sh 
+   25  ./test.sh 
+   26  ./test.sh 
+   27  ./test.sh 
+   28  ./test.sh 
+   29  ./test.sh 
+   30  ./test.sh 
+   31  ./test.sh 
+   32  ./test.sh 
+   33  ./test.sh 
+   34  ./test.sh 
+   35  ./test.sh 
+   36  ./test.sh 
+   37  ./test.sh 
+   38  ./test.sh 
+   39  ./test.sh 
+   40  ./a.sh 
+   41  ./test.sh 
+   42  ./test.sh 
+   43  ./test.sh 
+   44  ./test.sh 
+   45  ./test.sh 
+   46  ./test.sh 
+   47  ./test.sh 
+   48  ./test.sh 
+   49  ./test.sh 
+   50  ./a.sh 
+   51  ./test.sh 
+   52  ./test.sh 
+   53  ./test.sh 
+   54  ./test.sh 
+   55  ./test.sh 
+   56  cd ..
+   57  find . -name 'cstdio'
+   58  find . -name jsapi.h
+   59  find . -name utility
+   60  find . -name utility -file
+   61  find . -name utility -type file
+   62  find . -name utility
+   63  find . -name utility -type f
+   64  find / -name utility -type f
+   65  cd /root/.mozbuild/
+   66  ls
+   67  find / -name clang
+   68  find / -type f -name clang
+   69  find / -type f -name clang
+   70  /root/.mozbuild/indices/clang --version
+   71  cat /root/.mozbuild/indices/clang --version
+   72  cat /root/.mozbuild/indices/clang
+   73  find / -type f -name clang
+   74  ls
+   75  ls clang
+   76  ls clang/bin/
+   77  find / -type f -name clang
+   78  ls clang/bin/
+   79  realpath clang/bin/
+   80  find . -type f -name clang
+   81  find . -name clang
+   82  cd obj
+   83  cd ../../
+   84  cd src/obj/
+   85  find . -name '*.a'
+   86  find . -name Unified_cpp_mfbt1.o
+   87  find . -name 'TimeStamp*'
+   88  find . -name Unified_cpp_memory_build0
+   89  find . -name 'Unified_cpp_memory_build0*'
+   90  find . -name Unified_cpp_memory_mozalloc0.o
+   91  /usr/local/src/app/a.sh
+   92  ls
+   93  cd ..
+   94  ls
+   95  cd obj
+   96  ls
+   97  cat mozrelease 
+   98  ls -la
+   99  node
+  100  curl https://wasmtime.dev/install.sh -sSf | bash
+  101  wasmtime
+  102  bash --login
+  103  cd ~ 
+  104  wget https://github.com/WebAssembly/binaryen/releases/download/version_117/binaryen-version_117-x86_64-linux.tar.gz
+  105  tar -x binaryen-version_117-x86_64-linux.tar.gz 
+  106  tar --help binaryen-version_117-x86_64-linux.tar.gz 
+  107  tar -xf binaryen-version_117-x86_64-linux.tar.gz 
+  108  ls
+  109  cd /usr/local/src/mozilla-unified/
+  110  ./mach configure -- --help
+  111  wasmtime
+  112  wasmtime hello.wasm 
+  113  ~/binaryen-version_117/bin/wasm-opt -Oz hello.wasm 
+  114  ~/binaryen-version_117/bin/wasm-opt -Oz hello.wasm -o hello2.wasm
+  115  ls -la
+  116  wasmtime hello.wasm 
+  117  wasmtime hello.wasm globalThis
+  118  wasmtime hello.wasm globalThis
+  119  wasmtime hello.wasm 
+  120  wasmtime hello.wasm '`a`'
+  121  wasmtime hello.wasm '`globalThis`'
+  122  wasmtime hello.wasm 'globalThis'
+  123  wasmtime hello.wasm '"a"'
+  124  wasmtime hello.wasm 'parseInt("123")'
+  125  wasmtime hello.wasm 'parseInt("123")'
+  126  wasmtime hello.wasm 'parseInt'
+  127  wasmtime hello.wasm 'parseFloat'
+  128  wasmtime hello.wasm 'asfddf'
+  129  wasmtime hello.wasm 'let x = 12'
+  130  wasmtime hello.wasm 'let x = 12'
+  131  wasmtime hello.wasm 'parseInt("123").toString()'
+  132  wasmtime hello.wasm 'parseInt("12399").toString()'
+  133  wasmtime hello.wasm 'parseInt("12399").toString()'
+  134  wasmtime hello.wasm 'parseInt("12399")'
+  135  wasmtime hello.wasm 'parseInt("12399").toString()'
+  136  wasmtime hello.wasm 'parseInt("12399").toString()'
+  137  wasmtime hello.wasm 'parseInt("12399")'
+  138  wasmtime hello.wasm 'globalThis.toString()'
+  139  wasmtime hello.wasm 'Object.keys(globalThis).toString()'
+  140  wasmtime hello.wasm 'Object.keys({a:1,b:2}).toString()'
+  141  wasmtime hello.wasm 'Object.keys(globalThis).toString()'
+  142  wasmtime hello.wasm 'Object.keys(window).toString()'
+  143  wasmtime hello.wasm 'Object.keys(window).toString()'
+  144  wasmtime hello.wasm 'Object.keys(module).toString()'
+  145  wasmtime hello.wasm 'Object.keys(globalThis).toString()'
+  146  wasmtime hello.wasm 'Object.entries(globalThis).toString()'
+  147  wasmtime hello.wasm 'Object.getOwnPropertyNames(globalThis).toString()'
+  148  rustc
+  149  echo $PATH
+  150  exit
+  151  ls
+  152  ls
+  153  ls
+  154  ls
+  155  ls
+  156  ls
+  157  exit
+  158  ./mach configure -- --help
+  159  MOZ_OBJDIR=/usr/local/src/obj2 MOZCONFIG=/usr/local/src/obj/mozrelease ./mach build
+  160  wasm-ld
+  161  ~/.mozbuild/clang/bin/wasm-ld
+  162  ~/.mozbuild/clang/bin/wasm-ld --help
+  163  ~/.mozbuild/clang/bin/wasm-ld -Oz
+  164  ~/.mozbuild/clang/bin/wasm-ld -Os
+  165  ~/.mozbuild/clang/bin/wasm-ld --lto-Os
+  166  ~/.mozbuild/clang/bin/wasm-ld --lto-O4
+  167  ~/.mozbuild/clang/bin/wasm-ld --lto-O3
+  168  ~/.mozbuild/clang/bin/wasm-ld --lto-O2
+  169  MOZ_OBJDIR=/usr/local/src/obj2 MOZCONFIG=/usr/local/src/obj/mozrelease ./mach build
+  170  MOZ_OBJDIR=/usr/local/src/obj2 MOZCONFIG=/usr/local/src/obj/mozrelease ./mach build
+  171  MOZ_OBJDIR=/usr/local/src/obj2 MOZCONFIG=/usr/local/src/obj/mozrelease ./mach build
+  172  MOZ_OBJDIR=/usr/local/src/obj2 MOZCONFIG=/usr/local/src/obj/mozrelease ./mach build
+  173  MOZ_OBJDIR=/usr/local/src/obj2 MOZCONFIG=/usr/local/src/obj/mozrelease ./mach build
+  174  MOZ_OBJDIR=/usr/local/src/obj2 MOZCONFIG=/usr/local/src/obj/mozrelease ./mach build
+  175  rustc
+  176  exit
+  177  mc
+  178  rustc
+  179  exitr
+  180  exit
+  181  MOZ_OBJDIR=/usr/local/src/obj2 MOZCONFIG=/usr/local/src/obj/mozrelease ./mach build
+  182  cd ..
+  183  cd mozilla-unified/
+  184  export PATH=$PATH:`cat ~/path.txt`
+  185  echo $PATH
+  186  rustc
+  187  MOZ_OBJDIR=/usr/local/src/obj2 MOZCONFIG=/usr/local/src/obj/mozrelease ./mach build
+  188  git config user.name aaa
+  189  git config user.email aaa@aaa.example.com
+  190  cd ..
+  191  cd app/
+  192  ./test.sh 
+  193  ls spidermonkey-embedding-examples/examples/
+  194  ls -la spidermonkey-embedding-examples/examples/
+  195  wasm-ld
+  196  export PATH=/root/.mozbuild/clang/bin:$PATH
+  197  wasm-ld --help
+  198  ./test.sh 
+  199  ./test.sh 
+  200  ls -la spidermonkey-embedding-examples/examples/
+  201  cd spidermonkey-embedding-examples/examples/
+  202  ~/binaryen-version_117/bin/wasm-opt -Oz -o hello3.wasm hello.wasm 
+  203  ls -la
+  204  wasmtime hello3.wasm 
+  205  ~/binaryen-version_117/bin/wasm-opt --help
+  206  ~/binaryen-version_117/bin/wasm-opt -O0 -o hello3.wasm hello.wasm 
+  207  ~/binaryen-version_117/bin/wasm-opt -O0 --strip-debug -o hello3.wasm hello.wasm 
+  208  ls -la
+  209  ~/binaryen-version_117/bin/wasm-opt -Oz --strip-debug -o hello3.wasm hello.wasm 
+  210  ls -la
+  211  wasmtime hello3.wasm 
+  212  cp hello3.wasm hello4.wasm
+  213  gz -9 hello4.wasm 
+  214  gzip -9 hello4.wasm 
+  215  ls -la
+  216  wasmtime hello3.wasm '(1,"1")'
+  217  wasmtime hello3.wasm '1;(1,"1")'
+  218  wasmtime hello3.wasm 'import {x} from "a";'
+  219  wasmtime hello3.wasm 'Math.toString()'
+  220  cd ..
+  221  cd ..
+  222  cd ..
+  223  history > 1.txt
