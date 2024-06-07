@@ -1,0 +1,199 @@
+From c46d4b7a1e21b355fded88216e7e1d8eb132c7ae Mon Sep 17 00:00:00 2001
+From: aa <aa@aa.com>
+Date: Tue, 4 Jun 2024 09:58:16 +0000
+Subject: [PATCH 2/2] Remove file access from statistics
+
+---
+ js/src/gc/Nursery.cpp    |  6 +++---
+ js/src/gc/Statistics.cpp | 36 ++++++++++++++++++------------------
+ js/src/gc/Statistics.h   |  8 ++++----
+ 3 files changed, 25 insertions(+), 25 deletions(-)
+
+diff --git a/js/src/gc/Nursery.cpp b/js/src/gc/Nursery.cpp
+index 472911075b77f..a431ea4858a63 100644
+--- a/js/src/gc/Nursery.cpp
++++ b/js/src/gc/Nursery.cpp
+@@ -1046,7 +1046,7 @@ void js::Nursery::printCollectionProfile(JS::GCReason reason,
+   if (!str) {
+     return;
+   }
+-  fputs(str.get(), stats().profileFile());
++  //fputs(str.get(), stats().profileFile());
+ }
+ 
+ void js::Nursery::printProfileHeader() {
+@@ -1073,7 +1073,7 @@ void js::Nursery::printProfileHeader() {
+   if (!str) {
+     return;
+   }
+-  fputs(str.get(), stats().profileFile());
++  //fputs(str.get(), stats().profileFile());
+ }
+ 
+ // static
+@@ -1139,7 +1139,7 @@ void js::Nursery::printTotalProfileTimes() {
+   if (!str) {
+     return;
+   }
+-  fputs(str.get(), stats().profileFile());
++  //fputs(str.get(), stats().profileFile());
+ }
+ 
+ void js::Nursery::maybeClearProfileDurations() {
+diff --git a/js/src/gc/Statistics.cpp b/js/src/gc/Statistics.cpp
+index c12d44db976dd..876696f55c520 100644
+--- a/js/src/gc/Statistics.cpp
++++ b/js/src/gc/Statistics.cpp
+@@ -101,7 +101,7 @@ const char* js::gcstats::ExplainAbortReason(GCAbortReason reason) {
+   }
+ }
+ 
+-static FILE* MaybeOpenFileFromEnv(const char* env,
++/*static FILE* MaybeOpenFileFromEnv(const char* env,
+                                   FILE* defaultFile = nullptr) {
+   const char* value = getenv(env);
+   if (!value) {
+@@ -133,7 +133,7 @@ static FILE* MaybeOpenFileFromEnv(const char* env,
+   }
+ 
+   return file;
+-}
++}*/
+ 
+ struct PhaseKindInfo {
+   Phase firstPhase;
+@@ -773,8 +773,8 @@ void Statistics::formatJsonPhaseTimes(const PhaseTimes& phaseTimes,
+ 
+ Statistics::Statistics(GCRuntime* gc)
+     : gc(gc),
+-      gcTimerFile(nullptr),
+-      gcDebugFile(nullptr),
++      //gcTimerFile(nullptr),
++      //gcDebugFile(nullptr),
+       nonincrementalReason_(GCAbortReason::None),
+       creationTime_(TimeStamp::Now()),
+       tenuredAllocsSinceMinorGC(0),
+@@ -812,9 +812,9 @@ Statistics::Statistics(GCRuntime* gc)
+   MOZ_ALWAYS_TRUE(phaseStack.reserve(MAX_PHASE_NESTING));
+   MOZ_ALWAYS_TRUE(suspendedPhases.reserve(MAX_SUSPENDED_PHASES));
+ 
+-  gcTimerFile = MaybeOpenFileFromEnv("MOZ_GCTIMER");
+-  gcDebugFile = MaybeOpenFileFromEnv("JS_GC_DEBUG");
+-  gcProfileFile = MaybeOpenFileFromEnv("JS_GC_PROFILE_FILE", stderr);
++  //gcTimerFile = MaybeOpenFileFromEnv("MOZ_GCTIMER");
++  //gcDebugFile = MaybeOpenFileFromEnv("JS_GC_DEBUG");
++  //gcProfileFile = MaybeOpenFileFromEnv("JS_GC_PROFILE_FILE", stderr);
+ 
+   gc::ReadProfileEnv("JS_GC_PROFILE",
+                      "Report major GCs taking more than N milliseconds for "
+@@ -823,12 +823,12 @@ Statistics::Statistics(GCRuntime* gc)
+ }
+ 
+ Statistics::~Statistics() {
+-  if (gcTimerFile && gcTimerFile != stdout && gcTimerFile != stderr) {
++  /*if (gcTimerFile && gcTimerFile != stdout && gcTimerFile != stderr) {
+     fclose(gcTimerFile);
+   }
+   if (gcDebugFile && gcDebugFile != stdout && gcDebugFile != stderr) {
+     fclose(gcDebugFile);
+-  }
++  }*/
+ }
+ 
+ /* static */
+@@ -965,19 +965,19 @@ static PhaseKind LongestPhaseSelfTimeInMajorGC(
+ 
+ void Statistics::printStats() {
+   if (aborted) {
+-    fprintf(gcTimerFile,
++    /*fprintf(gcTimerFile,
+             "OOM during GC statistics collection. The report is unavailable "
+-            "for this GC.\n");
++            "for this GC.\n");*/
+   } else {
+     UniqueChars msg = formatDetailedMessage();
+     if (msg) {
+       double secSinceStart =
+           TimeBetween(TimeStamp::ProcessCreation(), slices_[0].start)
+               .ToSeconds();
+-      fprintf(gcTimerFile, "GC(T+%.3fs) %s\n", secSinceStart, msg.get());
++      //fprintf(gcTimerFile, "GC(T+%.3fs) %s\n", secSinceStart, msg.get());
+     }
+   }
+-  fflush(gcTimerFile);
++  //fflush(gcTimerFile);
+ }
+ 
+ void Statistics::beginGC(JS::GCOptions options, const TimeStamp& currentTime) {
+@@ -1235,9 +1235,9 @@ void Statistics::endSlice() {
+ 
+   bool last = !gc->isIncrementalGCInProgress();
+   if (last) {
+-    if (gcTimerFile) {
++    /*if (gcTimerFile) {
+       printStats();
+-    }
++    }*/
+ 
+     if (!aborted) {
+       endGC();
+@@ -1664,7 +1664,7 @@ void Statistics::printProfileHeader() {
+   if (!str) {
+     return;
+   }
+-  fputs(str.get(), profileFile());
++  //fputs(str.get(), profileFile());
+ }
+ 
+ static TimeDuration SumAllPhaseKinds(const Statistics::PhaseKindTimes& times) {
+@@ -1709,7 +1709,7 @@ void Statistics::printSliceProfile() {
+   if (!str) {
+     return;
+   }
+-  fputs(str.get(), profileFile());
++  //fputs(str.get(), profileFile());
+ }
+ 
+ Statistics::ProfileDurations Statistics::getProfileTimes(
+@@ -1830,7 +1830,7 @@ void Statistics::printTotalProfileTimes() {
+   if (!str) {
+     return;
+   }
+-  fputs(str.get(), profileFile());
++  //fputs(str.get(), profileFile());
+ }
+ 
+ const char* Statistics::formatTotalSlices() {
+diff --git a/js/src/gc/Statistics.h b/js/src/gc/Statistics.h
+index bc6d7bf5ddccd..d3c71f92799c8 100644
+--- a/js/src/gc/Statistics.h
++++ b/js/src/gc/Statistics.h
+@@ -299,7 +299,7 @@ struct Statistics {
+ 
+   // File to write profiling information to, either stderr or file specified
+   // with JS_GC_PROFILE_FILE.
+-  FILE* profileFile() const { return gcProfileFile; }
++  //FILE* profileFile() const { return gcProfileFile; }
+ 
+   // Occasionally print header lines for profiling information.
+   void maybePrintProfileHeaders();
+@@ -333,13 +333,13 @@ struct Statistics {
+   gc::GCRuntime* const gc;
+ 
+   /* File used for MOZ_GCTIMER output. */
+-  FILE* gcTimerFile;
++  //FILE* gcTimerFile;
+ 
+   /* File used for JS_GC_DEBUG output. */
+-  FILE* gcDebugFile;
++  //FILE* gcDebugFile;
+ 
+   /* File used for JS_GC_PROFILE output. */
+-  FILE* gcProfileFile;
++  //FILE* gcProfileFile;
+ 
+   ZoneGCStats zoneStats;
+ 
+-- 
+2.39.2
+
