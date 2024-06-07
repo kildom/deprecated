@@ -28,22 +28,22 @@ interface SandboxWasmModuleExports {
     execCall(ctxPtr: number): number; // Execute the call, returns error message string pointer if error was thrown, NULL otherwise. Using current value stack as parameters.
     // Values created by those functions puts value into the stack and can optionally pop some values.
     // All value creating functions sets error state on failure and does nothing if there is already an error state (except deallocating pointers if needed).
-    createNull(ctxPtr: number): void;
-    createBoolean(ctxPtr: number, value: boolean): void;
-    createUndefined(ctxPtr: number): void;
-    createArray(ctxPtr: number): void;
-    setArrayItem(ctxPtr: number, index: number): void;
+    //createNull(ctxPtr: number): void;
+    //createBoolean(ctxPtr: number, value: boolean): void;
+    //createUndefined(ctxPtr: number): void;
+    //createArray(ctxPtr: number): void;
+    //setArrayItem(ctxPtr: number, index: number): void;
     createArrayBuffer(ctxPtr: number, ptr: number): void;
     createArrayBufferView(ctxPtr: number, type: number, byteOffset: number, byteLength: number): void;
-    createDate(ctxPtr: number, time: number): void;
-    createRegExp(ctxPtr: number, lastIndex: number): void;
-    createError(ctxPtr: number): void;
-    createObject(ctxPtr: number): void;
-    setObjectProperty(ctxPtr: number): void;
-    createNumber(ctxPtr: number, value: number): void;
-    createBigInt(ctxPtr: number): void;
+    //createDate(ctxPtr: number, time: number): void;
+    //createRegExp(ctxPtr: number, lastIndex: number): void;
+    //createError(ctxPtr: number): void;
+    //createObject(ctxPtr: number): void;
+    //setObjectProperty(ctxPtr: number): void;
+    //createNumber(ctxPtr: number, value: number): void;
+    //createBigInt(ctxPtr: number): void;
     //
-    createString(ctxPtr: number, ptr: number, charLength: number, byteLength: number, bufferLength: number): void;
+    //createString(ctxPtr: number, ptr: number, charLength: number, byteLength: number, bufferLength: number): void;
     // Values can be pushed
     keepValue(ctxPtr: number): number;
     reuseValue(ctxPtr: number, index: number): void;

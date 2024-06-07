@@ -1,2 +1,6 @@
 node_modules
 *.wasm
+package-lock.json
+/release/
+/debug/
+/quickbuild/

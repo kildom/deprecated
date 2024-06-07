@@ -15,8 +15,12 @@ RUN rustup target add wasm32-wasi
 RUN mkdir obj
 COPY mozrelease /usr/local/src/obj/mozrelease
 RUN cd mozilla-unified/ && ./mach --no-interactive bootstrap --application-choice=js
-COPY 0001-Patch-cargos.patch /usr/local/src/0001-Patch-cargos.patch
-RUN cd mozilla-unified/ && git apply ../0001-Patch-cargos.patch
+#COPY 0001-Patch-cargos.patch /usr/local/src/0001-Patch-cargos.patch
+#RUN cd mozilla-unified/ && git apply ../0001-Patch-cargos.patch
+COPY 0001-My-Optimize.patch /usr/local/src/0001-My-Optimize.patch
+RUN cd mozilla-unified/ && git apply ../0001-My-Optimize.patch
+COPY 0002-Remove-file-access-from-statistics.patch /usr/local/src/0002-Remove-file-access-from-statistics.patch
+RUN cd mozilla-unified/ && git apply ../0002-Remove-file-access-from-statistics.patch
 RUN cd mozilla-unified/ && MOZ_OBJDIR=/usr/local/src/obj MOZCONFIG=/usr/local/src/obj/mozrelease ./mach build
 RUN wget https://github.com/WebAssembly/binaryen/releases/download/version_117/binaryen-version_117-x86_64-linux.tar.gz && tar -xf binaryen-version_117-x86_64-linux.tar.gz
 
