@@ -5,11 +5,11 @@ import * as fs from 'node:fs';
 let fileName;
 
 do {
-    fileName = '../release/sandbox.opt.wasm';
+    fileName = './release/sandbox.opt.wasm';
     if (fs.existsSync(fileName)) break;
-    fileName = '../quickbuild/sandbox.wasm';
+    fileName = './quickbuild/sandbox.wasm';
     if (fs.existsSync(fileName)) break;
-    fileName = '../debug/sandbox.wasm';
+    fileName = './debug/sandbox.wasm';
     if (fs.existsSync(fileName)) break;
 } while (false);
 
