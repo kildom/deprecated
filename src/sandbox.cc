@@ -8,6 +8,7 @@
 #include <js/Conversions.h>
 #include <js/MemoryFunctions.h>
 #include <js/Exception.h>
+#include <js/ArrayBuffer.h>
 
 #include "wasm.hh"
 
@@ -61,6 +62,11 @@ struct ExecuteFlags {
 WASM_IMPORT(sandbox, entry) int entry();
 WASM_IMPORT(sandbox, createBoolean) void createBoolean(bool value);
 WASM_IMPORT(sandbox, createEngineError) void createEngineError(uint32_t encoding, const void* buffer, uint32_t size);
+WASM_IMPORT(sandbox, keepValue) uint32_t keepValue();
+WASM_IMPORT(sandbox, createArrayBuffer) void createArrayBuffer(const void* data, uint32_t size);
+WASM_IMPORT(sandbox, createArrayBufferView) void createArrayBufferView(uint32_t type, uint32_t offset, uint32_t length);
+WASM_IMPORT(sandbox, createError) void createError(uint32_t encoding, const void* buffer, uint32_t size);
+WASM_IMPORT(sandbox, log) void logWasm(const void* str, uint32_t len);
 
 
 #pragma endregion
@@ -79,6 +85,39 @@ static JS::PersistentRootedValue* sandboxValuePtr;
 #define sandboxValue (*sandboxValuePtr)
 static JSClass SandboxGlobalClass = { "SandboxGlobal", JSCLASS_GLOBAL_FLAGS, &JS::DefaultGlobalClassOps };
 static uint8_t sharedBuffer[16 * 1024];
+
+
+#pragma endregion
+
+
+#pragma region ------------------ DEBUG LOGGING ------------------
+
+
+static size_t char16len(const char16_t* str) {
+    const char16_t* s;
+    for (s = str; *s; ++s) {}
+    return (s - str);
+}
+
+static void log(const char* format, ...)
+{
+    int size;
+    {
+        static char tmp[1];
+        std::va_list args;
+        size = vsnprintf(tmp, 1, format, args);
+        va_end(args);
+    }
+    {
+        char *ptr = (char*)malloc(size + 1);
+        std::va_list args;
+        va_start(args, format);
+        size = vsnprintf(ptr, size + 1, format, args);
+        va_end(args);
+        logWasm(ptr, size);
+        free(ptr);
+    }
+}
 
 
 #pragma endregion
@@ -104,7 +143,7 @@ static bool createBooleanFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
 
 
 template<class CbkT>
-static inline bool numberFunctionTemplate(JSContext* cx, unsigned argc, JS::Value* vp, CbkT callback, const char* name) {
+static inline bool createNumberTmpl(JSContext* cx, unsigned argc, JS::Value* vp, CbkT callback, const char* name) {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     if (!args.requireAtLeast(cx, name, 1)) return false;
     double num;
@@ -116,16 +155,12 @@ static inline bool numberFunctionTemplate(JSContext* cx, unsigned argc, JS::Valu
 #define NUMBER_PARAM_SANDBOX_FUNC(name, T) \
     WASM_IMPORT(sandbox, name) void name(T value); \
     static bool name##Func(JSContext* cx, unsigned argc, JS::Value* vp) { \
-        return numberFunctionTemplate(cx, argc, vp, name, #name); \
+        return createNumberTmpl(cx, argc, vp, name, #name); \
     }
 
 
 template<class CbkT>
-static inline bool stringFunctionTemplate(JSContext* cx, unsigned argc, JS::Value* vp, CbkT callback, const char* name) {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    if (!args.requireAtLeast(cx, name, 1)) return false;
-
-    JS::RootedString str(cx, args[0].toString());
+static inline bool createStringTmpl(JS::HandleString str, CbkT callback) {
 
     if ((sandboxFlags & SandboxFlags::Latin1Allowed) && JS::StringHasLatin1Chars(str)) {
         size_t len;
@@ -197,14 +232,83 @@ static inline bool stringFunctionTemplate(JSContext* cx, unsigned argc, JS::Valu
     return true;
 }
 
+template<class CbkT>
+static inline bool createStringTmpl(JS::HandleValue strValue, CbkT callback) {
+    JS::RootedString str(cx, strValue.toString());
+    return createStringTmpl(str, callback);
+}
+
+
+template<class CbkT>
+static inline bool createStringTmpl(JSContext* cx, unsigned argc, JS::Value* vp, CbkT callback, const char* name) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    if (!args.requireAtLeast(cx, name, 1)) return false;
+    return createStringTmpl(args[0], callback);
+}
+
+
 #define STRING_PARAM_SANDBOX_FUNC(name) \
     WASM_IMPORT(sandbox, name) void name(uint32_t encoding, const void* buffer, uint32_t size); \
     static bool name##Func(JSContext* cx, unsigned argc, JS::Value* vp) { \
-        return stringFunctionTemplate(cx, argc, vp, name, #name); \
+        return createStringTmpl(cx, argc, vp, name, #name); \
     }
 
 
-NO_PARAMS_SANDBOX_FUNC(cleanValues);
+static bool createArrayBufferFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    if (!args.requireAtLeast(cx, "createArrayBuffer", 3)) return false;
+
+    JS::RootedObject buffer(cx, &args[0].toObject());
+    double offsetDouble;
+    if (!JS::ToNumber(cx, args[1], &offsetDouble)) return false;
+    double lengthDouble;
+    if (!JS::ToNumber(cx, args[2], &lengthDouble)) return false;
+
+    uint32_t requestedOffset = JS::ToInteger(offsetDouble);
+    uint32_t requestedLength = JS::ToInteger(lengthDouble);
+
+    size_t srcLength;
+    uint8_t* srcData;
+
+    auto obj = GetObjectAsArrayBuffer(buffer, &srcLength, &srcData);
+    if (!obj) return false;
+
+    createArrayBuffer(srcData + requestedOffset, requestedLength);
+
+    return true;
+}
+
+
+static bool createArrayBufferViewFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    if (!args.requireAtLeast(cx, "createArrayBufferView", 3)) return false;
+
+    double typeDouble;
+    if (!JS::ToNumber(cx, args[0], &typeDouble)) return false;
+    double offsetDouble;
+    if (!JS::ToNumber(cx, args[1], &offsetDouble)) return false;
+    double lengthDouble;
+    if (!JS::ToNumber(cx, args[2], &lengthDouble)) return false;
+
+    uint32_t type = JS::ToInteger(typeDouble);
+    uint32_t offset = JS::ToInteger(offsetDouble);
+    uint32_t length = JS::ToInteger(lengthDouble);
+
+    createArrayBufferView(type, offset, length);
+
+    return true;
+}
+
+
+static bool keepValueFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    auto index = keepValue();
+    args.rval().setNumber(index);
+    return true;
+}
+
+
+NO_PARAMS_SANDBOX_FUNC(clearValues);
 NO_PARAMS_SANDBOX_FUNC(createNull);
 NO_PARAMS_SANDBOX_FUNC(createUndefined);
 NO_PARAMS_SANDBOX_FUNC(createArray);
@@ -214,15 +318,76 @@ NUMBER_PARAM_SANDBOX_FUNC(createNumber, double);
 NUMBER_PARAM_SANDBOX_FUNC(createDate, double);
 NUMBER_PARAM_SANDBOX_FUNC(createRegExp, uint32_t);
 NUMBER_PARAM_SANDBOX_FUNC(createArrayItem, uint32_t);
+NUMBER_PARAM_SANDBOX_FUNC(reuseValue, uint32_t);
 
 STRING_PARAM_SANDBOX_FUNC(createString);
 STRING_PARAM_SANDBOX_FUNC(createObjectProperty);
 STRING_PARAM_SANDBOX_FUNC(createBigInt);
-// TODO: Errors should not be reported just as strings, we need to extract more, e.g. backtrace, so full C++ implementation is needed.
-// see: GetPendingExceptionStack/StealPendingExceptionStack (with stack trace from throw)
-// ExceptionStackOrNull (with stack trace from new Error())
-// js/SavedFrameAPI.h
-STRING_PARAM_SANDBOX_FUNC(createError);
+
+
+static bool sendError(JS::HandleValue errorVal)
+{
+    if (errorVal.isObject()) {
+        JS::RootedObject errorObj(cx, &errorVal.toObject());
+        auto stack = ExceptionStackOrNull(errorObj);
+        if (stack) {
+            JS::RootedObject stackObj(cx, stack);
+            JS::RootedValue stackVal(cx, JS::ObjectValue(*stackObj));
+            JS::RootedString stackStr(cx, JS::ToString(cx, stackVal));
+            createStringTmpl(stackStr, createString);
+        } else {
+            createUndefined();
+        }
+        JS::RootedValue nameValue(cx);
+        if (!JS_GetProperty(cx, errorObj, "name", &nameValue)) return false;
+        createStringTmpl(nameValue, createString);
+    } else {
+        createUndefined();
+        createUndefined();
+    }
+
+    JS::RootedString str(cx, JS::ToString(cx, errorVal));
+    if (!str) return false;
+    createStringTmpl(str, createError);
+
+    return true;
+}
+
+static bool createErrorFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    if (!args.requireAtLeast(cx, "createError", 1)) return false;
+    if (!sendError(args[0])) return false;
+    return true;
+}
+
+#pragma endregion
+
+
+#pragma region ------------------ ERROR REPORTING ------------------
+
+
+static bool reportEngineError(const char* message) {
+    clearValues();
+    createEngineError(Encodings::Utf8, message, strlen(message));
+    return false;
+}
+
+static bool reportPendingException()
+{
+    clearValues();
+
+    JS::RootedValue errorValue(cx);
+    bool ok = JS_GetPendingException(cx, &errorValue);
+    JS_ClearPendingException(cx);
+
+    if (ok) {
+        sendError(errorValue);
+    } else {
+        return reportEngineError("Unknown error.");
+    }
+
+    return false;
+}
 
 
 #pragma endregion
@@ -232,7 +397,7 @@ STRING_PARAM_SANDBOX_FUNC(createError);
 
 
 static JSFunctionSpec sandboxFunctions[] = {
-    JS_FN("cleanValues", cleanValuesFunc, 0, 0),
+    JS_FN("clearValues", clearValuesFunc, 0, 0),
     JS_FN("createNull", createNullFunc, 0, 0),
     JS_FN("createUndefined", createUndefinedFunc, 0, 0),
     JS_FN("createError", createErrorFunc, 0, 0),
@@ -247,6 +412,10 @@ static JSFunctionSpec sandboxFunctions[] = {
     JS_FN("createObjectProperty", createObjectPropertyFunc, 1, 0),
     JS_FN("createBigInt", createBigIntFunc, 1, 0),
     JS_FN("createBoolean", createBooleanFunc, 1, 0),
+    JS_FN("createArrayBuffer", createArrayBufferFunc, 3, 0),
+    JS_FN("createArrayBufferView", createArrayBufferViewFunc, 3, 0),
+    JS_FN("reuseValue", reuseValueFunc, 1, 0),
+    JS_FN("keepValue", keepValueFunc, 0, 0),
     JS_FS_END};
 
 
@@ -269,32 +438,6 @@ static bool DefineSandboxObject() {
 #pragma region ------------------ CODE EXECUTION ------------------
 
 
-bool reportError(const char* message) {
-    cleanValues();
-    createEngineError(Encodings::Utf8, message, strlen(message));
-    return false;
-}
-
-WASM_EXPORT(malloc)
-void* contextMalloc(uint32_t size) {
-    return JS_malloc(cx, size);
-}
-
-
-WASM_EXPORT(realloc)
-void* contextRealloc(void* ptr, uint32_t oldSize, uint32_t newSize) {
-    return JS_realloc(cx, ptr, oldSize, newSize);
-}
-
-
-WASM_EXPORT(free)
-void contextFree(void* ptr) {
-    JS_free(cx, ptr);
-}
-
-            WASM_IMPORT(sandbox, aaa)
-            void aaa(const char* str, uint32_t len);
-
 WASM_EXPORT(execute)
 bool execute(char* sourceCode, uint32_t sourceCodeSize, const char* fileName, ExecuteFlags::T flags)
 {
@@ -312,7 +455,7 @@ bool execute(char* sourceCode, uint32_t sourceCodeSize, const char* fileName, Ex
         if (flags && ExecuteFlags::TransferBufferOwnership) {
             JS_free(cx, sourceCode);
         }
-        return reportError("Cannot initialize");
+        return reportEngineError("Cannot initialize.");
     }
 
     JS::RootedValue rval(cx);
@@ -324,28 +467,17 @@ bool execute(char* sourceCode, uint32_t sourceCodeSize, const char* fileName, Ex
     }
 
     if (!ok) {
-        ok = JS_GetPendingException(cx, &rval);
-        JS_ClearPendingException(cx);
-        if (ok) {
-            //JS::RootedObject robj(cx, &rval.toObject());
-            //JSErrorReport* rep = JS_ErrorFromException(cx, robj);
-            //auto message = rep->message().c_str();
-            //aaa(message, strlen(message));
-            return reportError("Passing guest exceptions not implemented."); // TODO: send exception from rval
-        } else {
-            return reportError("Unknown execution error.");
-        }
+        return reportPendingException();
     }
 
-    cleanValues();
+    clearValues();
 
     if (flags & ExecuteFlags::ReturnValue) {
         JS::RootedValueArray<1> args(cx);
         args[0].set(rval);
         JS::RootedValue ignored(cx);
         if (!JS_CallFunctionName(cx, sandboxObject, "createHostValue", args, &ignored)) {
-            return reportError("Passing guest exceptions not implemented."); // TODO: send exception from rval
-            return false;
+            return reportPendingException();
         }
     }
 
@@ -357,6 +489,27 @@ bool execute(char* sourceCode, uint32_t sourceCodeSize, const char* fileName, Ex
 
 
 #pragma region ------------------ INITIALIZATION AND SANDBOX MANAGEMENT ------------------
+
+
+WASM_EXPORT(malloc)
+void* contextMalloc(uint32_t size)
+{
+    return JS_malloc(cx, size);
+}
+
+
+WASM_EXPORT(realloc)
+void* contextRealloc(void* ptr, uint32_t oldSize, uint32_t newSize)
+{
+    return JS_realloc(cx, ptr, oldSize, newSize);
+}
+
+
+WASM_EXPORT(free)
+void contextFree(void* ptr)
+{
+    JS_free(cx, ptr);
+}
 
 
 WASM_EXPORT(init)

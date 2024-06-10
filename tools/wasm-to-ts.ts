@@ -68,7 +68,7 @@ const typeRegExp = cre`
 `;
 
 const importRegExp = cre`
-    // - func[0] sig=13 <cleanValues> <- sandbox.cleanValues
+    // - func[0] sig=13 <clearValues> <- sandbox.clearValues
     begin-of-text
     " - func["
     repeat whitespace
@@ -107,7 +107,7 @@ const exportFuncRegExp = cre`
 `;
 
 const FuncDeclRegExp = cre`
-    // - func[37] sig=2 <cleanValuesFunc(JSContext*, unsigned int, JS::Value*)>
+    // - func[37] sig=2 <clearValuesFunc(JSContext*, unsigned int, JS::Value*)>
     begin-of-text
     " - func["
     repeat whitespace

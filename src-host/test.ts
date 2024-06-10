@@ -26,15 +26,18 @@ async function main() {
 
     let sandbox = await instantiate();
 
-    console.log(sandbox.execute(`
-        function a() { return 99; };
-        a();
-        "test();"
-    `, { fileName: 'source1.js', returnValue: true, asModule: true }));
+    try {
+        console.log(sandbox.execute(`
+        
+            function f() {
+                let x = abs;
+            }
+            f();
 
-    console.log(sandbox.execute(`
-        a();
-    `, { fileName: 'source2.js', returnValue: true, asModule: true }));
+        `, { fileName: 'source1.js', returnValue: true, asModule: true }));
+    } catch (error) {
+        console.log(error);
+    }
 
 }
 

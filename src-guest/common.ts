@@ -1,10 +1,25 @@
 
+export enum ArrayBufferViewType {
+    Int8Array = 0,
+    Uint8Array = 1,
+    Uint8ClampedArray = 2,
+    Int16Array = 3,
+    Uint16Array = 4,
+    Int32Array = 5,
+    Uint32Array = 6,
+    Float32Array = 7,
+    Float64Array = 8,
+    BigInt64Array = 9,
+    BigUint64Array = 10,
+    DataView = 11,
+}
+
 
 export interface GuestSandboxObject {
-    cleanValues(): void;
+    clearValues(): void;
     createNull(): void;
     createUndefined(): void;
-    createError(message: string): void;
+    createError(error: any): void;
     createArray(): void;
     createObject(): void;
     createBigInt(): void;
@@ -16,6 +31,11 @@ export interface GuestSandboxObject {
     createObjectProperty(name: string): void;
     createBigInt(valueString: string): void;
     createBoolean(value: boolean): void;
+    createArrayBuffer(arrayBuffer: ArrayBufferLike, offset: number, length: number): void;
+    createArrayBufferView(type: ArrayBufferViewType, offset: number, length: number): void;
+    reuseValue(index: number): void;
+    keepValue(): number;
+
     createHostValue?: (...args: any[]) => void;
 };
 

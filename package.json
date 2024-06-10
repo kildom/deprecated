@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "wasm-to-ts": "npx tsx tools/wasm-to-ts.ts",
-    "compile-guest": "npx tsc src-guest/*.ts && npx tsx tools/file-to-literal.ts src-guest/*.js"
+    "compile-guest": "npx esbuild --bundle --outfile=src-guest/boot.js src-guest/boot.ts && npx tsx tools/file-to-literal.ts src-guest/*.js"
   },
   "author": "",
   "license": "ISC",
@@ -15,6 +15,7 @@
     "typescript": "^5.4.5"
   },
   "devDependencies": {
-    "@types/node": "^20.14.2"
+    "@types/node": "^20.14.2",
+    "esbuild": "^0.21.5"
   }
 }

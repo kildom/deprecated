@@ -1,12 +1,18 @@
 import { SandboxWasmExport, SandboxWasmImport, SandboxWasmImportModule } from "./wasm-interface";
 import { createWasiImports } from "./wasi-stubs";
+import { ArrayBufferViewType } from "../src-guest/common";
 import bootSourceCode from "./src-guest-boot";
 
 
 //#region ------------------ Public interface
 
 
-export class GuestError extends Error { } // TODO: Guest error needs more details, e.g. backtrace to allow debugging
+export class GuestError extends Error {
+    constructor(message: string, public guestName?: string, public guestStack?: string) {
+        super(message);
+    }
+}
+
 export class EngineError extends Error { }
 
 export interface InstantiateOptions {
@@ -167,13 +173,14 @@ function createSandbox(): SandboxInternal {
 
         entry,
 
-        /*aaa(ptr: number, len: number): void {
+        log(ptr: number, len: number): void {
             refreshViews();
-            let str = decoderUtf8.decode(new Uint8Array(arrayBuffer, ptr, len));
-            console.log('LOG:', str, ptr, len, new Uint8Array(arrayBuffer, ptr, len));
-        },*/
+            let str: string;
+            str = decoderUtf8.decode(new Uint8Array(arrayBuffer, ptr, len));
+            console.log('SANDBOX:', str);
+        },
 
-        cleanValues(): void {
+        clearValues(): void {
             valueStack.splice(0);
             reusableStack.splice(0);
             errorState = undefined;
@@ -192,7 +199,9 @@ function createSandbox(): SandboxInternal {
         createError(encoding: number, buffer: number, size: number): void {
             if (errorState) return;
             try {
-                valueStack.push(new GuestError(decodeString(encoding, buffer, size)));
+                let guestName = valueStack.pop();
+                let guestStack = valueStack.pop();
+                valueStack.push(new GuestError(decodeString(encoding, buffer, size), guestName, guestStack));
             } catch (error) {
                 errorState = error?.message || error?.name || error?.toString?.() || 'Error';
             }
@@ -289,6 +298,72 @@ function createSandbox(): SandboxInternal {
             if (errorState) return;
             valueStack.push(num === 0 ? false : true);
         },
+
+        keepValue(): number {
+            if (errorState) return 0;
+            try {
+                let index = reusableStack.length;
+                reusableStack.push(valueStack.at(-1));
+                return index;
+            } catch (error) {
+                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
+                return 0;
+            }
+        },
+
+        reuseValue(index: number): void {
+            if (errorState) return;
+            try {
+                valueStack.push(reusableStack[index]);
+            } catch (error) {
+                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
+            }
+        },
+
+        createArrayBuffer(ptr: number, size: number) {
+            if (errorState) return;
+            try {
+                refreshViews();
+                valueStack.push(arrayBuffer.slice(ptr, ptr + size));
+            } catch (error) {
+                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
+            }
+        },
+
+        createArrayBufferView(type: number, offset: number, size: number) {
+            if (errorState) return;
+            try {
+                switch (type) {
+                    default:
+                    case ArrayBufferViewType.Uint8Array:
+                        return new Uint8Array(valueStack.pop(), offset, size);
+                    case ArrayBufferViewType.Int8Array:
+                        return new Int8Array(valueStack.pop(), offset, size);
+                    case ArrayBufferViewType.Uint8ClampedArray:
+                        return new Uint8ClampedArray(valueStack.pop(), offset, size);
+                    case ArrayBufferViewType.Int16Array:
+                        return new Int16Array(valueStack.pop(), offset, size);
+                    case ArrayBufferViewType.Uint16Array:
+                        return new Uint16Array(valueStack.pop(), offset, size);
+                    case ArrayBufferViewType.Int32Array:
+                        return new Int32Array(valueStack.pop(), offset, size);
+                    case ArrayBufferViewType.Uint32Array:
+                        return new Uint32Array(valueStack.pop(), offset, size);
+                    case ArrayBufferViewType.Float32Array:
+                        return new Float32Array(valueStack.pop(), offset, size);
+                    case ArrayBufferViewType.Float64Array:
+                        return new Float64Array(valueStack.pop(), offset, size);
+                    case ArrayBufferViewType.BigInt64Array:
+                        return new BigInt64Array(valueStack.pop(), offset, size);
+                    case ArrayBufferViewType.BigUint64Array:
+                        return new BigUint64Array(valueStack.pop(), offset, size);
+                    case ArrayBufferViewType.DataView:
+                        return new DataView(valueStack.pop(), offset, size);
+                }
+            } catch (error) {
+                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
+            }
+        }
     };
 
     const wasiImports = createWasiImports();

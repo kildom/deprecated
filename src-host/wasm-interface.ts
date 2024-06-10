@@ -6,10 +6,10 @@
 export interface SandboxWasmExport {
     memory: WebAssembly.Memory;
     _start(): void;
+    execute(a: number, b: number, c: number, d: number): number;
     malloc(a: number): number;
     realloc(a: number, b: number, c: number): number;
     free(a: number): void;
-    execute(a: number, b: number, c: number, d: number): number;
     init(a: number, b: number): number;
     getSharedBufferPointer(): number;
     getSharedBufferSize(): number;
@@ -17,12 +17,13 @@ export interface SandboxWasmExport {
 
 export namespace SandboxWasmImportModule {
     export interface sandbox {
-        cleanValues(): void;
+        clearValues(): void;
         createEngineError(a: number, b: number, c: number): void;
         entry(): number;
-        createNull(): void;
+        createString(a: number, b: number, c: number): void;
         createUndefined(): void;
         createError(a: number, b: number, c: number): void;
+        createNull(): void;
         createArray(): void;
         createObject(): void;
         createBigInt(a: number, b: number, c: number): void;
@@ -30,10 +31,12 @@ export namespace SandboxWasmImportModule {
         createDate(a: number): void;
         createRegExp(a: number): void;
         createArrayItem(a: number): void;
-        createString(a: number, b: number, c: number): void;
         createObjectProperty(a: number, b: number, c: number): void;
         createBoolean(a: number): void;
-        // TODO: createCustom(encoderId: string): void - allow user to register custom encoder/decoders
+        createArrayBuffer(a: number, b: number): void;
+        createArrayBufferView(a: number, b: number, c: number): void;
+        reuseValue(a: number): void;
+        keepValue(): number;
     };
     export interface wasi_snapshot_preview1 {
         fd_write(a: number, b: number, c: number, d: number): number;

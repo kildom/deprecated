@@ -118,7 +118,7 @@ async function main() {
             entry() {
                 throw new SandboxEntryIsNotARealException('entry');
             },
-            cleanValues() {
+            clearValues() {
                 console.log('Clean');
                 //valueStack.splice(0);
                 //reusableStack.splice(0);
