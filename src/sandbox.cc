@@ -7,11 +7,12 @@
 #include <js/SourceText.h>
 #include <js/Conversions.h>
 #include <js/MemoryFunctions.h>
+#include <js/Exception.h>
 
 #include "wasm.hh"
 
 
-#pragma region ================== CONSTANTS ==================
+#pragma region ------------------ CONSTANTS ------------------
 
 
 static const uint32_t SHARED_CONTEXT_BUFFER_SIZE = 16 * 1024;
@@ -20,7 +21,7 @@ static const uint32_t SHARED_CONTEXT_BUFFER_SIZE = 16 * 1024;
 #pragma endregion
 
 
-#pragma region ================== TYPES ==================
+#pragma region ------------------ TYPES ------------------
 
 
 struct Encodings {
@@ -54,17 +55,18 @@ struct ExecuteFlags {
 #pragma endregion
 
 
-#pragma region ================== WASM IMPORTS ==================
+#pragma region ------------------ WASM IMPORTS ------------------
 
 
 WASM_IMPORT(sandbox, entry) int entry();
 WASM_IMPORT(sandbox, createBoolean) void createBoolean(bool value);
+WASM_IMPORT(sandbox, createEngineError) void createEngineError(uint32_t encoding, const void* buffer, uint32_t size);
 
 
 #pragma endregion
 
 
-#pragma region ================== GLOBAL VARIABLES ==================
+#pragma region ------------------ GLOBAL VARIABLES ------------------
 
 
 static JSContext* cx;
@@ -82,7 +84,7 @@ static uint8_t sharedBuffer[16 * 1024];
 #pragma endregion
 
 
-#pragma region ================== DATA SENDING FUNCTIONS ==================
+#pragma region ------------------ DATA SENDING FUNCTIONS ------------------
 
 
 static bool createBooleanFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
@@ -216,13 +218,17 @@ NUMBER_PARAM_SANDBOX_FUNC(createArrayItem, uint32_t);
 STRING_PARAM_SANDBOX_FUNC(createString);
 STRING_PARAM_SANDBOX_FUNC(createObjectProperty);
 STRING_PARAM_SANDBOX_FUNC(createBigInt);
+// TODO: Errors should not be reported just as strings, we need to extract more, e.g. backtrace, so full C++ implementation is needed.
+// see: GetPendingExceptionStack/StealPendingExceptionStack (with stack trace from throw)
+// ExceptionStackOrNull (with stack trace from new Error())
+// js/SavedFrameAPI.h
 STRING_PARAM_SANDBOX_FUNC(createError);
 
 
 #pragma endregion
 
 
-#pragma region ================== SANDBOX OBJECT DEFINITIONS ==================
+#pragma region ------------------ SANDBOX OBJECT DEFINITIONS ------------------
 
 
 static JSFunctionSpec sandboxFunctions[] = {
@@ -260,17 +266,38 @@ static bool DefineSandboxObject() {
 #pragma endregion
 
 
-#pragma region ================== CODE EXECUTION ==================
+#pragma region ------------------ CODE EXECUTION ------------------
 
+
+bool reportError(const char* message) {
+    cleanValues();
+    createEngineError(Encodings::Utf8, message, strlen(message));
+    return false;
+}
+
+WASM_EXPORT(malloc)
+void* contextMalloc(uint32_t size) {
+    return JS_malloc(cx, size);
+}
+
+
+WASM_EXPORT(realloc)
+void* contextRealloc(void* ptr, uint32_t oldSize, uint32_t newSize) {
+    return JS_realloc(cx, ptr, oldSize, newSize);
+}
+
+
+WASM_EXPORT(free)
+void contextFree(void* ptr) {
+    JS_free(cx, ptr);
+}
+
+            WASM_IMPORT(sandbox, aaa)
+            void aaa(const char* str, uint32_t len);
 
 WASM_EXPORT(execute)
-bool execute(char* buffer, uint32_t size, ExecuteFlags::T flags)
+bool execute(char* sourceCode, uint32_t sourceCodeSize, const char* fileName, ExecuteFlags::T flags)
 {
-    auto fileName = buffer;
-    auto fileNameSize = strlen(fileName) + 1;
-    auto sourceCode = buffer + fileNameSize;
-    auto soueceCodeSize = size - fileNameSize;
-
     JSAutoRealm ar(cx, globalObject);
     JS::CompileOptions options(cx);
     options
@@ -281,36 +308,45 @@ bool execute(char* buffer, uint32_t size, ExecuteFlags::T flags)
     }
 
     JS::SourceText<mozilla::Utf8Unit> source;
-    if (!source.init(cx, sourceCode, soueceCodeSize, JS::SourceOwnership::Borrowed)) {
+    if (!source.init(cx, sourceCode, sourceCodeSize, JS::SourceOwnership::Borrowed)) {
         if (flags && ExecuteFlags::TransferBufferOwnership) {
-            JS_free(cx, buffer);
+            JS_free(cx, sourceCode);
         }
-        cleanValues();
-        return false;
+        return reportError("Cannot initialize");
     }
 
     JS::RootedValue rval(cx);
 
     auto ok = JS::Evaluate(cx, options, source, &rval);
 
-    if (flags && ExecuteFlags::TransferBufferOwnership) {
-        JS_free(cx, buffer);
+    if (flags & ExecuteFlags::TransferBufferOwnership) {
+        JS_free(cx, sourceCode);
     }
 
     if (!ok) {
         ok = JS_GetPendingException(cx, &rval);
         JS_ClearPendingException(cx);
-        cleanValues();
-        //if (ok) sendValue(rval);
-        // TODO: Send exception
-        return false;
+        if (ok) {
+            //JS::RootedObject robj(cx, &rval.toObject());
+            //JSErrorReport* rep = JS_ErrorFromException(cx, robj);
+            //auto message = rep->message().c_str();
+            //aaa(message, strlen(message));
+            return reportError("Passing guest exceptions not implemented."); // TODO: send exception from rval
+        } else {
+            return reportError("Unknown execution error.");
+        }
     }
 
     cleanValues();
 
     if (flags & ExecuteFlags::ReturnValue) {
-        //sendValue(rval);
-        // TODO: Send rval
+        JS::RootedValueArray<1> args(cx);
+        args[0].set(rval);
+        JS::RootedValue ignored(cx);
+        if (!JS_CallFunctionName(cx, sandboxObject, "createHostValue", args, &ignored)) {
+            return reportError("Passing guest exceptions not implemented."); // TODO: send exception from rval
+            return false;
+        }
     }
 
     return ok;
@@ -320,7 +356,7 @@ bool execute(char* buffer, uint32_t size, ExecuteFlags::T flags)
 #pragma endregion
 
 
-#pragma region ================== INITIALIZATION AND SANDBOX MANAGEMENT ==================
+#pragma region ------------------ INITIALIZATION AND SANDBOX MANAGEMENT ------------------
 
 
 WASM_EXPORT(init)

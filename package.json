@@ -4,7 +4,8 @@
   "description": "Run JavaScript in an isolated sandbox using Spidermonkey engine compiled to WebAssembly.",
   "main": "index.js",
   "scripts": {
-    "wasm-to-ts": "npx tsx tools/wasm-to-ts.ts"
+    "wasm-to-ts": "npx tsx tools/wasm-to-ts.ts",
+    "compile-guest": "npx tsc src-guest/*.ts && npx tsx tools/file-to-literal.ts src-guest/*.js"
   },
   "author": "",
   "license": "ISC",

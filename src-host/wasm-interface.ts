@@ -6,7 +6,10 @@
 export interface SandboxWasmExport {
     memory: WebAssembly.Memory;
     _start(): void;
-    execute(a: number, b: number, c: number): number;
+    malloc(a: number): number;
+    realloc(a: number, b: number, c: number): number;
+    free(a: number): void;
+    execute(a: number, b: number, c: number, d: number): number;
     init(a: number, b: number): number;
     getSharedBufferPointer(): number;
     getSharedBufferSize(): number;
@@ -15,6 +18,7 @@ export interface SandboxWasmExport {
 export namespace SandboxWasmImportModule {
     export interface sandbox {
         cleanValues(): void;
+        createEngineError(a: number, b: number, c: number): void;
         entry(): number;
         createNull(): void;
         createUndefined(): void;
@@ -29,6 +33,7 @@ export namespace SandboxWasmImportModule {
         createString(a: number, b: number, c: number): void;
         createObjectProperty(a: number, b: number, c: number): void;
         createBoolean(a: number): void;
+        // TODO: createCustom(encoderId: string): void - allow user to register custom encoder/decoders
     };
     export interface wasi_snapshot_preview1 {
         fd_write(a: number, b: number, c: number, d: number): number;
