@@ -49,7 +49,7 @@ else
   endif
 endif
 
-OBJ := $(patsubst ./%.cc,$(OUTDIR)/obj/%.o,$(wildcard ./*.cc))
+OBJ := $(patsubst ./%.cpp,$(OUTDIR)/obj/%.o,$(wildcard ./*.cpp))
 
 all: $(OUTDIR)/$(TARGET).wasm
 
@@ -70,7 +70,7 @@ $(OUTDIR)/$(TARGET).wasm: $(OBJ)
 	$(CPP) $(CXXFLAGS) $(CPPFLAGS) $(OBJ) $(LDFLAGS) -o $(OUTDIR)/$(TARGET).wasm
 	$(OPT) -o $(OUTDIR)/$(TARGET).opt.wasm $(OUTDIR)/$(TARGET).wasm
 
-$(OUTDIR)/obj/%.o : ./%.cc $(OUTDIR)/obj/marker.txt Makefile
+$(OUTDIR)/obj/%.o : ./%.cpp $(OUTDIR)/obj/marker.txt Makefile
 	$(CPP) -MD -c $(CXXFLAGS) $(CPPFLAGS) $(word 1,$<) -o $@
 
 -include $(OUTDIR)/obj/*.d

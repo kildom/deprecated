@@ -26,9 +26,14 @@ export interface ExecuteOptions {
     returnValue?: boolean;
 };
 
+type RegisterCallbacksIds = { [key: string]: number | RegisterCallbacksIds };
+type RegisterCallbacks =  { [key: string]: Function | RegisterCallbacks };
+type ExportsCallbacks =  { readonly [key: string]: Function & RegisterCallbacks };
 
 export interface Sandbox {
     execute(code: string, options?: ExecuteOptions): any;
+    registerImports(callbacks: RegisterCallbacks): void;
+    exports: ExportsCallbacks;
 };
 
 type ModuleSourceType = WebAssembly.Module | BufferSource | Response | Request | string | URL;
@@ -70,6 +75,12 @@ export async function instantiate(options?: InstantiateOptions): Promise<Sandbox
 
 
 //#endregion
+
+
+enum SandboxCommand {
+    Register = -1,
+    Call = -2,
+};
 
 
 enum ExecuteFlags {
@@ -168,6 +179,27 @@ function createSandbox(): SandboxInternal {
         }
         throw Error('Sandbox startup failed.');
     }
+
+    function createExportWrapper(number: number): Function {
+        return function(...args: any[]): any {
+            return call(number, ...args);
+        }
+    }
+
+    function registerExports(branch: RegisterCallbacks, ids: RegisterCallbacksIds) {
+        for (let name in ids) {
+            let value = ids[name];
+            if (typeof value === 'object') {
+                if (typeof branch[name] !== 'object') {
+                    branch[name] = {};
+                }
+                registerExports(branch[name] as any, value);
+            } else if (typeof value === 'number') {
+                branch[name] = createExportWrapper(value);
+            }
+        }
+    }
+
 
     let sandboxImports: SandboxWasmImportModule.sandbox = {
 
@@ -336,32 +368,70 @@ function createSandbox(): SandboxInternal {
                 switch (type) {
                     default:
                     case ArrayBufferViewType.Uint8Array:
-                        return new Uint8Array(valueStack.pop(), offset, size);
+                        valueStack.push(new Uint8Array(valueStack.pop(), offset, size));
+                        break;
                     case ArrayBufferViewType.Int8Array:
-                        return new Int8Array(valueStack.pop(), offset, size);
+                        valueStack.push(new Int8Array(valueStack.pop(), offset, size));
+                        break;
                     case ArrayBufferViewType.Uint8ClampedArray:
-                        return new Uint8ClampedArray(valueStack.pop(), offset, size);
+                        valueStack.push(new Uint8ClampedArray(valueStack.pop(), offset, size));
+                        break;
                     case ArrayBufferViewType.Int16Array:
-                        return new Int16Array(valueStack.pop(), offset, size);
+                        valueStack.push(new Int16Array(valueStack.pop(), offset, size));
+                        break;
                     case ArrayBufferViewType.Uint16Array:
-                        return new Uint16Array(valueStack.pop(), offset, size);
+                        valueStack.push(new Uint16Array(valueStack.pop(), offset, size));
+                        break;
                     case ArrayBufferViewType.Int32Array:
-                        return new Int32Array(valueStack.pop(), offset, size);
+                        valueStack.push(new Int32Array(valueStack.pop(), offset, size));
+                        break;
                     case ArrayBufferViewType.Uint32Array:
-                        return new Uint32Array(valueStack.pop(), offset, size);
+                        valueStack.push(new Uint32Array(valueStack.pop(), offset, size));
+                        break;
                     case ArrayBufferViewType.Float32Array:
-                        return new Float32Array(valueStack.pop(), offset, size);
+                        valueStack.push(new Float32Array(valueStack.pop(), offset, size));
+                        break;
                     case ArrayBufferViewType.Float64Array:
-                        return new Float64Array(valueStack.pop(), offset, size);
+                        valueStack.push(new Float64Array(valueStack.pop(), offset, size));
+                        break;
                     case ArrayBufferViewType.BigInt64Array:
-                        return new BigInt64Array(valueStack.pop(), offset, size);
+                        valueStack.push(new BigInt64Array(valueStack.pop(), offset, size));
+                        break;
                     case ArrayBufferViewType.BigUint64Array:
-                        return new BigUint64Array(valueStack.pop(), offset, size);
+                        valueStack.push(new BigUint64Array(valueStack.pop(), offset, size));
+                        break;
                     case ArrayBufferViewType.DataView:
-                        return new DataView(valueStack.pop(), offset, size);
+                        valueStack.push(new DataView(valueStack.pop(), offset, size));
+                        break;
                 }
             } catch (error) {
                 errorState = error?.message || error?.name || error?.toString?.() || 'Error';
+            }
+        },
+
+        callToHost(command: number): number {
+            switch (command) {
+                case SandboxCommand.Register:
+                    registerExports(sandbox.exports, valueStack[0]);
+                    return 1;
+                default: {
+                    let func = importFunctions[command];
+                    if (!func) {
+                        createGuestValue(new Error('Invalid command id.'));
+                        return 0;
+                    }
+                    try {
+                        let ret = func(...valueStack);
+                        createGuestValue(ret);
+                        return 1;
+                    } catch (error) {
+                        try {
+                            createGuestValue(error);
+                        } catch (e) { }
+                        return 0;
+                    }
+                    break;
+                }
             }
         }
     };
@@ -428,6 +498,239 @@ function createSandbox(): SandboxInternal {
         }
     }
 
+    let reusableObjects = new Map<any, number>();
+    const arrayBuffers = new Map<ArrayBufferLike, { begin: number, end: number }>();
+
+    function getArrayBufferViewType(input: any): ArrayBufferViewType {
+        if (input instanceof Int8Array) return ArrayBufferViewType.Int8Array;
+        if (input instanceof Uint8Array) return ArrayBufferViewType.Uint8Array;
+        if (input instanceof Uint8ClampedArray) return ArrayBufferViewType.Uint8ClampedArray;
+        if (input instanceof Int16Array) return ArrayBufferViewType.Int16Array;
+        if (input instanceof Uint16Array) return ArrayBufferViewType.Uint16Array;
+        if (input instanceof Int32Array) return ArrayBufferViewType.Int32Array;
+        if (input instanceof Uint32Array) return ArrayBufferViewType.Uint32Array;
+        if (input instanceof Float32Array) return ArrayBufferViewType.Float32Array;
+        if (input instanceof Float64Array) return ArrayBufferViewType.Float64Array;
+        if (input instanceof BigInt64Array) return ArrayBufferViewType.BigInt64Array;
+        if (input instanceof BigUint64Array) return ArrayBufferViewType.BigUint64Array;
+        if (input instanceof DataView) return ArrayBufferViewType.DataView;
+        return ArrayBufferViewType.Uint8Array;
+    }
+
+    function encodeStringBuffer(value: string, callback: (ptr: number, size: number, encoding: Encodings) => void): void {
+        refreshViews();
+        if (value.length <= sharedBufferSize) {
+            let stat = encoder.encodeInto(value, new Uint8Array(arrayBuffer, sharedBufferPointer, sharedBufferSize));
+            if (stat.read >= value.length) {
+                callback(sharedBufferPointer, stat.written, stat.read === stat.written ? Encodings.Latin1 : Encodings.Utf8);
+                return;
+            }
+        }
+        let firstSize = 2 * value.length;
+        let strBufferPtr = mallocSafe(firstSize);
+        refreshViews();
+        let stat1 = encoder.encodeInto(value, new Uint8Array(arrayBuffer, strBufferPtr, firstSize));
+        if (stat1.read >= value.length) {
+            callback(strBufferPtr, stat1.written, stat1.read === stat1.written ? Encodings.Latin1 : Encodings.Utf8);
+            return;
+        }
+        let remaining = value.length - stat1.read;
+        let fullSize = stat1.written + 3 * remaining;
+        strBufferPtr = reallocSafe(strBufferPtr, fullSize, firstSize);
+        refreshViews();
+        let stat2 = encoder.encodeInto(value.substring(stat1.read), new Uint8Array(arrayBuffer, strBufferPtr + stat1.written, fullSize - stat1.written));
+        callback(strBufferPtr, stat2.written + stat1.written, Encodings.Utf8);
+        freeSafe(strBufferPtr);
+    }
+
+    function encodeValue(value: any): void {
+        switch (typeof value) {
+            case 'object':
+            case 'function': {
+                if (value === null) {
+                    exports.createNull();
+                    return;
+                }
+
+                let reusableIndex = reusableObjects.get(value);
+
+                if (reusableIndex !== undefined && reusableIndex >= 0) {
+                    exports.reuseValue(reusableIndex);
+                    return;
+                }
+
+                if (Array.isArray(value)) {
+                    exports.createArray();
+                    value.forEach((x, i) => {
+                        encodeValue(x);
+                        exports.createArrayItem(i);
+                    });
+                } else if (value instanceof ArrayBuffer || value instanceof SharedArrayBuffer) {
+                    let info = arrayBuffers.get(value);
+                    let size = info!.end - info!.begin;
+                    let ptr = mallocSafe(size);
+                    refreshViews();
+                    byteArray.set(new Uint8Array(value, info!.begin, size), ptr);
+                    exports.createArrayBuffer(ptr, size);
+                } else if (typeof value.byteLength === 'number'
+                    && typeof value.byteOffset === 'number'
+                    && (value.buffer instanceof ArrayBuffer || value.buffer instanceof SharedArrayBuffer)
+                    && (value instanceof Int8Array || value instanceof Uint8Array
+                        || value instanceof Int16Array || value instanceof Uint16Array
+                        || value instanceof Int32Array || value instanceof Uint32Array
+                        || value instanceof Float32Array || value instanceof Float64Array
+                        || value instanceof BigInt64Array || value instanceof BigUint64Array
+                        || value instanceof Uint8ClampedArray || value instanceof DataView
+                    )
+                ) {
+                    let underlyingBuffer = value.buffer;
+                    let info = arrayBuffers.get(underlyingBuffer);
+                    encodeValue(underlyingBuffer);
+                    let length = (value instanceof DataView) ? value.byteLength : value.length;
+                    exports.createArrayBufferView(getArrayBufferViewType(value), value.byteOffset - info!.begin, length);
+                } else if (value instanceof Date) {
+                    exports.createDate(value.getTime());
+                } else if (value instanceof RegExp) {
+                    encodeValue(value.source);
+                    encodeValue(value.flags);
+                    exports.createRegExp(value.lastIndex);
+                } else if (value instanceof Error) {
+                    encodeStringBuffer(value.toString(), exports.createError);
+                } else {
+                    exports.createObject();
+                    for (let key in value) {
+                        encodeValue(value[key]);
+                        encodeStringBuffer(key, exports.createObjectProperty);
+                    }
+                }
+
+                if (reusableIndex !== undefined) {
+                    reusableIndex = exports.keepValue();
+                    reusableObjects.set(value, reusableIndex);
+                }
+                break;
+            }
+            case 'string':
+                encodeStringBuffer(value, exports.createString);
+                break;
+            case 'bigint':
+                encodeStringBuffer(value.toString(), exports.createBigInt);
+                break;
+            case 'number':
+                exports.createNumber(value);
+                break;
+            case 'boolean':
+                exports.createBoolean(value ? 1 : 0);
+                break;
+            case 'symbol':
+                throw new Error('Cannot send Symbol to guest.');
+            case 'undefined':
+                exports.createUndefined();
+                break;
+        }
+    }
+
+    function prepareEncodingValue(value: any): void {
+        if ((typeof value === 'function' || typeof value === 'object') && value !== null) {
+
+            let currentCount = reusableObjects.get(value) || 0;
+            reusableObjects.set(value, currentCount + 1);
+
+            if (Array.isArray(value)) {
+                value.forEach(x => {
+                    prepareEncodingValue(x);
+                });
+            } else if (value instanceof ArrayBuffer || value instanceof SharedArrayBuffer) {
+                arrayBuffers.set(value, {
+                    begin: 0,
+                    end: value.byteLength,
+                });
+            } else if (typeof value.byteLength === 'number'
+                && typeof value.byteOffset === 'number'
+                && (value.buffer instanceof ArrayBuffer || value.buffer instanceof SharedArrayBuffer)
+                && (value instanceof Int8Array || value instanceof Uint8Array
+                    || value instanceof Int16Array || value instanceof Uint16Array
+                    || value instanceof Int32Array || value instanceof Uint32Array
+                    || value instanceof Float32Array || value instanceof Float64Array
+                    || value instanceof BigInt64Array || value instanceof BigUint64Array
+                    || value instanceof Uint8ClampedArray || value instanceof DataView
+                )
+            ) {
+                let underlyingBuffer = value.buffer;
+                let underlyingBufferCount = reusableObjects.get(underlyingBuffer) || 0;
+                reusableObjects.set(underlyingBuffer, underlyingBufferCount + 1);
+                let range = arrayBuffers.get(underlyingBuffer)
+                if (!range) {
+                    range = { begin: value.byteOffset, end: value.byteOffset + value.byteLength };
+                    arrayBuffers.set(underlyingBuffer, range);
+                }
+                range.begin = Math.min(value.byteOffset, range.begin);
+                range.end = Math.max(value.byteOffset + value.byteLength, range.end);
+            } else if ((value instanceof Date) || (value instanceof RegExp) || (value instanceof Error)) {
+                // Ignore leaf objects
+            } else {
+                for (let key in value) {
+                    prepareEncodingValue(value[key]);
+                }
+            }
+        }
+    }
+
+    function createGuestValue(...args: any[]) {
+        exports.clearValues();
+        reusableObjects.clear();
+        arrayBuffers.clear();
+        try {
+            for (let value of args) {
+                prepareEncodingValue(value);
+            }
+            let objectCounts = reusableObjects;
+            reusableObjects = new Map<any, number>();
+            for (let [obj, count] of objectCounts) {
+                if (count > 1) {
+                    reusableObjects.set(obj, -1);
+                }
+            }
+            for (let value of args) {
+                encodeValue(value);
+            }
+            if (!exports.getRecvError()) throwFromValueStack();
+        } finally {
+            reusableObjects.clear();
+            arrayBuffers.clear();
+        }
+    }
+
+    function throwFromValueStack(): never {
+        if (valueStack.length > 0 && (valueStack[0] instanceof GuestError || valueStack[0] instanceof EngineError)) {
+            throw valueStack[0];
+        } else {
+            throw new GuestError('Unknown guest error.');
+        }
+    }
+
+    const importFunctions: Function[] = [];
+
+    function registerImportsInner(callbacks: RegisterCallbacks): RegisterCallbacksIds
+    {
+        let ids: RegisterCallbacksIds = {}; // TODO: If some function is overridden by another function or null/undefined, then release old one here and on the guest by sending id=-1
+        for (let name in callbacks) {
+            let value = callbacks[name];
+            if (typeof value === 'object') {
+                ids[name] = registerImportsInner(value);
+            } else if (typeof value === 'function') {
+                ids[name] = importFunctions.push(value) - 1;
+            }
+        }
+        return ids;
+    }
+
+    function call(command: SandboxCommand, ...args: any[]): any {
+        createGuestValue(...args);
+        if (!exports.call(command)) throwFromValueStack();
+        return valueStack[0];
+    }
+
     const sandbox: SandboxInternal = {
 
         imports: {
@@ -462,15 +765,18 @@ function createSandbox(): SandboxInternal {
                 (returnValue ? ExecuteFlags.ReturnValue : 0) |
                 (dealloc ? ExecuteFlags.TransferBufferOwnership : 0));
             if (!success) {
-                if (valueStack.length > 0 && (valueStack[0] instanceof GuestError || valueStack[0] instanceof EngineError)) {
-                    throw valueStack[0];
-                } else {
-                    throw new GuestError('Unknown guest error.');
-                }
+                throwFromValueStack();
             } else if (returnValue) {
                 return valueStack[0];
             }
-        }
+        },
+
+        registerImports(callbacks: RegisterCallbacks): void {
+            let ids = registerImportsInner(callbacks);
+            call(SandboxCommand.Register, ids);
+        },
+
+        exports: {},
     }
 
     return sandbox;

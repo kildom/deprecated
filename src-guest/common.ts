@@ -1,4 +1,12 @@
 
+export type RegisterCallbacks = { [key: string]: Function | RegisterCallbacks };
+
+export enum SandboxCommand {
+    Register = -1,
+    Call = -2,
+};
+
+
 export enum ArrayBufferViewType {
     Int8Array = 0,
     Uint8Array = 1,
@@ -36,7 +44,35 @@ export interface GuestSandboxObject {
     reuseValue(index: number): void;
     keepValue(): number;
 
+    callToHost(command: number): boolean;
+
     createHostValue?: (...args: any[]) => void;
+    callFromHost?: (command: number) => void;
+    registerExports?: (callbacks: RegisterCallbacks) => void;
+
+    imports: RegisterCallbacks;
+
+    recv: {
+        clearValues?: () => void;
+        createNull?: () => void;
+        createArray?: () => void;
+        createUndefined?: () => void;
+        createObject?: () => void;
+        createNumber?: (value: number) => void;
+        createDate?: (time: number) => void;
+        createRegExp?: (lastIndex: number) => void;
+        createArrayItem?: (index: number) => void;
+        reuseValue?: (index: number) => void;
+        createString?: (value: string) => void;
+        createError?: (message: string) => void;
+        createBigInt?: (value: string) => void;
+        createObjectProperty?: (name: string) => void;
+        createBoolean?: (value: boolean) => void;
+        createArrayBuffer?: (value: ArrayBuffer) => void;
+        createArrayBufferView?: (type: ArrayBufferViewType, offset: number, length: number) => void;
+        keepValue?: () => number;
+        getRecvError?: () => Error | undefined;
+    };
 };
 
 declare global {

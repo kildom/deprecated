@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "wasm-to-ts": "npx tsx tools/wasm-to-ts.ts",
-    "compile-guest": "npx esbuild --bundle --outfile=src-guest/boot.js src-guest/boot.ts && npx tsx tools/file-to-literal.ts src-guest/*.js"
+    "compile-guest": "npx esbuild --target=firefox125 --bundle --outfile=src-guest/boot.js src-guest/boot.ts && npx tsx tools/file-to-literal.ts src-guest/*.js"
   },
   "author": "",
   "license": "ISC",
