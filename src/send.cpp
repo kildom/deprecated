@@ -19,7 +19,6 @@ WASM_IMPORT(sandbox, createArrayBuffer) void createArrayBuffer(const void* data,
 WASM_IMPORT(sandbox, createArrayBufferView) void createArrayBufferView(uint32_t type, uint32_t offset, uint32_t length);
 WASM_IMPORT(sandbox, keepValue) uint32_t keepValue();
 WASM_IMPORT(sandbox, createError) void createError(uint32_t encoding, const void* buffer, uint32_t size);
-WASM_IMPORT(sandbox, callToHost) bool callToHost(int32_t command);
 
 
 static bool createBooleanJs(JSContext* cx, unsigned argc, JS::Value* vp) {
@@ -257,17 +256,6 @@ static bool createErrorJs(JSContext* cx, unsigned argc, JS::Value* vp) {
 }
 
 
-static bool callToHostJs(JSContext* cx, unsigned argc, JS::Value* vp) {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    if (!args.requireAtLeast(cx, "callToHost", 1)) return false;
-    double num;
-    if (!JS::ToNumber(cx, args[0], &num)) return false;
-    int32_t command = num;
-    bool ok = callToHost(command);
-    args.rval().setBoolean(ok);
-    return true;
-}
-
 
 JSFunctionSpec sandboxSendFunctions[] = {
     JS_FN("clearValues", clearValuesJs, 0, 0),
@@ -289,6 +277,5 @@ JSFunctionSpec sandboxSendFunctions[] = {
     JS_FN("createArrayBufferView", createArrayBufferViewJs, 3, 0),
     JS_FN("reuseValue", reuseValueJs, 1, 0),
     JS_FN("keepValue", keepValueJs, 0, 0),
-    JS_FN("callToHost", callToHostJs, 1, 0),
     JS_FS_END};
 

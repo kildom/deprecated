@@ -35,6 +35,7 @@ static JSClass SandboxGlobalClass = { "SandboxGlobal", JSCLASS_GLOBAL_FLAGS, &JS
 WASM_IMPORT(sandbox, entry) int entry();
 WASM_IMPORT(sandbox, createEngineError) void createEngineError(uint32_t encoding, const void* buffer, uint32_t size);
 WASM_IMPORT(sandbox, log) void logWasm(const void* str, uint32_t len);
+WASM_IMPORT(sandbox, callToHost) bool callToHost(int32_t command);
 
 
 #pragma endregion
@@ -100,6 +101,22 @@ void reportPendingException()
 #pragma region ------------------ SANDBOX OBJECT DEFINITIONS ------------------
 
 
+static bool callToHostJs(JSContext* cx, unsigned argc, JS::Value* vp) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    if (!args.requireAtLeast(cx, "callToHost", 1)) return false;
+    double num;
+    if (!JS::ToNumber(cx, args[0], &num)) return false;
+    int32_t command = num;
+    bool ok = callToHost(command);
+    args.rval().setBoolean(ok);
+    return true;
+}
+
+JSFunctionSpec sandboxGeneralFunctions[] = {
+    JS_FN("callToHost", callToHostJs, 1, 0),
+    JS_FS_END};
+
+
 static bool defineSandboxObject()
 {
     dx->sandboxObject.set(JS_NewObject(cx, nullptr));
@@ -110,6 +127,7 @@ static bool defineSandboxObject()
     if (!JS_SetProperty(cx, dx->globalObject, "__sandbox__", dx->sandboxValue)) return false;
     if (!JS_SetProperty(cx, dx->sandboxObject, "recv", dx->recvValue)) return false;
     if (!JS_DefineFunctions(cx, dx->sandboxObject, sandboxSendFunctions)) return false;
+    if (!JS_DefineFunctions(cx, dx->sandboxObject, sandboxGeneralFunctions)) return false;
 
     return true;
 }

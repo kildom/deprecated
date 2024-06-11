@@ -24,33 +24,33 @@ async function main() {
     console.log(module);
     setSandboxModule(module);
 
-    let sandbox = await instantiate();
-/*
-    if(0)try {
+    let sandbox = await instantiate({maxHeapSize: 1024 * 1024 * 1024});
+    /*
+        if(0)try {
+            console.log(sandbox.execute(`
+            
+                function f() {
+                    let x = abs;
+                }
+                f();
+    
+            `, { fileName: 'source1.js', returnValue: true, asModule: true }));
+        } catch (error) {
+            console.log(error);
+        }
+    
+        let ar = [1,2, 3];
+        ar[10000] = 99;
+        ar[-1] = 88;
+    
+        let x = new Uint8Array([3,4,5,34,23,4,3,5,34,5,3,45,2,3,2,4,2,34]);
+        let a = new Uint32Array(x.buffer, 4, 3);
+        console.log(a);
+    
         console.log(sandbox.execute(`
-        
-            function f() {
-                let x = abs;
-            }
-            f();
-
+            \`\${__sandbox__.imports.log}\`
         `, { fileName: 'source1.js', returnValue: true, asModule: true }));
-    } catch (error) {
-        console.log(error);
-    }
-
-    let ar = [1,2, 3];
-    ar[10000] = 99;
-    ar[-1] = 88;
-
-    let x = new Uint8Array([3,4,5,34,23,4,3,5,34,5,3,45,2,3,2,4,2,34]);
-    let a = new Uint32Array(x.buffer, 4, 3);
-    console.log(a);
-
-    console.log(sandbox.execute(`
-        \`\${__sandbox__.imports.log}\`
-    `, { fileName: 'source1.js', returnValue: true, asModule: true }));
-*/
+    */
     sandbox.registerImports({
         log(...args: any[]) { console.log('LOG OVER INTERFACE:', ...args); },
     });
@@ -61,7 +61,13 @@ async function main() {
         });
     `, { fileName: 'source1.js', returnValue: true, asModule: true }));
 
-    sandbox.exports.log("To jest test.");
+    //sandbox.exports.log("To jest test.");
+
+    let cnt = fs.readFileSync('perf/main.js', 'utf-8');
+
+    sandbox.execute(`
+        var print = __sandbox__.imports.log;
+    `+ cnt, { fileName: 'perf/main.js', asModule: false });
 }
 
 main();

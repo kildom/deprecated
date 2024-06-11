@@ -40,6 +40,7 @@ export namespace SandboxWasmImportModule {
         clearValues(): void;
         createEngineError(a: number, b: number, c: number): void;
         entry(): number;
+        callToHost(a: number): number;
         createString(a: number, b: number, c: number): void;
         createUndefined(): void;
         createError(a: number, b: number, c: number): void;
@@ -57,7 +58,6 @@ export namespace SandboxWasmImportModule {
         createArrayBufferView(a: number, b: number, c: number): void;
         reuseValue(a: number): void;
         keepValue(): number;
-        callToHost(a: number): number;
     };
     export interface wasi_snapshot_preview1 {
         fd_write(a: number, b: number, c: number, d: number): number;

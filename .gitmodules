@@ -1,0 +1,3 @@
+[submodule "perf/octane"]
+	path = perf/octane
+	url = https://github.com/chromium/octane.git

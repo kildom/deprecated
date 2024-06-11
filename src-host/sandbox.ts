@@ -27,8 +27,8 @@ export interface ExecuteOptions {
 };
 
 type RegisterCallbacksIds = { [key: string]: number | RegisterCallbacksIds };
-type RegisterCallbacks =  { [key: string]: Function | RegisterCallbacks };
-type ExportsCallbacks =  { readonly [key: string]: Function & RegisterCallbacks };
+export type RegisterCallbacks =  { [key: string]: Function | RegisterCallbacks };
+export type ExportsCallbacks =  { readonly [key: string]: Function & RegisterCallbacks };
 
 export interface Sandbox {
     execute(code: string, options?: ExecuteOptions): any;
