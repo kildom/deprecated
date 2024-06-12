@@ -7,12 +7,12 @@ class ParseMethod(Enum):
     CUSTOM = 0
     NONE = 1
     BLOCK = 2
-    U32 = 
-    U64 = 3
-    U64U64 = 4
-    BYTE = 5
-    MEM = 6
-    MEM_LANE = 7
+    U32 = 3
+    U64 = 4
+    U64U64 = 5
+    BYTE = 6
+    MEM = 7
+    MEM_LANE = 8
 
 class InstrInfo(SimpleNamespace):
     name: str
@@ -92,6 +92,9 @@ class ModuleObject(SimpleNamespace):
 class Function(ModuleObject):
 
     special_function_id = 1000000000
+    type: 'FunctionType'
+    locals: 'list[WasmType]'
+    body: 'CodeBlock'
 
     def __init__(self, id) -> None:
         if id is None:
@@ -124,8 +127,17 @@ class Table(ModuleObject):
         super().__init__(id, 'tab')
 
 
+class Instruction(SimpleNamespace):
+    info: InstrInfo
+    op: int
+    imm: 'None|int|tuple[int, int]'
+    block: 'None|CodeBlock'
+
 
 class CodeBlock(SimpleNamespace):
+    children: 'list[CodeBlock]'
+    body: 'list[Instruction]'
+
     def __init__(self, kind, type, parent:'CodeBlock', instr) -> None:
         self.kind = kind
         self.type = type

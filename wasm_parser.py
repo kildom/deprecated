@@ -381,6 +381,8 @@ class Parser:
                 block.body.append(SimpleNamespace(info=info, op=op))
             elif info.parse == ParseMethod.BYTE:
                 block.body.append(SimpleNamespace(info=info, op=op, imm=self.read_byte()))
+            elif info.parse == ParseMethod.U32:
+                block.body.append(SimpleNamespace(info=info, op=op, imm=self.read_u64() & 0xFFFFFFFF))
             elif info.parse == ParseMethod.U64:
                 block.body.append(SimpleNamespace(info=info, op=op, imm=self.read_u64()))
             elif info.parse == ParseMethod.U64U64:

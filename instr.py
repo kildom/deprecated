@@ -67,7 +67,7 @@ INSTRUCTIONS = {
     0x3E: II(opcode=0x3E, name='i64.store32', parse=ParseMethod.MEM, stack=-2, code='mem0[{-2} + {imm}:{-2} + {imm} + 4] = ({-1} & 0xFFFFFFFF).to_bytes(4, "little")'),
     0x3F: II(opcode=0x3F, name='memory.size', parse=ParseMethod.U64, stack=+1, code='{0} = len(m::{imm}) // 0x10000'),
     0x40: II(opcode=0x40, name='memory.grow', parse=ParseMethod.U64, stack=0, code='{-1} = memory_grow(m::{imm}, {-1}, self._W_m_lim{imm})', builtins=('_W_memory_grow',)),
-    0x41: II(opcode=0x41, name='i32.const', parse=ParseMethod.U32, stack=+1, code='{0} = {imm}'),
+    0x41: II(opcode=0x41, name='i32.const', parse=ParseMethod.U64, stack=+1, code='{0} = {imm}'),
     0x42: II(opcode=0x42, name='i64.const', parse=ParseMethod.U64, stack=+1, code='{0} = {imm}'),
     0x43: II(opcode=0x43, name='f32.const', parse=ParseMethod.CUSTOM, stack=+1),
     0x44: II(opcode=0x44, name='f64.const', parse=ParseMethod.CUSTOM, stack=+1),
