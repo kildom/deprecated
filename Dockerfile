@@ -15,8 +15,7 @@ RUN rustup target add wasm32-wasi
 RUN mkdir obj
 COPY mozrelease /usr/local/src/obj/mozrelease
 RUN cd mozilla-unified/ && ./mach --no-interactive bootstrap --application-choice=js
-#COPY 0001-Patch-cargos.patch /usr/local/src/0001-Patch-cargos.patch
-#RUN cd mozilla-unified/ && git apply ../0001-Patch-cargos.patch
+#TODO: the patches are based on dd87f9a94e6ed8b593763724ed94fb3f281e5415 - checkout this commit before aplying patches.
 COPY 0001-My-Optimize.patch /usr/local/src/0001-My-Optimize.patch
 RUN cd mozilla-unified/ && git apply ../0001-My-Optimize.patch
 COPY 0002-Remove-file-access-from-statistics.patch /usr/local/src/0002-Remove-file-access-from-statistics.patch
