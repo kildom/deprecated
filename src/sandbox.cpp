@@ -235,10 +235,6 @@ bool init(uint32_t heapSizeLimit, SandboxFlags::T flags)
 {
     sandboxFlags = flags;
 
-    if (!JS_Init()) {
-        return false;
-    }
-
     cx = JS_NewContext(heapSizeLimit);
     if (!cx) {
         return false;
@@ -283,6 +279,9 @@ uint32_t getSharedBufferSize()
 
 
 int main(int argc, const char* argv[]) {
+    if (!JS_Init()) {
+        return 1;
+    }
     return entry();
 }
 
