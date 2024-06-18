@@ -101,11 +101,11 @@ async function main() {
     let state = await executeStartup(inputBin);
 
     // Parse module and generate module containing current state
-    let processedBin = parser.parseModule(inputBin, state.memory, state.stackPointer, sizeOptimize);
+    let processedBin = parser.rewriteModule(inputBin, state.memory, state.stackPointer, sizeOptimize);
+    fs.writeFileSync(process.argv[4] + '.proc.wasm', processedBin);
     let optBin: Uint8Array;
-    if (1) {
+    if (0) {
         // Optimize again, startup function can be discarded now
-        fs.writeFileSync(process.argv[4] + '.proc.wasm', processedBin);
         run(
             wasmOpt,
             process.argv[2],
@@ -117,8 +117,7 @@ async function main() {
         optBin = processedBin;
     }
 
-    // Add "js-sandbox" custom section with information for: freeze and WASM instance memory limit
-    optBin = parser.appendCustomSection(optBin);
+    optBin = parser.parseModule(optBin);
 
     // Write final output
     fs.writeFileSync(process.argv[4], optBin);
@@ -134,9 +133,13 @@ async function main() {
         assert.doesNotMatch(line, forbiddenInstr);
     }
 
-    fs.unlinkSync(process.argv[4] + '.wat');
-    fs.unlinkSync(process.argv[4] + '.proc.wasm');
-    fs.unlinkSync(process.argv[4] + '.opt.wasm');
+    if (0) {
+        fs.unlinkSync(process.argv[4] + '.wat');
+        try {
+            fs.unlinkSync(process.argv[4] + '.opt.wasm');
+            fs.unlinkSync(process.argv[4] + '.proc.wasm');
+        } catch (e) {}
+    }
 }
 
 main();

@@ -1,199 +1,6 @@
 
 import assert from 'assert';
 
-const INTERFACE_VERSION = 0;
-const CUSTOM_SECTION_NAME = 'js-sandbox-CpktVgXbZaAHZ1ADnsj7IIxZbRTfIW24';
-const CUSTOM_SECTION_MAGIC = 0x3BD89D5C;
-const HARD_MEM_LIMIT = 512 * 1024 * 1024;
-const MEM_PRE_ALLOC = 6 * 1024 * 1024;
-const BLOCK_SIZE = 65536;
-const SPEED_OPTIMIZE_HOLE_SIZE_THRESHOLD = 16;
-
-
-const encoder = new TextEncoder();
-const decoder = new TextDecoder()
-
-let offset: number;
-let bin: Uint8Array;
-let memory: Uint8Array;
-let stackPointer: number;
-let out: (Uint8Array | null)[] = [];
-let setSpTypeIndex: number = -1;
-let getSpTypeIndex: number = -1;
-let getSpFuncIndex: number = -1;
-let setSpFuncIndex: number = -1;
-let funcIndexStart: number;
-let globalIndexStart: number;
-let stackPointerIndex: number;
-let reshapeModuleParams: {
-    stackPointValueBegin: number;
-    stackPointValueEnd: number;
-    dataSectionBegin: number;
-    dataSectionEnd: number;
-    memLimitsOffset: number;
-} = {} as any;
-let blocks: { offset: number, length: number, zeros: number }[] = [];
-let globalsOffsets: { start: number, end: number }[] = [];
-
-
-export function parseModule(moduleBinary: Uint8Array, currentMemory: Uint8Array, currentStackPointer: number, sizeOptimize) {
-
-    offset = 0;
-    bin = moduleBinary;
-    memory = currentMemory;
-    stackPointer = currentStackPointer;
-    out = [];
-    setSpTypeIndex = -1;
-    getSpTypeIndex = -1;
-    getSpFuncIndex = -1;
-    setSpFuncIndex = -1;
-    funcIndexStart = -1;
-    globalIndexStart = -1;
-    stackPointerIndex = -1;
-    reshapeModuleParams = {} as any;
-    blocks = [];
-    globalsOffsets = [];
-
-    if (!sizeOptimize) {
-        prepareDataBlocks(SPEED_OPTIMIZE_HOLE_SIZE_THRESHOLD);
-    } else {
-        let bestSize = Infinity;
-        let bestThreshold = Infinity;
-        for (let i = 6; i <= SPEED_OPTIMIZE_HOLE_SIZE_THRESHOLD; i++) {
-            let size = prepareDataBlocks(i);
-            if (size <= bestSize) {
-                bestSize = size;
-                bestThreshold = i;
-            }
-        }
-        prepareDataBlocks(bestThreshold);
-    }
-
-    offset += 8; // skip header and version
-    output(bin.subarray(0, 8));
-    while (offset < bin.length) {
-        let sectionStart = offset;
-        let id = bin[offset++];
-        let size = leb128();
-        let sectionEnd = offset + size;
-        switch (id) {
-            case SectionType.typeSection:
-                parseTypeSection(sectionStart, sectionEnd);
-                output(bin.subarray(sectionStart, sectionEnd));
-                break;
-            case SectionType.functionSection:
-                parseFunctionSection(sectionStart, sectionEnd);
-                break;
-            case SectionType.importSection:
-                parseImportSection(sectionStart, sectionEnd);
-                output(bin.subarray(sectionStart, sectionEnd));
-                break;
-            case SectionType.globalSection:
-                parseGlobalSection(sectionStart, sectionEnd);
-                output(bin.subarray(sectionStart, sectionEnd));
-                break;
-            case SectionType.exportSection:
-                parseExportSection(sectionStart, sectionEnd);
-                break;
-            case SectionType.codeSection:
-                parseCodeSection(sectionStart, sectionEnd);
-                break;
-            case SectionType.dataSection:
-                parseDataSection(sectionStart, sectionEnd);
-                break;
-            case SectionType.dataCountSection:
-                parseDataCountSection(sectionStart, sectionEnd);
-                break;
-            case SectionType.memorySection:
-                parseMemorySection(sectionStart, sectionEnd);
-                break;
-            case SectionType.startSection:
-                // Remove start section - already started
-                break;
-            default:
-                offset += size;
-                output(bin.subarray(sectionStart, sectionEnd));
-                break;
-        }
-    }
-    updateStackPointer();
-    return getOutput();
-}
-
-function output(value: number | string | Uint8Array | number[] | null): number {
-    let res = out.length;
-    if (typeof value === 'number') {
-        out.push(leb128Create(value));
-    } else if (typeof value === 'string') {
-        let b = encoder.encode(value);
-        out.push(new Uint8Array([
-            ...leb128Create(b.length),
-            ...b,
-        ]));
-    } else if (value instanceof Uint8Array) {
-        out.push(value);
-    } else if (Array.isArray(value)) {
-        out.push(new Uint8Array(value));
-    } else if (value === null) {
-        out.push(null);
-    } else {
-        assert(false, 'Unexpected value type');
-    }
-    return res;
-}
-
-function replace(index: number, value: number | string | Uint8Array | number[] | null): void {
-    if (typeof value === 'number') {
-        out[index] = leb128Create(value);
-    } else if (typeof value === 'string') {
-        let b = encoder.encode(value);
-        out[index] = new Uint8Array([
-            ...leb128Create(b.length),
-            ...b,
-        ]);
-    } else if (value instanceof Uint8Array) {
-        out[index] = value;
-    } else if (Array.isArray(value)) {
-        out[index] = new Uint8Array(value);
-    } else if (value === null) {
-        out[index] = null;
-    } else {
-        assert(false, 'Unexpected value type');
-    }
-}
-
-function outSize(startIndex: number, endIndex: number = -1) {
-    if (endIndex < 0) {
-        endIndex = out.length;
-    }
-    return out.slice(startIndex, endIndex).reduce((a, x) => a + x!.length, 0);
-}
-
-
-function leb128Size(x: number) {
-    if (x < 128) return 1;
-    if (x < 128 * 128) return 2;
-    if (x < 128 * 128 * 128) return 3;
-    if (x < 128 * 128 * 128 * 128) return 4;
-    if (x < 128 * 128 * 128 * 128 * 128) return 5;
-    return 6;
-}
-
-function leb128Create(x: number, exactBytes: number = -1000) {
-    assert(x >= 0);
-    assert(leb128Size(x) <= Math.abs(exactBytes));
-    let res = new Uint8Array(10);
-    let index = 0;
-    do {
-        exactBytes--;
-        let value = x & 0x7F;
-        x >>= 7;
-        if (x != 0 || exactBytes > 0) value |= 0x80;
-        res[index++] = value;
-    } while (x != 0 || exactBytes > 0);
-    return res.subarray(0, index);
-}
-
 enum SectionType {
     customSection = 0,
     typeSection = 1,
@@ -217,6 +24,124 @@ enum DataType {
     typeF64 = 0x7C,
 }
 
+interface Section {
+    id: number;
+    begin: number;
+    end: number;
+    input: Uint8Array;
+    output: Uint8Array[];
+    outputOffset: number;
+    outputEndOffset: number;
+    outputHeaderSize: number;
+}
+
+const INTERFACE_VERSION = 0;
+const CUSTOM_SECTION_NAME = 'js-sandbox-CpktVgXbZaAHZ1ADnsj7I';
+const HARD_MEM_LIMIT = 512 * 1024 * 1024;
+const BLOCK_SIZE = 65536;
+const SPEED_OPTIMIZE_HOLE_SIZE_THRESHOLD = 16;
+
+const encoder = new TextEncoder();
+const decoder = new TextDecoder()
+
+const sectionsOrdered: Section[] = [];
+const sectionsById: Section[] = [];
+
+let offset: number;
+let bin: Uint8Array;
+let out: (Uint8Array | null)[] = [];
+let currentSection: Section;
+
+interface DataBlock {
+    offset: number;
+    length: number;
+    zeros: number;
+}
+
+
+//#region ------- Output Writing -------
+
+
+function output(value: number | string | Uint8Array | number[] | null): number {
+    let res = out.length;
+    if (typeof value === 'number') {
+        out.push(leb128Create(value));
+    } else if (typeof value === 'string') {
+        let b = encoder.encode(value);
+        out.push(new Uint8Array([
+            ...leb128Create(b.length),
+            ...b,
+        ]));
+    } else if (value instanceof Uint8Array) {
+        out.push(value);
+    } else if (Array.isArray(value)) {
+        out.push(new Uint8Array(value));
+    } else if (value === null) {
+        out.push(null);
+    } else {
+        assert(false, 'Unexpected value type');
+    }
+    return res;
+}
+
+
+function replace(index: number, value: number | string | Uint8Array | number[] | null): void {
+    if (typeof value === 'number') {
+        out[index] = leb128Create(value);
+    } else if (typeof value === 'string') {
+        let b = encoder.encode(value);
+        out[index] = new Uint8Array([
+            ...leb128Create(b.length),
+            ...b,
+        ]);
+    } else if (value instanceof Uint8Array) {
+        out[index] = value;
+    } else if (Array.isArray(value)) {
+        out[index] = new Uint8Array(value);
+    } else if (value === null) {
+        out[index] = null;
+    } else {
+        assert(false, 'Unexpected value type');
+    }
+}
+
+function outputOffset(startBookmark: number, endBookmark: number = -1) {
+    if (endBookmark < 0) {
+        endBookmark = out.length;
+    }
+    return out.slice(startBookmark, endBookmark).reduce((a, x) => a + x!.length, 0);
+}
+
+function leb128Create(x: number, exactBytes: number = -1000) {
+    assert(x >= 0);
+    assert(leb128Size(x) <= Math.abs(exactBytes));
+    let res = new Uint8Array(10);
+    let index = 0;
+    do {
+        exactBytes--;
+        let value = x & 0x7F;
+        x >>= 7;
+        if (x != 0 || exactBytes > 0) value |= 0x80;
+        res[index++] = value;
+    } while (x != 0 || exactBytes > 0);
+    return res.subarray(0, index);
+}
+
+function leb128Size(x: number) {
+    if (x < 128) return 1;
+    if (x < 128 * 128) return 2;
+    if (x < 128 * 128 * 128) return 3;
+    if (x < 128 * 128 * 128 * 128) return 4;
+    if (x < 128 * 128 * 128 * 128 * 128) return 5;
+    return 6;
+}
+
+
+//#endregion
+
+
+//#region ------- Reading -------
+
 
 function leb128(): number {
 
@@ -224,22 +149,249 @@ function leb128(): number {
     let value: number;
     let bits = 0;
     do {
-        value = bin[offset++];
+        value = byte();
         res |= (value & 0x7F) << bits;
         bits += 7;
     } while (value & 0x80);
     return res;
 }
 
-function parseTypeSection(sectionStart: number, sectionEnd: number) {
+function byte(): number {
+    return bin[offset++];
+}
 
-    getSpTypeIndex = -1;
-    setSpTypeIndex = -1;
+//#endregion
+
+
+function readSections(binary: Uint8Array) {
+
+    bin = binary;
+    sectionsOrdered.splice(0);
+    sectionsById.splice(0);
+
+    offset = 8; // skip header and version
+
+    while (offset < bin.length) {
+        let id = byte();
+        let size = leb128();
+        let input = bin.subarray(offset, offset + size);
+        offset += size;
+        let section: Section = {
+            id,
+            begin: offset,
+            end: offset + size,
+            input,
+            output: [input],
+            outputOffset: 0,
+            outputEndOffset: 0,
+            outputHeaderSize: 0,
+        };
+        sectionsOrdered.push(section);
+        if (id != 0) {
+            sectionsById[id] = section;
+        }
+    }
+}
+
+
+export function rewriteModule(binary: Uint8Array, memory: Uint8Array, stackPointer: number, sizeOptimize: boolean) {
+
+    readSections(binary);
+
+    let { getSpTypeIndex, setSpTypeIndex } =
+        parseTypeSection();
+
+    let { getSpFuncIndex, setSpFuncIndex } =
+        addSpHandlersToFunctionSection({ getSpTypeIndex, setSpTypeIndex });
+
+    let { funcIndexStart, globalIndexStart } =
+        getIndexStartsFromImports();
+
+    let { stackPointerIndex } =
+        addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex, setSpFuncIndex });
+
+    addStackHandlersCode({ stackPointerIndex });
+
+    let { dataBlockCount } =
+        generateNewDataSection(memory, stackPointer, sizeOptimize);
+
+    generateDataCountSection(dataBlockCount);
+
+    generateMemorySection({ minMemorySize: memory.length });
+
+    let { stackPointerBegin, stackPointerEnd } =
+        getStackPointerLocation({ stackPointerIndex, globalIndexStart });
+
+    replaceStackPointer({ stackPointerBegin, stackPointerEnd, stackPointer });
+
+    return getOutput();
+}
+
+export function parseModule(binary: Uint8Array) {
+
+    readSections(binary);
+
+    let { funcIndexStart, globalIndexStart } =
+        getIndexStartsFromImports();
+
+    let { stackPointerHandlerIndex } =
+        getSpHandlerIndexFromExports();
+
+    let { stackPointerIndex } =
+        getSpIndexFromHandlerCode({ stackPointerHandlerIndex, funcIndexStart });
+
+    let { stackPointerBegin, stackPointerEnd } =
+        getStackPointerLocation({ stackPointerIndex, globalIndexStart });
+
+    let { memoryLimitsOffset } =
+        generateMemorySection({ minMemorySize: 0 });
+
+    getOutput();
+
+    stackPointerBegin += sectionsById[SectionType.globalSection].outputOffset + sectionsById[SectionType.globalSection].outputHeaderSize;
+    stackPointerEnd += sectionsById[SectionType.globalSection].outputOffset + sectionsById[SectionType.globalSection].outputHeaderSize;
+    memoryLimitsOffset += sectionsById[SectionType.memorySection].outputOffset + sectionsById[SectionType.memorySection].outputHeaderSize;
+    let dataSectionBegin = sectionsById[SectionType.dataSection].outputOffset;
+    let dataSectionEnd = sectionsById[SectionType.dataSection].outputEndOffset;
+
+    appendCustomSection({ stackPointerBegin, stackPointerEnd, memoryLimitsOffset, dataSectionBegin, dataSectionEnd });
+
+    return getOutput();
+}
+
+
+function appendCustomSection(
+    { stackPointerBegin, stackPointerEnd, memoryLimitsOffset, dataSectionBegin, dataSectionEnd }:
+        { stackPointerBegin: number, stackPointerEnd: number, memoryLimitsOffset: number, dataSectionBegin: number, dataSectionEnd: number }
+) {
+    let section: Section = {
+        begin: NaN,
+        end: NaN,
+        id: SectionType.customSection,
+        input: undefined as any,
+        output: [],
+        outputEndOffset: 0,
+        outputHeaderSize: 0,
+        outputOffset: 0,
+    };
+
+    sectionsOrdered.push(section);
+    setActive(section, true);
+
+    output(CUSTOM_SECTION_NAME);
+
+    let struct = new DataView(new ArrayBuffer(6 * 4));
+    struct.setUint32(4 * 0, INTERFACE_VERSION, true);
+    struct.setUint32(4 * 1, stackPointerBegin, true);
+    struct.setUint32(4 * 2, stackPointerEnd, true);
+    struct.setUint32(4 * 3, dataSectionBegin, true);
+    struct.setUint32(4 * 4, dataSectionEnd, true);
+    struct.setUint32(4 * 5, memoryLimitsOffset, true);
+
+    output(new Uint8Array(struct.buffer));
+}
+
+
+function getOutput(): Uint8Array {
+    let size = 8;
+    let headers: Uint8Array[] = []
+    for (let section of sectionsOrdered) {
+        let s = section.output.reduce((a, x) => a + x.length, 0);
+        let sectionHeader = new Uint8Array([
+            section.id,
+            ...leb128Create(s),
+        ]);
+        headers.push(sectionHeader);
+        size += sectionHeader.length + s;
+    }
+    let res = new Uint8Array(size);
+    res.set(new Uint8Array([0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]));
+    let offset = 8;
+    for (let section of sectionsOrdered) {
+        let sectionHeader = headers.shift() as Uint8Array;
+        section.outputOffset = offset;
+        section.outputHeaderSize = sectionHeader.length;
+        for (let chunk of [sectionHeader, ...section.output]) {
+            res.set(chunk, offset);
+            offset += chunk.length;
+        }
+        section.outputEndOffset = offset;
+    }
+    return res;
+}
+
+function commitSectionOutput() {
+
+    let size = currentSection.output.reduce((a, x) => a + x.length, 0);
+    currentSection.input = new Uint8Array(size);
+    let offset = 0;
+    for (let chunk of currentSection.output) {
+        currentSection.input.set(chunk, offset);
+        offset += chunk.length;
+    }
+    currentSection.output = [currentSection.input];
+}
+
+function getSpHandlerIndexFromExports() {
+    setActive(SectionType.exportSection);
+
+    let stackPointerHandlerIndex = -1;
+
+    let count = leb128();
+    for (let i = 0; i < count; i++) {
+        let strLen = leb128();
+        let name = decoder.decode(bin.subarray(offset, offset + strLen));
+        offset += strLen;
+        let kind = byte();
+        let index = leb128();
+        if (name === 'getStackPointer') {
+            stackPointerHandlerIndex = index;
+        }
+    }
+
+    assert(stackPointerHandlerIndex >= 0);
+
+    return { stackPointerHandlerIndex };
+}
+
+function getSpIndexFromHandlerCode({ stackPointerHandlerIndex, funcIndexStart }: { stackPointerHandlerIndex: number, funcIndexStart: number }) {
+    setActive(SectionType.codeSection);
+
+    let index = stackPointerHandlerIndex - funcIndexStart;
+
+    let stackPointerIndex = -1;
+
+    let count = leb128();
+    assert(index < count);
+
+    for (let i = 0; i < index; i++) {
+        let size = leb128();
+        offset += size;
+    }
+
+    let size = leb128();
+    let locals = leb128();
+    assert.equal(locals, 0);
+    let instr = byte();
+    assert.equal(instr, 0x23); // global.get
+    stackPointerIndex = leb128();
+    instr = byte();
+    assert.equal(instr, 0x0B); // end
+
+    return { stackPointerIndex };
+}
+
+
+function parseTypeSection() {
+    setActive(SectionType.typeSection);
+
+    let getSpTypeIndex = -1;
+    let setSpTypeIndex = -1;
 
     let count = leb128();
 
     for (let i = 0; i < count; i++) {
-        assert.equal(bin[offset++], 0x60, 'Function type prefix');
+        assert.equal(byte(), 0x60, 'Function type prefix');
         let parametersCount = leb128();
         let param = bin[offset];
         offset += parametersCount;
@@ -255,82 +407,44 @@ function parseTypeSection(sectionStart: number, sectionEnd: number) {
     }
 
     assert(getSpTypeIndex >= 0 && setSpTypeIndex >= 0);
+
+    return { getSpTypeIndex, setSpTypeIndex };
 }
 
+function addSpHandlersToFunctionSection({ getSpTypeIndex, setSpTypeIndex }: { getSpTypeIndex: number, setSpTypeIndex: number }) {
+    setActive(SectionType.functionSection, true);
 
-function parseImportSection(sectionStart: number, sectionEnd: number) {
-
-    let count = leb128();
-
-    funcIndexStart = 0;
-    globalIndexStart = 0;
-
-    for (let i = 0; i < count; i++) {
-        let len = leb128();
-        offset += len;
-        len = leb128();
-        offset += len;
-        let kind = bin[offset++];
-        leb128();
-        if (kind === 0x00) funcIndexStart++;
-        if (kind === 0x03) globalIndexStart++;
-        assert.notEqual(kind, 0x02, 'No import memory');
-    }
-}
-
-
-function parseFunctionSection(sectionStart: number, sectionEnd: number) {
-
-    output(bin.subarray(sectionStart, sectionStart + 1)); // id
-    let sectionSizeBookmark = output(null); // section size
     let count = leb128();
     output(count + 2); // count
-    output(bin.subarray(offset, sectionEnd)); // old functions
-    offset = sectionEnd;
+    output(bin.subarray(offset, currentSection.end)); // old functions
     output(getSpTypeIndex);
     output(setSpTypeIndex);
-    getSpFuncIndex = count;
-    setSpFuncIndex = count + 1;
-    replace(sectionSizeBookmark, outSize(sectionSizeBookmark + 1));
+    let getSpFuncIndex = count;
+    let setSpFuncIndex = count + 1;
+    return { getSpFuncIndex, setSpFuncIndex };
 }
 
-function createFunction(bytecode: number[]) {
-    let funcSizeOutBookmark = output(null); // function size
-    output(0); // no locals
-    output(bytecode); // code
-    output([0x0B]); // END
-    replace(funcSizeOutBookmark, outSize(funcSizeOutBookmark + 1));
-}
+function addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex, setSpFuncIndex }: { funcIndexStart: number, getSpFuncIndex: number, setSpFuncIndex: number }) {
+    setActive(SectionType.exportSection, true);
 
-function getName(name: string): Uint8Array {
-    let x = new TextEncoder().encode(name);
-    return new Uint8Array([x.length, ...x]);
-}
+    let stackPointerIndex = -1;
 
-function parseExportSection(sectionStart: number, sectionEnd: number) {
-    output(SectionType.exportSection); // id
-    let sectionSizeOutBookmark = output(null); // section size
     let count = leb128();
-    stackPointerIndex = -1;
     output(count); // count
     let actual_count = 0;
     for (let i = 0; i < count; i++) {
         let start = offset;
-        let len = leb128();
-        let name = decoder.decode(bin.subarray(offset, offset + len));
-        offset += len;
-        let kind = bin[offset++];
+        let strLen = leb128();
+        let name = decoder.decode(bin.subarray(offset, offset + strLen));
+        offset += strLen;
+        let kind = byte();
         let index = leb128();
-        let end = offset;
         if (name === '__stack_pointer') {
             stackPointerIndex = index;
-            let offsets = globalsOffsets[stackPointerIndex - globalIndexStart];
-            reshapeModuleParams.stackPointValueBegin = offsets.start;
-            reshapeModuleParams.stackPointValueEnd = offsets.end;
         } else if (name === '_start') {
             // The "_start" function is not needed any more. It was already executed.
         } else {
-            output(bin.subarray(start, end));
+            output(bin.subarray(start, offset));
             actual_count++;
         }
     }
@@ -342,15 +456,61 @@ function parseExportSection(sectionStart: number, sectionEnd: number) {
     output(0x00);
     output(funcIndexStart + setSpFuncIndex);
     actual_count++;
-    assert.equal(actual_count, count);
-    replace(sectionSizeOutBookmark, outSize(sectionSizeOutBookmark + 1));
-    assert.equal(offset, sectionEnd);
     assert(stackPointerIndex >= 0);
+    assert.equal(actual_count, count);
+
+    return { stackPointerIndex };
+}
+
+function getIndexStartsFromImports() {
+    setActive(SectionType.importSection);
+
+    let funcIndexStart = 0;
+    let globalIndexStart = 0;
+    let count = leb128();
+    for (let i = 0; i < count; i++) {
+        let len = leb128();
+        offset += len;
+        len = leb128();
+        offset += len;
+        let kind = byte();
+        leb128();
+        if (kind === 0x00) funcIndexStart++;
+        if (kind === 0x03) globalIndexStart++;
+        assert.notEqual(kind, 0x02, 'No import memory');
+    }
+
+    return { funcIndexStart, globalIndexStart };
 }
 
 
-function prepareDataBlocks(threshold: number): number {
-    blocks = [];
+function createCode(bytecode: number[]) {
+    let funcSizeOutBookmark = output(null); // function size
+    output(0); // no locals
+    output(bytecode); // code
+    output([0x0B]); // END
+    replace(funcSizeOutBookmark, outputOffset(funcSizeOutBookmark + 1));
+}
+
+
+function addStackHandlersCode({ stackPointerIndex }: { stackPointerIndex: number }): void {
+    setActive(SectionType.codeSection, true);
+
+    let count = leb128();
+    output(count + 2); // count
+    output(bin.subarray(offset, currentSection.end)); // old functions
+    createCode([
+        0x23, ...leb128Create(stackPointerIndex), // global.get
+    ]);
+    createCode([
+        0x20, ...leb128Create(0), // local.get 0
+        0x24, ...leb128Create(stackPointerIndex), // global.set
+    ]);
+}
+
+
+function prepareDataBlocksForThreshold(blocks: DataBlock[], memory: Uint8Array, stackPointer: number, threshold: number): number {
+    blocks.splice(0);
     let zeroCount = 0;
     let dataStart = stackPointer;
     let zeroStart = stackPointer;
@@ -391,9 +551,34 @@ function prepareDataBlocks(threshold: number): number {
     return size;
 }
 
-function parseDataSection(sectionStart: number, sectionEnd: number) {
-    reshapeModuleParams.dataSectionBegin = outSize(0) + 1;
 
+function prepareDataBlocks(memory: Uint8Array, stackPointer: number, sizeOptimize: boolean): DataBlock[] {
+    let blocks: DataBlock[] = [];
+
+    let bestThreshold = Infinity;
+
+    if (sizeOptimize) {
+        let bestSize = Infinity;
+        for (let i = 6; i <= SPEED_OPTIMIZE_HOLE_SIZE_THRESHOLD; i++) {
+            let size = prepareDataBlocksForThreshold(blocks, memory, stackPointer, i);
+            if (size <= bestSize) {
+                bestSize = size;
+                bestThreshold = i;
+            }
+        }
+    } else {
+        bestThreshold = SPEED_OPTIMIZE_HOLE_SIZE_THRESHOLD;
+    }
+
+    prepareDataBlocksForThreshold(blocks, memory, stackPointer, bestThreshold);
+    return blocks;
+}
+
+
+function generateNewDataSection(memory: Uint8Array, stackPointer: number, sizeOptimize: boolean) {
+    setActive(SectionType.dataSection, true);
+
+    // Just verification
     let count = leb128();
     for (let i = 0; i < count; i++) {
         let kind = leb128();
@@ -411,8 +596,8 @@ function parseDataSection(sectionStart: number, sectionEnd: number) {
         offset += size;
     }
 
-    output(SectionType.dataSection);
-    let sectionSizeBookmark = output(null);
+    let blocks = prepareDataBlocks(memory, stackPointer, sizeOptimize);
+
     output(blocks.length);
     for (let block of blocks) {
         output([
@@ -423,63 +608,57 @@ function parseDataSection(sectionStart: number, sectionEnd: number) {
         ]);
         output(memory.subarray(block.offset, block.offset + block.length));
     }
-    replace(sectionSizeBookmark, outSize(sectionSizeBookmark + 1));
-    reshapeModuleParams.dataSectionEnd = outSize(0);
+    return { dataBlockCount: blocks.length };
 }
 
-function parseDataCountSection(sectionStart: number, sectionEnd: number) {
-    output(SectionType.dataCountSection);
-    output(leb128Size(blocks.length));
-    output(blocks.length);
-    offset = sectionEnd;
+function generateDataCountSection(dataBlockCount: number) {
+    setActive(SectionType.dataCountSection, true);
+    output(dataBlockCount);
 }
 
-function parseMemorySection(sectionStart: number, sectionEnd: number) {
+
+function generateMemorySection({ minMemorySize }: { minMemorySize: number }) {
+    setActive(SectionType.memorySection, true);
 
     let count = leb128();
     assert.equal(count, 1, 'Exactly one memory.');
-    offset++; // ignore limit kind
+    byte(); // ignore limit kind
     let min = leb128();
-    offset = sectionEnd;
 
-    let expectedBlocks = Math.max(min, Math.ceil(memory.length / BLOCK_SIZE)) + MEM_PRE_ALLOC / BLOCK_SIZE;
-    output(SectionType.memorySection);
-    output(8); // size
+    let expectedBlocks = Math.max(min, Math.ceil(minMemorySize / BLOCK_SIZE));
     output(1); // memory count
     output(0x01); // upper limit present
-    output(leb128Create(expectedBlocks, 3)),
-    output(leb128Create(HARD_MEM_LIMIT / BLOCK_SIZE, 3)),
-    reshapeModuleParams.memLimitsOffset = outSize(0) - 3 - 3;
+    output(leb128Create(expectedBlocks, 3));
+    output(leb128Create(HARD_MEM_LIMIT / BLOCK_SIZE, 3));
+    let memoryLimitsOffset = 2;
+    return { memoryLimitsOffset };
 }
 
-function parseCodeSection(sectionStart: number, sectionEnd: number) {
 
-    output(SectionType.codeSection); // id
-    let sectionSizeOutBookmark = output(null); // section size
-    let count = leb128();
-    output(count + 2); // count
-    output(bin.subarray(offset, sectionEnd)); // old functions
-    offset = sectionEnd;
-    createFunction([
-        0x23, ...leb128Create(stackPointerIndex), // global.get
-    ]);
-    createFunction([
-        0x20, ...leb128Create(0), // local.get 0
-        0x24, ...leb128Create(stackPointerIndex), // global.set
-    ]);
-    replace(sectionSizeOutBookmark, outSize(sectionSizeOutBookmark + 1));
+function setActive(type: SectionType | Section, clearOutput: boolean = false): void {
+    currentSection = typeof type === 'object' ? type : sectionsById[type];
+    assert(currentSection);
+    bin = currentSection.input;
+    offset = 0;
+    out = currentSection.output;
+    if (clearOutput) {
+        out.splice(0);
+    }
 }
 
-function parseGlobalSection(sectionStart: number, sectionEnd: number) {
-    let outSectionStart = outSize(0);
+function getStackPointerLocation({ stackPointerIndex, globalIndexStart }: { stackPointerIndex: number, globalIndexStart: number }) {
+    setActive(SectionType.globalSection);
+    commitSectionOutput();
+
+    let stackPointerBegin = -1;
+    let stackPointerEnd = -1;
 
     let count = leb128();
-    globalsOffsets = [];
 
     for (let i = 0; i < count; i++) {
-        offset++; // Type
-        assert(bin[offset++] <= 0x01, 'Global type');
-        let instr = bin[offset++];
+        byte(); // Type
+        assert(byte() <= 0x01, 'Global mutable or not');
+        let instr = byte();
         let start = offset;
         if (instr === 0x41 || instr === 0x42) {
             leb128();
@@ -491,55 +670,20 @@ function parseGlobalSection(sectionStart: number, sectionEnd: number) {
             assert(false, 'Unsupported instruction in global initialization value');
         }
         let end = offset;
-        globalsOffsets.push({
-            start: start - sectionStart + outSectionStart,
-            end: end - sectionStart + outSectionStart,
-        });
-        assert.equal(bin[offset++], 0x0B, 'END instruction');
+        if (globalIndexStart + i === stackPointerIndex) {
+            stackPointerBegin = start;
+            stackPointerEnd = end;
+        }
+        assert.equal(byte(), 0x0B, 'END instruction');
     }
+
+    assert(stackPointerBegin > 0 && stackPointerEnd > 0);
+
+    return { stackPointerBegin, stackPointerEnd };
 }
 
-export function appendCustomSection(moduleBin: Uint8Array): Uint8Array {
-
-    out = [moduleBin];
-
-    output(SectionType.customSection);
-    output(1 + CUSTOM_SECTION_NAME.length + 7 * 4);
-    output(CUSTOM_SECTION_NAME);
-
-    let struct = new DataView(new ArrayBuffer(7 * 4));
-    struct.setUint32(4 * 0, INTERFACE_VERSION, true);
-    struct.setUint32(4 * 1, reshapeModuleParams.stackPointValueBegin, true);
-    struct.setUint32(4 * 2, reshapeModuleParams.stackPointValueEnd, true);
-    struct.setUint32(4 * 3, reshapeModuleParams.dataSectionBegin, true);
-    struct.setUint32(4 * 4, reshapeModuleParams.dataSectionEnd, true);
-    struct.setUint32(4 * 5, reshapeModuleParams.memLimitsOffset, true);
-    struct.setUint32(4 * 6, CUSTOM_SECTION_MAGIC, true);
-
-    output(new Uint8Array(struct.buffer));
-
-    return getOutput();
-}
-
-function updateStackPointer() {
-    let outputBinary = getOutput();
-    out = [outputBinary];
-    let bin = outputBinary.subarray(reshapeModuleParams.stackPointValueBegin, reshapeModuleParams.stackPointValueEnd);
-    let sp = stackPointer;
-    assert(bin.length >= leb128Size(stackPointer));
-    for (let i = 0; i < bin.length; i++) {
-        bin[i] = ((sp >> (7 * i)) & 0x7F) | 0x80;
-    }
-    bin[bin.length - 1] &= 0x7F;
-}
-
-function getOutput(): Uint8Array {
-    let size = outSize(0);
-    let res = new Uint8Array(size);
-    let offset = 0;
-    for (let chunk of out) {
-        res.set(chunk as any, offset);
-        offset += chunk!.length;
-    }
-    return res;
+function replaceStackPointer({ stackPointerBegin, stackPointerEnd, stackPointer }: { stackPointerBegin: number, stackPointerEnd: number, stackPointer: number }) {
+    setActive(SectionType.globalSection);
+    commitSectionOutput();
+    currentSection.input.subarray(stackPointerBegin, stackPointerEnd).set(leb128Create(stackPointer, stackPointerEnd - stackPointerBegin));
 }

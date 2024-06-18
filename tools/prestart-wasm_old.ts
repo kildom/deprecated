@@ -185,8 +185,8 @@ class Parser {
     stackPointerIndex: number;
 
     reshapeModuleParams: {
-        stackPointValueBegin: number;
-        stackPointValueEnd: number;
+        stackPointerValueBegin: number;
+        stackPointerValueEnd: number;
         dataSectionBegin: number;
         dataSectionEnd: number;
         memLimitsOffset: number;
@@ -211,8 +211,8 @@ class Parser {
             if (name === '__stack_pointer') {
                 this.stackPointerIndex = index;
                 let offsets = this.globalsOffsets[this.stackPointerIndex - this.globalIndexStart];
-                this.reshapeModuleParams.stackPointValueBegin = offsets.start;
-                this.reshapeModuleParams.stackPointValueEnd = offsets.end;
+                this.reshapeModuleParams.stackPointerValueBegin = offsets.start;
+                this.reshapeModuleParams.stackPointerValueEnd = offsets.end;
             } else if (name === '_start') {
                 // The "_start" function is not needed any more. It was already executed.
             } else {
@@ -388,8 +388,8 @@ class Parser {
 
         let struct = new DataView(new ArrayBuffer(7 * 4));
         struct.setUint32(4 * 0, INTERFACE_VERSION, true);
-        struct.setUint32(4 * 1, this.reshapeModuleParams.stackPointValueBegin, true);
-        struct.setUint32(4 * 2, this.reshapeModuleParams.stackPointValueEnd, true);
+        struct.setUint32(4 * 1, this.reshapeModuleParams.stackPointerValueBegin, true);
+        struct.setUint32(4 * 2, this.reshapeModuleParams.stackPointerValueEnd, true);
         struct.setUint32(4 * 3, this.reshapeModuleParams.dataSectionBegin, true);
         struct.setUint32(4 * 4, this.reshapeModuleParams.dataSectionEnd, true);
         struct.setUint32(4 * 5, this.reshapeModuleParams.memLimitsOffset, true);
@@ -458,7 +458,7 @@ class Parser {
         let bin = this.getOutput();
         this.out = [bin];
         let re = this.reshapeModuleParams;
-        let arr = bin.subarray(re.stackPointValueBegin, re.stackPointValueEnd);
+        let arr = bin.subarray(re.stackPointerValueBegin, re.stackPointerValueEnd);
         let sp = this.memoryOffset;
         assert(arr.length >= leb128_size(this.memoryOffset));
         for (let i = 0; i < arr.length; i++) {

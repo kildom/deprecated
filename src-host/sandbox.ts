@@ -75,6 +75,7 @@ Simpler approach:
 
 */
 
+const CUSTOM_SECTION_NAME = 'js-sandbox-CpktVgXbZaAHZ1ADnsj7I';
 
 export class GuestError extends Error {
     constructor(message: string, public guestName?: string, public guestStack?: string) {
@@ -83,6 +84,11 @@ export class GuestError extends Error {
 }
 
 export class EngineError extends Error { }
+
+export interface ModuleOptions {
+    allowFreeze?: boolean;
+    maxMemory?: number;
+};
 
 export interface InstantiateOptions {
     maxHeapSize?: number;
@@ -96,8 +102,8 @@ export interface ExecuteOptions {
 };
 
 type RegisterCallbacksIds = { [key: string]: number | RegisterCallbacksIds };
-export type RegisterCallbacks =  { [key: string]: Function | RegisterCallbacks };
-export type ExportsCallbacks =  { readonly [key: string]: Function & RegisterCallbacks };
+export type RegisterCallbacks = { [key: string]: Function | RegisterCallbacks };
+export type ExportsCallbacks = { readonly [key: string]: Function & RegisterCallbacks };
 
 export interface Sandbox {
     execute(code: string, options?: ExecuteOptions): any;
@@ -109,9 +115,59 @@ type ModuleSourceType = WebAssembly.Module | BufferSource | Response | Request |
 
 let moduleState: 'empty' | 'loading' | 'loaded' | Error = 'empty';
 let module: WebAssembly.Module | undefined = undefined;
+let moduleBinary: Uint8Array;
 
-export async function setSandboxModule(source: ModuleSourceType | PromiseLike<ModuleSourceType> | undefined): Promise<undefined | Error> {
-    module = source as any; // TODO: Other types of sources
+export async function setSandboxModule(
+    source: ModuleSourceType | PromiseLike<ModuleSourceType> | undefined,
+    options: ModuleOptions = {}
+): Promise<undefined | Error> {
+
+    if (source instanceof ArrayBuffer
+        || (typeof SharedArrayBuffer !== 'undefined' && source instanceof SharedArrayBuffer)
+    ) {
+        moduleBinary = new Uint8Array(source);
+    } else if ((source instanceof Int8Array)
+        || (source instanceof Uint8Array)
+        || (typeof Uint8ClampedArray !== 'undefined' && source instanceof Uint8ClampedArray)
+        || (source instanceof Int16Array)
+        || (source instanceof Uint16Array)
+        || (source instanceof Int32Array)
+        || (source instanceof Uint32Array)
+        || (source instanceof Float32Array)
+        || (source instanceof Float64Array)
+        || (typeof BigInt64Array !== 'undefined' && source instanceof BigInt64Array)
+        || (typeof BigUint64Array !== 'undefined' && source instanceof BigUint64Array)
+    ) {
+        moduleBinary = new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
+    } else {
+        throw new Error('aaa');
+    }
+
+    if (options.maxMemory) {
+        let blocks = Math.ceil(options.maxMemory / 65536);
+        moduleBinary = new Uint8Array(moduleBinary.buffer.slice(
+            moduleBinary.byteOffset,
+            moduleBinary.byteOffset + moduleBinary.byteLength));
+        let sectionDataStart = moduleBinary.length - 24 - 32;
+        let sectionName = decoderUtf8.decode(moduleBinary.subarray(sectionDataStart, sectionDataStart + 32));
+        if (sectionName != CUSTOM_SECTION_NAME) {
+            throw new Error('This binary does not allow changing its memory size limit.');
+        }
+        let struct = new DataView(moduleBinary.buffer, sectionDataStart + 32, 24);
+        let version = struct.getUint32(4 * 0, true);
+        let stackPointerValueBegin = struct.getUint32(4 * 1, true);
+        let stackPointerValueEnd = struct.getUint32(4 * 2, true);
+        let dataSectionBegin = struct.getUint32(4 * 3, true);
+        let dataSectionEnd = struct.getUint32(4 * 4, true);
+        let memLimitsOffset = struct.getUint32(4 * 5, true);
+        moduleBinary[memLimitsOffset + 3] = (blocks & 0x7F) | 0x80;
+        moduleBinary[memLimitsOffset + 4] = ((blocks >> 7) & 0x7F) | 0x80;
+        moduleBinary[memLimitsOffset + 5] = ((blocks >> 14) & 0x7F);
+    }
+
+    module = await WebAssembly.compile(moduleBinary);
+
+    //module = source as any; // TODO: Other types of sources
     /*
     while 'loading':
         wait for completed
@@ -238,20 +294,22 @@ function createSandbox(): SandboxInternal {
     }
 
     function startup() {
-        try {
-            exports._start();
-        } catch (error) {
-            if (error instanceof SandboxEntryIsNotARealException) {
-                return;
-            } else {
-                throw error;
+        if (exports._start) {
+            try {
+                exports._start();
+            } catch (error) {
+                if (error instanceof SandboxEntryIsNotARealException) {
+                    return;
+                } else {
+                    throw error;
+                }
             }
+            throw Error('Sandbox startup failed.');
         }
-        throw Error('Sandbox startup failed.');
     }
 
     function createExportWrapper(number: number): Function {
-        return function(...args: any[]): any {
+        return function (...args: any[]): any {
             return call(number, ...args);
         }
     }
@@ -781,8 +839,7 @@ function createSandbox(): SandboxInternal {
 
     const importFunctions: Function[] = [];
 
-    function registerImportsInner(callbacks: RegisterCallbacks): RegisterCallbacksIds
-    {
+    function registerImportsInner(callbacks: RegisterCallbacks): RegisterCallbacksIds {
         let ids: RegisterCallbacksIds = {}; // TODO: If some function is overridden by another function or null/undefined, then release old one here and on the guest by sending id=-1
         for (let name in callbacks) {
             let value = callbacks[name];

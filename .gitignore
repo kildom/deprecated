@@ -8,3 +8,4 @@ package-lock.json
 /src-guest/*.js
 /perf/*.js
 /perf/src/*.js
+/tmp/

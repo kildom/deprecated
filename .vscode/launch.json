@@ -1,0 +1,19 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "test1",
+            //"program": "${workspaceFolder}/tools/postprocess-wasm/main.ts",
+            "program": "${workspaceFolder}/tmp/postprocess-wasm.js",
+            "args": ["-O2", "release/sandbox.opt.wasm", "release/sandbox-final.wasm"],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "npm: tools-build-postprocess-wasm",
+            "outFiles": [ "${workspaceFolder}/tmp/*.js" ]
+        },
+    ]
+}
