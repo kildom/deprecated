@@ -1,4 +1,4 @@
-import { SandboxWasmExport, SandboxWasmImport, SandboxWasmImportModule } from "./wasm-interface";
+import { SandboxWasmExport, SandboxWasmImport, SandboxWasmImportModule, memoryInitialPages } from "./wasm-interface";
 import { createWasiImports } from "./wasi-stubs";
 import { ArrayBufferViewType } from "../src-guest/common";
 import bootSourceCode from "./src-guest-boot";
@@ -87,11 +87,11 @@ export class EngineError extends Error { }
 
 export interface ModuleOptions {
     allowFreeze?: boolean;
-    maxMemory?: number;
 };
 
 export interface InstantiateOptions {
     maxHeapSize?: number;
+    maxWasmSize?: number;
     // TODO: maxMessageEstimatedSize?: number;
 };
 
@@ -143,7 +143,7 @@ export async function setSandboxModule(
         throw new Error('aaa');
     }
 
-    if (options.maxMemory) {
+    /*if (options.maxMemory) {
         let blocks = Math.ceil(options.maxMemory / 65536);
         moduleBinary = new Uint8Array(moduleBinary.buffer.slice(
             moduleBinary.byteOffset,
@@ -163,7 +163,7 @@ export async function setSandboxModule(
         moduleBinary[memLimitsOffset + 3] = (blocks & 0x7F) | 0x80;
         moduleBinary[memLimitsOffset + 4] = ((blocks >> 7) & 0x7F) | 0x80;
         moduleBinary[memLimitsOffset + 5] = ((blocks >> 14) & 0x7F);
-    }
+    }*/
 
     module = await WebAssembly.compile(moduleBinary);
 
@@ -192,10 +192,9 @@ export async function setSandboxModule(
 
 export async function instantiate(options?: InstantiateOptions): Promise<Sandbox> {
     await ensureModuleLoaded();
-    let sandbox = createSandbox();
+    let sandbox = createSandbox(options || {});
     let instance = await WebAssembly.instantiate(module as WebAssembly.Module, sandbox.imports as any);
-    sandbox.init(instance, options);
-    (sandbox as any).__Internal__instance = instance;
+    sandbox.init(instance);
     return sandbox;
 }
 
@@ -260,11 +259,11 @@ function entry(): never {
 };
 
 
-function createSandbox(): SandboxInternal {
+function createSandbox(options: InstantiateOptions): SandboxInternal {
 
     let exports: SandboxWasmExport;
 
-    let memory: WebAssembly.Memory;
+    const memory: WebAssembly.Memory = createMemory();
     let arrayBuffer: ArrayBuffer = undefined as any;
     let byteArray: Uint8Array; // TODO: Maybe not needed
 
@@ -293,21 +292,6 @@ function createSandbox(): SandboxInternal {
         }
     }
 
-    function startup() {
-        if (exports._start) {
-            try {
-                exports._start();
-            } catch (error) {
-                if (error instanceof SandboxEntryIsNotARealException) {
-                    return;
-                } else {
-                    throw error;
-                }
-            }
-            throw Error('Sandbox startup failed.');
-        }
-    }
-
     function createExportWrapper(number: number): Function {
         return function (...args: any[]): any {
             return call(number, ...args);
@@ -331,14 +315,14 @@ function createSandbox(): SandboxInternal {
 
     let sandboxImports: SandboxWasmImportModule.sandbox = {
 
-        entry,
-
         log(ptr: number, len: number): void {
             refreshViews();
             let str: string;
             str = decoderUtf8.decode(new Uint8Array(arrayBuffer, ptr, len));
             console.log('SANDBOX:', str);
         },
+
+        entry: () => { throw Error(); },
 
         clearValues(): void {
             valueStack.splice(0);
@@ -858,27 +842,34 @@ function createSandbox(): SandboxInternal {
         return valueStack[0];
     }
 
+    function createMemory() {
+        let descriptor: WebAssembly.MemoryDescriptor = {
+            initial: memoryInitialPages["env.memory"],
+        };
+        if (options.maxWasmSize) {
+            descriptor.maximum = Math.ceil(options.maxWasmSize / 65536);
+        }
+        return new WebAssembly.Memory(descriptor);
+    }
+
     const sandbox: SandboxInternal = {
 
         imports: {
             sandbox: sandboxImports,
             wasi_snapshot_preview1: wasiImports,
+            env: { memory },
         },
 
-        init(instance: WebAssembly.Instance, options?: InstantiateOptions): void {
+        init(instance: WebAssembly.Instance): void {
             exports = instance.exports as any;
-            memory = exports.memory;
             refreshViews();
             wasiImports.setMemory(memory);
-            startup();
-            if ((options as any).__Internal__no_boot) {
-                return;
-            }
             sharedBufferPointer = exports.getSharedBufferPointer();
             sharedBufferSize = exports.getSharedBufferSize();
             let flags = (decoderLatin1 ? SandboxFlags.Latin1Allowed : 0)
                 | (decoderUtf16 ? SandboxFlags.Utf16Allowed : 0);
-            if (!exports.init(options?.maxHeapSize || 32 * 1024 * 1024, flags)) { // TODO: Add try catch for each export call. Exception from wasm indicates unrecoverable error.
+            console.log(options.maxHeapSize || 32 * 1024 * 1024);
+            if (!exports.init(options.maxHeapSize || 32 * 1024 * 1024, flags)) { // TODO: Add try catch for each export call. Exception from wasm indicates unrecoverable error.
                 throw new Error('Sandbox initialization failed.');
             }
             sandbox.execute(bootSourceCode, { fileName: '[guest boot code]' });

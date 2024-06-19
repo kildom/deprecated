@@ -173,6 +173,7 @@ function readSections(binary: Uint8Array) {
 
     while (offset < bin.length) {
         let id = byte();
+        assert(id != SectionType.memorySection, 'Only imported memory allowed.');
         let size = leb128();
         let input = bin.subarray(offset, offset + size);
         offset += size;
@@ -198,6 +199,12 @@ export function rewriteModule(binary: Uint8Array, memory: Uint8Array, stackPoint
 
     readSections(binary);
 
+    let startSecIndex = sectionsOrdered.findIndex(sec => sec.id === SectionType.startSection);
+    if (startSecIndex >= 0) {
+        sectionsOrdered.splice(startSecIndex, 1);
+        delete sectionsById[SectionType.startSection];
+    }
+
     let { getSpTypeIndex, setSpTypeIndex } =
         parseTypeSection();
 
@@ -205,7 +212,7 @@ export function rewriteModule(binary: Uint8Array, memory: Uint8Array, stackPoint
         addSpHandlersToFunctionSection({ getSpTypeIndex, setSpTypeIndex });
 
     let { funcIndexStart, globalIndexStart } =
-        getIndexStartsFromImports();
+        getIndexStartsAndMemoryFromImports({ requiredSize: memory.length });
 
     let { stackPointerIndex } =
         addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex, setSpFuncIndex });
@@ -216,9 +223,6 @@ export function rewriteModule(binary: Uint8Array, memory: Uint8Array, stackPoint
         generateNewDataSection(memory, stackPointer, sizeOptimize);
 
     generateDataCountSection(dataBlockCount);
-
-    generateMemorySection({ minMemorySize: memory.length });
-
     let { stackPointerBegin, stackPointerEnd } =
         getStackPointerLocation({ stackPointerIndex, globalIndexStart });
 
@@ -231,8 +235,8 @@ export function parseModule(binary: Uint8Array) {
 
     readSections(binary);
 
-    let { funcIndexStart, globalIndexStart } =
-        getIndexStartsFromImports();
+    let { funcIndexStart, globalIndexStart, memoryLimits } =
+        getIndexStartsAndMemoryFromImports({ requiredSize: 0 });
 
     let { stackPointerHandlerIndex } =
         getSpHandlerIndexFromExports();
@@ -243,26 +247,32 @@ export function parseModule(binary: Uint8Array) {
     let { stackPointerBegin, stackPointerEnd } =
         getStackPointerLocation({ stackPointerIndex, globalIndexStart });
 
-    let { memoryLimitsOffset } =
-        generateMemorySection({ minMemorySize: 0 });
-
     getOutput();
 
     stackPointerBegin += sectionsById[SectionType.globalSection].outputOffset + sectionsById[SectionType.globalSection].outputHeaderSize;
     stackPointerEnd += sectionsById[SectionType.globalSection].outputOffset + sectionsById[SectionType.globalSection].outputHeaderSize;
-    memoryLimitsOffset += sectionsById[SectionType.memorySection].outputOffset + sectionsById[SectionType.memorySection].outputHeaderSize;
+    let initialSizeOffset = memoryLimits.offset + sectionsById[SectionType.importSection].outputOffset + sectionsById[SectionType.importSection].outputHeaderSize;
     let dataSectionBegin = sectionsById[SectionType.dataSection].outputOffset;
     let dataSectionEnd = sectionsById[SectionType.dataSection].outputEndOffset;
 
-    appendCustomSection({ stackPointerBegin, stackPointerEnd, memoryLimitsOffset, dataSectionBegin, dataSectionEnd });
+    appendCustomSection({ stackPointerBegin, stackPointerEnd, initialSizeOffset, dataSectionBegin, dataSectionEnd });
 
     return getOutput();
 }
 
+export function getImportMemoryLimits(binary: Uint8Array) {
+
+    readSections(binary);
+
+    let { memoryLimits } =
+        getIndexStartsAndMemoryFromImports({ requiredSize: 0 });
+
+    return memoryLimits;
+}
 
 function appendCustomSection(
-    { stackPointerBegin, stackPointerEnd, memoryLimitsOffset, dataSectionBegin, dataSectionEnd }:
-        { stackPointerBegin: number, stackPointerEnd: number, memoryLimitsOffset: number, dataSectionBegin: number, dataSectionEnd: number }
+    { stackPointerBegin, stackPointerEnd, initialSizeOffset, dataSectionBegin, dataSectionEnd }:
+        { stackPointerBegin: number, stackPointerEnd: number, initialSizeOffset: number, dataSectionBegin: number, dataSectionEnd: number }
 ) {
     let section: Section = {
         begin: NaN,
@@ -286,7 +296,7 @@ function appendCustomSection(
     struct.setUint32(4 * 2, stackPointerEnd, true);
     struct.setUint32(4 * 3, dataSectionBegin, true);
     struct.setUint32(4 * 4, dataSectionEnd, true);
-    struct.setUint32(4 * 5, memoryLimitsOffset, true);
+    struct.setUint32(4 * 5, initialSizeOffset, true);
 
     output(new Uint8Array(struct.buffer));
 }
@@ -462,25 +472,56 @@ function addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex,
     return { stackPointerIndex };
 }
 
-function getIndexStartsFromImports() {
-    setActive(SectionType.importSection);
+function getIndexStartsAndMemoryFromImports({ requiredSize }: { requiredSize: number }) {
+    setActive(SectionType.importSection, true);
 
     let funcIndexStart = 0;
     let globalIndexStart = 0;
+    let memoryLimits = { initial: -1, maximum: -1, offset: -1 };
     let count = leb128();
+    output(count);
     for (let i = 0; i < count; i++) {
         let len = leb128();
+        output(len);
+        output(bin.subarray(offset, offset + len));
         offset += len;
         len = leb128();
+        output(len);
+        output(bin.subarray(offset, offset + len));
         offset += len;
         let kind = byte();
-        leb128();
-        if (kind === 0x00) funcIndexStart++;
-        if (kind === 0x03) globalIndexStart++;
-        assert.notEqual(kind, 0x02, 'No import memory');
+        output(kind);
+        if (kind === 0x00) { // func
+            output(leb128()); // index
+            funcIndexStart++;
+        }
+        else if (kind === 0x03) { // global
+            output(byte()); // type
+            output(byte()); // mut
+            globalIndexStart++;
+        } else if (kind === 0x02) { // memory
+            let maxPresent = byte();
+            output(maxPresent);
+            memoryLimits.offset = outputOffset(0);
+            let moduleInitial = leb128();
+            memoryLimits.initial = Math.max(moduleInitial, Math.ceil(requiredSize / 65536));
+            output(leb128Create(memoryLimits.initial, 3));
+            if (maxPresent) {
+                memoryLimits.maximum = leb128();
+                output(memoryLimits.maximum);
+            } else {
+                memoryLimits.maximum = Infinity;
+            }
+        } else { // table
+            assert(false);
+        }
     }
 
-    return { funcIndexStart, globalIndexStart };
+    assert(memoryLimits.initial > 0);
+    assert(memoryLimits.maximum > 0);
+    assert(memoryLimits.offset > 0);
+
+    return { funcIndexStart, globalIndexStart, memoryLimits };
 }
 
 
@@ -612,32 +653,18 @@ function generateNewDataSection(memory: Uint8Array, stackPointer: number, sizeOp
 }
 
 function generateDataCountSection(dataBlockCount: number) {
-    setActive(SectionType.dataCountSection, true);
-    output(dataBlockCount);
-}
-
-
-function generateMemorySection({ minMemorySize }: { minMemorySize: number }) {
-    setActive(SectionType.memorySection, true);
-
-    let count = leb128();
-    assert.equal(count, 1, 'Exactly one memory.');
-    byte(); // ignore limit kind
-    let min = leb128();
-
-    let expectedBlocks = Math.max(min, Math.ceil(minMemorySize / BLOCK_SIZE));
-    output(1); // memory count
-    output(0x01); // upper limit present
-    output(leb128Create(expectedBlocks, 3));
-    output(leb128Create(HARD_MEM_LIMIT / BLOCK_SIZE, 3));
-    let memoryLimitsOffset = 2;
-    return { memoryLimitsOffset };
+    if (sectionsById[SectionType.dataCountSection]) {
+        setActive(SectionType.dataCountSection, true);
+        output(dataBlockCount);
+    }
 }
 
 
 function setActive(type: SectionType | Section, clearOutput: boolean = false): void {
     currentSection = typeof type === 'object' ? type : sectionsById[type];
-    assert(currentSection);
+    if (!currentSection) {
+        throw new assert.AssertionError({ message: `Expected section ${SectionType[type as any]} is missing.` });
+    }
     bin = currentSection.input;
     offset = 0;
     out = currentSection.output;

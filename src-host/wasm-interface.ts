@@ -1,11 +1,9 @@
 /*
  * Code automatically generated with the "wasm-to-ts.mts" script.
- * Run "npm run wasm-to-ts" to regenerate it. Do not edit manully.
+ * Run "npm run wasm-to-ts" to regenerate it. Do not edit manually.
  */
 
 export interface SandboxWasmExport {
-    memory: WebAssembly.Memory;
-    _start(): void;
     createNull(): void;
     createArray(): void;
     createUndefined(): void;
@@ -33,13 +31,14 @@ export interface SandboxWasmExport {
     init(a: number, b: number): number;
     getSharedBufferPointer(): number;
     getSharedBufferSize(): number;
+    getStackPointer(): number;
+    setStackPointer(a: number): void;
 };
 
 export namespace SandboxWasmImportModule {
     export interface sandbox {
         clearValues(): void;
         createEngineError(a: number, b: number, c: number): void;
-        entry(): number;
         callToHost(a: number): number;
         createString(a: number, b: number, c: number): void;
         createUndefined(): void;
@@ -61,11 +60,8 @@ export namespace SandboxWasmImportModule {
     };
     export interface wasi_snapshot_preview1 {
         fd_write(a: number, b: number, c: number, d: number): number;
-        args_get(a: number, b: number): number;
-        args_sizes_get(a: number, b: number): number;
         environ_get(a: number, b: number): number;
         environ_sizes_get(a: number, b: number): number;
-        clock_res_get(a: number, b: number): number;
         clock_time_get(a: number, b: bigint, c: number): number;
         fd_close(a: number): number;
         fd_fdstat_get(a: number, b: number): number;
@@ -74,9 +70,17 @@ export namespace SandboxWasmImportModule {
         proc_exit(a: number): void;
         random_get(a: number, b: number): number;
     };
+    export interface env {
+        memory: WebAssembly.Memory;
+    };
 };
 
 export interface SandboxWasmImport {
     sandbox: SandboxWasmImportModule.sandbox;
     wasi_snapshot_preview1: SandboxWasmImportModule.wasi_snapshot_preview1;
+    env: SandboxWasmImportModule.env;
+};
+
+export const memoryInitialPages = {
+    "env.memory": 71,
 };

@@ -67,7 +67,7 @@ const typeRegExp = cre`
     end-of-text
 `;
 
-const importRegExp = cre`
+const importFuncRegExp = cre`
     // - func[0] sig=13 <clearValues> <- sandbox.clearValues
     begin-of-text
     " - func["
@@ -81,6 +81,25 @@ const importRegExp = cre`
     lazy-repeat any
     "<-"
     name: repeat any
+    end-of-text
+`;
+
+const importMemRegExp = cre`
+    // - memory[0] pages: initial=70 <- env.memory
+    begin-of-text
+    " - memory["
+    repeat whitespace
+    index: at-least-1 digit
+    repeat whitespace
+    "]"
+    repeat whitespace
+    "pages:"
+    repeat whitespace
+    "initial="
+    pages: at-least-1 digit
+    lazy-repeat any
+    "<-"
+    memName: repeat any
     end-of-text
 `;
 
@@ -129,6 +148,8 @@ let types: FuncType[] = [];
 let imports: { name: string, type: FuncType }[] = [];
 let funcDecls: FuncType[] = [];
 let memExports: string[] = [];
+let memImports: string[] = [];
+let memInitialSizes: {[key:string]: number} = {};
 let funcExports: { name: string, type: FuncType }[] = [];
 
 function parseInterface(file: string) {
@@ -150,12 +171,17 @@ function parseInterface(file: string) {
         '-x', file,
     );
     for (let line of filterLines(out)) {
-        let groups = line.match(importRegExp)?.groups;
+        let groups = line.match(importFuncRegExp)?.groups || line.match(importMemRegExp)?.groups;
         if (!groups) fatal(`Cannot parse line: ${line}`);
-        imports[parseInt(groups.index)] = {
-            type: types[parseInt(groups.type)],
-            name: trimQuotes(groups.name),
-        };
+        if (groups.memName) {
+            memImports.push(trimQuotes(groups.memName));
+            memInitialSizes[trimQuotes(groups.memName)] = parseInt(groups.pages);
+        } else {
+            imports[parseInt(groups.index)] = {
+                type: types[parseInt(groups.type)],
+                name: trimQuotes(groups.name),
+            };
+        }
     }
 
     out = run('../wabt-1.0.35/bin/wasm-objdump',
@@ -190,8 +216,10 @@ function parseInterface(file: string) {
 
 function getWasmFile() {
     let all: string[] = [];
-    let file = 'release/sandbox.opt.wasm';
+    let file = 'release/sandbox-final.wasm';
     if (fs.existsSync(file)) all.push(file);
+    //file = 'release/sandbox.opt.wasm';
+    //if (fs.existsSync(file)) all.push(file);
     file = 'quickbuild/sandbox.wasm';
     if (fs.existsSync(file)) all.push(file);
     file = 'debug/sandbox.wasm';
@@ -217,10 +245,17 @@ function generateInterface() {
         result.push(`    ${exp.name}(${formatParams(exp.type.params)}): ${typeMapping[exp.type.result]};`);
     }
     result.push(`};\n`);
-    let modules = new Set(imports.map(x => x.name.split('.')[0]));
+    let modules = new Set([
+        ...imports.map(x => x.name.split('.')[0]),
+        ...memImports.map(x => x.split('.')[0]),
+    ]);
     result.push(`export namespace SandboxWasmImportModule {`);
     for (let mod of modules) {
         result.push(`    export interface ${mod} {`);
+        for (let mem of memImports) {
+            if (!mem.startsWith(mod + '.')) continue;
+            result.push(`        ${mem.substring(mod.length + 1)}: WebAssembly.Memory;`);
+        }
         for (let imp of imports) {
             if (!imp.name.startsWith(mod + '.')) continue;
             result.push(`        ${imp.name.substring(mod.length + 1)}(${formatParams(imp.type.params)}): ${typeMapping[imp.type.result]};`);
@@ -232,6 +267,11 @@ function generateInterface() {
     result.push(`export interface SandboxWasmImport {`);
     result.push(...importIface);
     result.push(`};\n`);
+    result.push(`export const memoryInitialPages = {`);
+    for (let [name, pages] of Object.entries(memInitialSizes)) {
+        result.push(`    ${JSON.stringify(name)}: ${pages},`);
+    }
+    result.push(`};\n`);
     return result.join('\n');
 }
 
@@ -242,7 +282,7 @@ let code = generateInterface();
 
 fs.writeFileSync('src-host/wasm-interface.ts', `/*
  * Code automatically generated with the "wasm-to-ts.mts" script.
- * Run "npm run wasm-to-ts" to regenerate it. Do not edit manully.
+ * Run "npm run wasm-to-ts" to regenerate it. Do not edit manually.
  */
 
 ${code}`);

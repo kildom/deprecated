@@ -12,6 +12,7 @@ QUICKFLAGS=-O1 -g0
 LDFLAGS=\
     -Wl,--stack-first -z stack-size=4194304 \
     -Wl,--export=__stack_pointer \
+    -Wl,--import-memory \
     ../../mozrelease/js/src/build/libjs_static.a \
     ../../mozrelease/wasm32-wasi/release/libjsrust.a \
     ../../mozrelease/mozglue/misc/AutoProfilerLabel.o \

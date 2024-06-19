@@ -9,6 +9,7 @@
 #include <js/MemoryFunctions.h>
 #include <js/Exception.h>
 #include <js/ArrayBuffer.h>
+#include <js/GCAPI.h>
 
 #include "wasm.h"
 #include "sandbox.h"
@@ -112,8 +113,14 @@ static bool callToHostJs(JSContext* cx, unsigned argc, JS::Value* vp) {
     return true;
 }
 
+static bool doGarbageCollection(JSContext* cx, unsigned argc, JS::Value* vp) {
+    NonIncrementalGC(cx, JS::GCOptions::Normal, JS::GCReason::API);
+    return true;
+}
+
 JSFunctionSpec sandboxGeneralFunctions[] = {
     JS_FN("callToHost", callToHostJs, 1, 0),
+    JS_FN("gc", doGarbageCollection, 1, 0),
     JS_FS_END};
 
 
@@ -243,6 +250,50 @@ bool init(uint32_t heapSizeLimit, SandboxFlags::T flags)
     if (!JS::InitSelfHostedCode(cx)) {
         return false;
     }
+
+    /* TODO: Below GC parameters does not work properly.
+    * We need hard heap limit. Possible solution:
+    * 1. In function (constructor) that blocks GC:
+    *    * if counter == 1 (this is first entry to GC-disabled scope)
+    *    * and if heapSize > currentThreshold then call triggerHardGC()
+    *    (we don't need to check after exiting from GC-disabled scope,
+    *    because we will check it just before allocating anything or
+    *    entering GC-disabled scope again).
+    * 2. Before allocating anything:
+    *    * if GC is not blocked
+    *    * and if heapSize > currentThreshold then call triggerHardGC()
+    *
+    * triggerHardGC():
+    *   * exit if GC is not possible, there may be more conditions
+    *     than just GC-disabled scope.
+    *   * do partial GC, e.g. minor GC (if this is possible)
+    *     (skip partial GC once everything N times, this will ensure that full GC is
+    *     executed sometimes).
+    *   * if heapSize <= currentThreshold:
+    *       * currentThreshold = min(currentThreshold, calcCurrentThreshold())
+    *       * return
+    *   * do full GC (with deallocating caches if heapSize above some bigger threshold)
+    *   * if full GC was actually done (not rejected)
+    *       * currentThreshold = calcCurrentThreshold()
+    * 
+    * calcCurrentThreshold():
+    *   * inputs:
+    *       * heapSize
+    *       * aggressiveGCThreshold - heap size when aggressive GC starts working
+    *       * hardThreshold - heap size when GC works all the time
+    *   return max(aggressiveGCThreshold, k * heapSize + (1 - k) * hardThreshold)
+    *   where k is parameter from 0 to 1 tells how aggressive approach is used
+    *   when we are are close to the limit.
+    *       0.5 - almost not aggressive
+    *       0.75 - pretty optimal value
+    *       0.9 - very aggressive
+    */
+    //JS_SetGCParameter(cx, JSGC_INCREMENTAL_GC_ENABLED, 0);
+    //JS_SetGCParameter(cx, JSGC_MAX_BYTES, heapSizeLimit);
+    //JS_SetGCParameter(cx, JSGC_ALLOCATION_THRESHOLD, 32);
+    //JS_SetGCParameter(cx, JSGC_BALANCED_HEAP_LIMITS_ENABLED, 0);
+    //JS_SetGCParameter(cx, JSGC_PER_ZONE_GC_ENABLED, 0);
+    //JS::AutoDisableGenerationalGC noggc(cx);
 
     JS::RealmOptions options;
     JS::RootedObject globalObject(cx, JS_NewGlobalObject(cx, &SandboxGlobalClass, nullptr, JS::FireOnNewGlobalHook, options));

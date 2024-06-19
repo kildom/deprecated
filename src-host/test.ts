@@ -25,11 +25,10 @@ async function main() {
     //console.log(Date.now() - t);
     //console.log(module);
     await setSandboxModule(bin,{
-        maxMemory: 32 * 1024 * 1024,
         //allowFreeze: true,
     });
 
-    let sandbox = await instantiate({maxHeapSize: 1024 * 1024 * 1024});
+    let sandbox = await instantiate({maxHeapSize: 32 * 1024 * 1024, maxWasmSize: 32 * 1024 * 1024});
     /*
         if(0)try {
             console.log(sandbox.execute(`
@@ -70,11 +69,17 @@ async function main() {
     `);
 
     sandbox.execute(`
-        let str = "let x = new Uint8Array([3,4,5,34,23,4,3,5,34,5,3,45,2,3,2,4,2,34])dfdfsdfsdfsdff";
+        //let str = "let x = new Uint8Array([3,4,5,34,23,4,3,5,34,5,3,45,2,3,2,4,2,34])dfdfsdfsdfsdff";
+        let s = 16 * 1024 * 1024;
         while (true) {
-            str += str + String.fromCharCode(Math.round(Math.random() * 100));
-            str = str.substr(1, str.length);
-            console.log(str.length);
+            //str += str + String.fromCharCode(Math.round(Math.random() * 100));
+            //str = str.substr(1, str.length);
+            //console.log(Math.ceil(str.length / 1024 / 1024 * 100) / 100, "MB");
+            //s *= 2;
+            __sandbox__.gc();
+            let arr = new ArrayBuffer(s);
+            //arr[s - 1] = 99;
+            console.log(Math.ceil(arr.byteLength / 1024 / 1024 * 100) / 100, "MB");
         }
         `);
 
