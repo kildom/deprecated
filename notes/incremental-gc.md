@@ -29,7 +29,9 @@ Etapy:
    Po tym etapie objekty rooted: mają rożnicę referencji != 0 lub mają usuniętą flagę.
    Możliwa jest róźnica referencji < 0, gdy referencje się zmieniają wielokrotnie, ale to też jest ok.
 3. Ustaw flagę "pending" i "not_new". W dalszych etapach objekty bez flagi "not_new", to nowe objekty, które nie uczestniczą w GC.
-4. Przejdź po liście objektów, jeżeli objekt jest rooted i "pending" przejdż po liście referencji wgłąb i oznaczaj objekty z
+   Jeżeli GC Generational jest włączony, zamiast flagi "not_new" można objekty przsunąć do tymczasowej generacji, na której
+   będziemy dalej operować.
+5. Przejdź po liście objektów, jeżeli objekt jest rooted i "pending" przejdż po liście referencji wgłąb i oznaczaj objekty z
    referencji jako rooted. Usuwaj "pending", po odpytaniu o wszystkie kolejne referencje. Jeżeli braknie miejsca na stosie
    służącym do wchodzenia wgłąb drzewa, to można pominąć dodawanie, ale ważne, żeby objekt był ustawiony jako "rooted" i
    "pending". Przeleć po wszystkich objektach tak dużo razy, aż nie będzie już objektów "rooted" and "pending" and "not_new".
