@@ -33,7 +33,10 @@ Etapy:
    referencji jako rooted. Usuwaj "pending", po odpytaniu o wszystkie kolejne referencje. Jeżeli braknie miejsca na stosie
    służącym do wchodzenia wgłąb drzewa, to można pominąć dodawanie, ale ważne, żeby objekt był ustawiony jako "rooted" i
    "pending". Przeleć po wszystkich objektach tak dużo razy, aż nie będzie już objektów "rooted" and "pending" and "not_new".
-5. Usuń objekty które są oznaczone jako: "not_new" and not "rooted"
+6. Usuń objekty które są oznaczone jako: "not_new" and not "rooted"
+
+(optymalizacja) Jeżeli w etapie 3 wyczyścimy "possibly not rooted" we wszystkich objektach, gdzie roźnica referencji != 0, to
+można użyć drugiego licznika jako wskaźnika w liście. Lista może być użyta zamiast stosu w kroku 4.
 
 Słabe referencje:
 * Możliwe wyłączanie, żeby zaoszczędzić pamięć.
