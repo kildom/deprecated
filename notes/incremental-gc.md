@@ -53,7 +53,7 @@ Etapy:
 (optymalizacja) Jeżeli w etapie 3 wyczyścimy "possibly not rooted" we wszystkich objektach, gdzie roźnica referencji != 0, to
 można użyć drugiego licznika jako wskaźnika w liście. Lista może być użyta zamiast stosu w kroku 4.
 
-Słabe referencje:
+Słabe referencje (opcja 1):
 * Możliwe wyłączanie, żeby zaoszczędzić pamięć.
 * Gdy objekt jest deallokowany, czyści zawartość WeakRefHolder
 ```
@@ -75,3 +75,6 @@ Słabe referencje (opcja 2):
 * Jeżeli słaba referencja wskazuje na EmptyWeakRefHolder, to jest to traktowane jako mocna referencja.
 * Jeżeli użytkownik wyciągnie wartość słabej referencji wskazującej na EmptyWeakRefHolder, referencja na EmptyWeakRefHolder
   zostanie wyczyszczona, żeby umożliwić deallokację EmptyWeakRefHolder w przyszłości.
+
+Opcja 1: mniej kodu
+Opcja 2: mniej pamięci
