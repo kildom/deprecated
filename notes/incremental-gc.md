@@ -34,3 +34,17 @@ Etapy:
    służącym do wchodzenia wgłąb drzewa, to można pominąć dodawanie, ale ważne, żeby objekt był ustawiony jako "rooted" i
    "pending". Przeleć po wszystkich objektach tak dużo razy, aż nie będzie już objektów "rooted" and "pending" and "not_new".
 5. Usuń objekty które są oznaczone jako: "not_new" and not "rooted"
+
+Słabe referencje:
+* Możliwe wyłączanie, żeby zaoszczędzić pamięć.
+* Gdy objekt jest deallokowany, czyści zawartość WeakRefProxy
+```
+WeakRef ==========+     +============+
+                  ⇓     ⇓            |
+WeakRef =====> WeakRefProxy - - -> Object
+                  ⇑
+WeakRef ==========+
+
+=====> - Strogn reference
+- - -> - Weak reference
+```
