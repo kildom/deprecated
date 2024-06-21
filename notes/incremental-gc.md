@@ -20,6 +20,14 @@ void passref() { // pass reference to other owner
   refCounter &= ~REF_CHAGED_FLAG;
 }
 
+// alternatywnie, można umieścić flagę na najniższym bicie:
+ref: refCounter += 2
+unref: (refCounter - 2) & ~REF_CHAGED_FLAG
+
+// albo odwrócić znaczenie flagi
+ref: refCounter += 2
+unref: (refCounter - 2) | 1
+       if (refCounter == 1) ...
 ```
 
 Etapy:
