@@ -37,11 +37,11 @@ Etapy:
 
 Słabe referencje:
 * Możliwe wyłączanie, żeby zaoszczędzić pamięć.
-* Gdy objekt jest deallokowany, czyści zawartość WeakRefProxy
+* Gdy objekt jest deallokowany, czyści zawartość WeakRefHolder
 ```
 WeakRef ==========+     +============+
                   ⇓     ⇓            |
-WeakRef =====> WeakRefProxy - - -> Object
+WeakRef =====> WeakRefHolder - - -> Object
                   ⇑
 WeakRef ==========+
 
