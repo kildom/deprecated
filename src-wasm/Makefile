@@ -5,35 +5,41 @@
 TARGET=sandbox
 
 
-ifeq (1,$(DEBUG))
+ifeq (debug,$(MODE))
   CXXFLAGS=-O0 -g -DDEBUG=1
-  OUTDIR=../debug
-  MOZ_BUILD_DIR=../../mozdebug
   LINK_TARGET=$(OUTDIR)/$(TARGET).wasm
   OPT_TARGET=$(OUTDIR)/non-existing-file
-  VARIANT_NAME=debug
-else
+  MODE_MOZ=debug
+else ifeq (release,$(MODE))
   CXXFLAGS=-flto -O2
-  OUTDIR=../release
-  MOZ_BUILD_DIR=../../mozrelease
   LINK_TARGET=$(OUTDIR)/obj/$(TARGET)-no-opt.wasm
   OPT_TARGET=$(OUTDIR)/$(TARGET).wasm
-  VARIANT_NAME=release
+  MODE_MOZ=release
+else ifeq (size,$(MODE))
+  CXXFLAGS=-flto -Oz
+  LINK_TARGET=$(OUTDIR)/obj/$(TARGET)-no-opt.wasm
+  OPT_TARGET=$(OUTDIR)/$(TARGET).wasm
+  MODE_MOZ=release
+else
+  $(error Give mode parameter: MODE=debug, MODE=release, or MODE=size)
 endif
 
 
-CPP=/home/doki/.mozbuild/clang/bin/clang++
-OPT=../../binaryen-version_117/bin/wasm-opt -O2 --strip-debug
-CXXFLAGS+=-target wasm32-wasi --sysroot /home/doki/.mozbuild/sysroot-wasm32-wasi -I $(MOZ_BUILD_DIR)/dist/include -D_WASI_EMULATED_SIGNAL
+OUTDIR=../build/$(MODE)
+MOZ_BUILD_DIR=../../moz$(MODE)
+CPP=$(HOME)/.mozbuild/clang/bin/clang++
+OPT=wasm-opt -O2 --strip-debug
+CXXFLAGS+=-target wasm32-wasi --sysroot $(HOME)/.mozbuild/sysroot-wasm32-wasi -I $(MOZ_BUILD_DIR)/dist/include -D_WASI_EMULATED_SIGNAL
 CPPFLAGS=-Wno-invalid-offsetof
 
 
 LDFLAGS=\
-    -Wl,--stack-first -z stack-size=4194304 \
+    -Wl,--stack-first -z stack-size=1048576 \
     -Wl,--export=__stack_pointer \
     -Wl,--import-memory \
+    -lwasi-emulated-signal \
     $(MOZ_BUILD_DIR)/js/src/build/libjs_static.a \
-    $(MOZ_BUILD_DIR)/wasm32-wasi/$(VARIANT_NAME)/libjsrust.a \
+    $(MOZ_BUILD_DIR)/wasm32-wasi/$(MODE_MOZ)/libjsrust.a \
     $(MOZ_BUILD_DIR)/mozglue/misc/AutoProfilerLabel.o \
     $(MOZ_BUILD_DIR)/mozglue/misc/ConditionVariable_noop.o \
     $(MOZ_BUILD_DIR)/mozglue/misc/Decimal.o \

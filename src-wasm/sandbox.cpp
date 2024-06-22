@@ -356,7 +356,7 @@ void checkAggressiveGC(uint32_t heapBytes)
         NonIncrementalGC(cx, JS::GCOptions::Normal, JS::GCReason::TOO_MUCH_MALLOC);
         auto after = JS_GetGCParameter(cx, JSGC_NUMBER);
         if (after != before) {
-            auto heapSize = realHeapBytes(cx);
+            uint32_t heapSize = realHeapBytes(cx);
             auto old = currentThreshold;
             currentThreshold = std::max(
                 aggressiveGCThreshold,

@@ -1,8 +1,7 @@
 node_modules
 *.wasm
 package-lock.json
-/release/
-/debug/
+/build/
 /quickbuild/
 /src-host/src-guest-*.ts
 /src-guest/*.js
