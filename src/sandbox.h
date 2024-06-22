@@ -26,6 +26,7 @@ struct SandboxFlags {
     enum T : uint32_t {
         Latin1Allowed = 1,
         Utf16Allowed = 2,
+        IncrementalGC = 3,
     };
     SandboxFlags() = delete;
 };
@@ -54,6 +55,8 @@ struct DynamicContext {
     JS::PersistentRootedValue sandboxValue;
     JS::PersistentRootedObject recvObject;
     JS::PersistentRootedValue recvValue;
+    JS::PersistentRootedObject memObject;
+    JS::PersistentRootedValue memValue;
     JS::PersistentRootedValue recvPendingErrorValue;
 
     DynamicContext(JSContext* cx):
@@ -62,6 +65,8 @@ struct DynamicContext {
         sandboxValue(cx),
         recvObject(cx),
         recvValue(cx),
+        memObject(cx),
+        memValue(cx),
         recvPendingErrorValue(cx)
     {
     }

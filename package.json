@@ -7,7 +7,8 @@
     "wasm-to-ts": "npx tsx tools/wasm-to-ts.ts",
     "compile-guest": "npx esbuild --target=firefox125 --bundle --outfile=src-guest/boot.js src-guest/boot.ts && npx tsx tools/file-to-literal.ts src-guest/*.js",
     "perf": "npx tsx tools/gen-perf.ts && npx esbuild --target=firefox125 --platform=node --bundle --outfile=perf/src/run.js perf/src/run.ts && npx tsx perf/src/compile-bundle.ts && node perf/src/run.js",
-    "tools-build-postprocess-wasm": "npx esbuild --sourcemap=inline --platform=node --bundle --outfile=tmp/postprocess-wasm.js tools/postprocess-wasm/main.ts"
+    "tools-build-postprocess-wasm": "npx esbuild --sourcemap=inline --platform=node --bundle --outfile=tmp/postprocess-wasm.js tools/postprocess-wasm/main.ts",
+    "compile-web-test": "npx esbuild --sourcemap=inline --target=firefox125 --bundle --outfile=tools/testpage/main.js tools/testpage/main.ts"
   },
   "author": "",
   "license": "ISC",

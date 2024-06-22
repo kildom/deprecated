@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <algorithm>
 
 #include <jsapi.h>
 #include <js/Initialization.h>
@@ -17,6 +18,8 @@
 
 
 #pragma region ------------------ GLOBAL VARIABLES ------------------
+
+const uint32_t MIN_THRESHOLD_INCREMENT = 8 * 1024;
 
 
 JSContext* cx;
@@ -47,15 +50,19 @@ WASM_IMPORT(sandbox, callToHost) bool callToHost(int32_t command);
 
 static void log(const char* format, ...)
 {
-    int size;
-    {
+    int size = 1024;
+    if (0) {
         static char tmp[1];
         std::va_list args;
-        size = vsnprintf(tmp, 1, format, args);
+        size = vsnprintf(tmp, 1, format, args) + 1024;
         va_end(args);
     }
     {
         char *ptr = (char*)malloc(size + 1);
+        if (!ptr) {
+            logWasm("malloc failed!", 14);
+            return;
+        }
         std::va_list args;
         va_start(args, format);
         size = vsnprintf(ptr, size + 1, format, args);
@@ -124,17 +131,108 @@ JSFunctionSpec sandboxGeneralFunctions[] = {
     JS_FS_END};
 
 
+WASM_IMPORT(sandbox, getMemorySize) uint32_t getMemorySize();
+WASM_IMPORT(sandbox, getStackPointer) uint32_t getStackPointer();
+
+static uint32_t memoryLimit;
+static uint32_t aggressiveGCThreshold;
+static uint32_t hardGCThreshold;
+static uint32_t currentThreshold;
+static uint32_t initialMemorySize;
+static uint32_t initialStackPointer;
+
+static bool GetPropFunc(JSContext* cx, unsigned argc, JS::Value* vp, uint32_t value) {
+  JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+  args.rval().setInt32(value);
+  return true;
+}
+
+size_t realHeapBytes(JSContext* cx);
+
+static bool GetMemTotalFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
+    return GetPropFunc(cx, argc, vp, getMemorySize());
+}
+
+static bool GetMemLimitFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
+    return GetPropFunc(cx, argc, vp, memoryLimit);
+}
+
+static bool GetMemHeapReservedFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
+    return GetPropFunc(cx, argc, vp, getMemorySize() - initialMemorySize);
+}
+
+static bool GetMemHeapUsedFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
+    return GetPropFunc(cx, argc, vp, realHeapBytes(cx));
+}
+
+static bool GetMemHeapThresholdFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
+    return GetPropFunc(cx, argc, vp, currentThreshold);
+}
+
+static bool GetMemHeapMinThresholdFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
+    return GetPropFunc(cx, argc, vp, aggressiveGCThreshold);
+}
+
+static bool GetMemHeapLimitFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
+    return GetPropFunc(cx, argc, vp, hardGCThreshold);
+}
+
+static bool GetMemStackSizeFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
+    uint32_t spBase = (initialStackPointer + 65535) & 0xFFFF0000;
+    return GetPropFunc(cx, argc, vp, spBase - getStackPointer());
+}
+
+static bool GetMemStackLimitFunc(JSContext* cx, unsigned argc, JS::Value* vp) {
+    uint32_t spBase = (initialStackPointer + 65535) & 0xFFFF0000;
+    return GetPropFunc(cx, argc, vp, spBase);
+}
+
+static bool calculateStackUsage(JSContext* cx, unsigned argc, JS::Value* vp) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    uint64_t *ptr = (uint64_t *)0;
+    while (*ptr == 0) {
+        ptr++;
+    }
+    uint32_t zeroedStackSize = (uintptr_t)ptr;
+    uint32_t spBase = (initialStackPointer + 65535) & 0xFFFF0000;
+    args.rval().setInt32(spBase - zeroedStackSize);
+    return true;
+}
+
+static JSFunctionSpec sandboxMemoryFunctions[] = {
+    JS_FN("calculateStackUsage", calculateStackUsage, 0, 0),
+    JS_FS_END};
+
+
+static JSPropertySpec sandboxMemoryProperties[] = {
+    JS_PSG("total", GetMemTotalFunc, JSPROP_ENUMERATE),
+    JS_PSG("limit", GetMemLimitFunc, JSPROP_ENUMERATE),
+    JS_PSG("heapReserved", GetMemHeapReservedFunc, JSPROP_ENUMERATE),
+    JS_PSG("heapUsed", GetMemHeapUsedFunc, JSPROP_ENUMERATE),
+    JS_PSG("heapThreshold", GetMemHeapThresholdFunc, JSPROP_ENUMERATE),
+    JS_PSG("heapMinThreshold", GetMemHeapMinThresholdFunc, JSPROP_ENUMERATE),
+    JS_PSG("heapLimit", GetMemHeapLimitFunc, JSPROP_ENUMERATE),
+    JS_PSG("stackSize", GetMemStackSizeFunc, JSPROP_ENUMERATE),
+    JS_PSG("stackLimit", GetMemStackLimitFunc, JSPROP_ENUMERATE),
+    JS_PS_END};
+
+
 static bool defineSandboxObject()
 {
     dx->sandboxObject.set(JS_NewObject(cx, nullptr));
     dx->sandboxValue.setObject(*dx->sandboxObject);
     dx->recvObject.set(JS_NewObject(cx, nullptr));
     dx->recvValue.setObject(*dx->recvObject);
+    dx->memObject.set(JS_NewObject(cx, nullptr));
+    dx->memValue.setObject(*dx->memObject);
 
     if (!JS_SetProperty(cx, dx->globalObject, "__sandbox__", dx->sandboxValue)) return false;
     if (!JS_SetProperty(cx, dx->sandboxObject, "recv", dx->recvValue)) return false;
+    if (!JS_SetProperty(cx, dx->sandboxObject, "memory", dx->memValue)) return false;
     if (!JS_DefineFunctions(cx, dx->sandboxObject, sandboxSendFunctions)) return false;
     if (!JS_DefineFunctions(cx, dx->sandboxObject, sandboxGeneralFunctions)) return false;
+    if (!JS_DefineFunctions(cx, dx->memObject, sandboxMemoryFunctions)) return false;
+    if (!JS_DefineProperties(cx, dx->memObject, sandboxMemoryProperties)) return false;
 
     return true;
 }
@@ -237,19 +335,74 @@ void contextFree(void* ptr)
 }
 
 
-WASM_EXPORT(init)
-bool init(uint32_t heapSizeLimit, SandboxFlags::T flags)
+#define HOW_AGGRESSIVE 128 /* 0 - 256 */
+
+void checkAggressiveGC(uint32_t heapBytes)
 {
+    if (
+        heapBytes > currentThreshold &&
+        cx &&
+        !JS::RuntimeHeapIsBusy() &&
+        JS::CheckIfGCAllowedInCurrentState(JS_GetRuntime(cx))
+    ) {
+        /*log("BEFORE: bytes %d - %d, num %d, major %d, minor %d, slice %d\n",
+            heapBytes,
+            JS_GetGCParameter(cx, JSGC_BYTES),
+            JS_GetGCParameter(cx, JSGC_NUMBER),
+            JS_GetGCParameter(cx, JSGC_MAJOR_GC_NUMBER),
+            JS_GetGCParameter(cx, JSGC_MINOR_GC_NUMBER),
+            JS_GetGCParameter(cx, JSGC_SLICE_NUMBER));*/
+        auto before = JS_GetGCParameter(cx, JSGC_NUMBER);
+        NonIncrementalGC(cx, JS::GCOptions::Normal, JS::GCReason::TOO_MUCH_MALLOC);
+        auto after = JS_GetGCParameter(cx, JSGC_NUMBER);
+        if (after != before) {
+            auto heapSize = realHeapBytes(cx);
+            auto old = currentThreshold;
+            currentThreshold = std::max(
+                aggressiveGCThreshold,
+                (uint32_t)(((uint64_t)(256 + HOW_AGGRESSIVE) * (uint64_t)heapSize
+                + (uint64_t)(256 - HOW_AGGRESSIVE) * (uint64_t)hardGCThreshold) / (uint64_t)512));
+            currentThreshold = std::max(currentThreshold, heapSize + MIN_THRESHOLD_INCREMENT);
+            log("heap %d KB -> %d KB, threshold %d KB -> %d KB", heapBytes / 1024, heapSize / 1024, old / 1024, currentThreshold / 1024);
+        }
+        /*log("AFTER: bytes %d - %d, num %d, major %d, minor %d, slice %d\n",
+            heapBytes,
+            JS_GetGCParameter(cx, JSGC_BYTES),
+            JS_GetGCParameter(cx, JSGC_NUMBER),
+            JS_GetGCParameter(cx, JSGC_MAJOR_GC_NUMBER),
+            JS_GetGCParameter(cx, JSGC_MINOR_GC_NUMBER),
+            JS_GetGCParameter(cx, JSGC_SLICE_NUMBER));*/
+    }
+}
+
+void checkAggressiveGC2(uint32_t heapBytes)
+{
+    //checkAggressiveGC(heapBytes);
+}
+
+WASM_EXPORT(init)
+bool init(uint32_t aggressiveGCThreshold, uint32_t hardGCThreshold, uint32_t memoryLimit, SandboxFlags::T flags)
+{
+    ::aggressiveGCThreshold = aggressiveGCThreshold;
+    ::hardGCThreshold = hardGCThreshold;
+    ::memoryLimit = memoryLimit;
+    currentThreshold = aggressiveGCThreshold;
     sandboxFlags = flags;
 
-    cx = JS_NewContext(heapSizeLimit);
+    cx = JS_NewContext(aggressiveGCThreshold);
     if (!cx) {
         return false;
     }
 
+    JS_malloc(cx, 10000);
+
     if (!JS::InitSelfHostedCode(cx)) {
         return false;
     }
+
+    JS_SetGCParameter(cx, JSGC_INCREMENTAL_GC_ENABLED, flags & SandboxFlags::IncrementalGC ? 1 : 0);
+    JS_SetGCParameter(cx, JSGC_BALANCED_HEAP_LIMITS_ENABLED, 0);
+    JS_SetGCParameter(cx, JSGC_PER_ZONE_GC_ENABLED, 0);
 
     /* TODO: Below GC parameters does not work properly.
     * We need hard heap limit. Possible solution:
@@ -279,20 +432,30 @@ bool init(uint32_t heapSizeLimit, SandboxFlags::T flags)
     * calcCurrentThreshold():
     *   * inputs:
     *       * heapSize
-    *       * aggressiveGCThreshold - heap size when aggressive GC starts working
+    *       * aggressiveGCThreshold - heap size when aggressive GC kicks in
     *       * hardThreshold - heap size when GC works all the time
-    *   return max(aggressiveGCThreshold, k * heapSize + (1 - k) * hardThreshold)
+    *   return max(aggressiveGCThreshold, (0.5 + k / 2) * heapSize + (0.5 - k / 2) * hardThreshold)
     *   where k is parameter from 0 to 1 tells how aggressive approach is used
     *   when we are are close to the limit.
-    *       0.5 - almost not aggressive
-    *       0.75 - pretty optimal value
-    *       0.9 - very aggressive
+    *       0.0 - almost not aggressive
+    *       0.5 - pretty optimal value
+    *       0.8 - very aggressive
+    * 
+    * Useful symbols:
+    *      NonIncrementalGC
+    *      CellAllocator::PreAllocChecks
+    *      JSContext::suppressGC
+    *      JSContext::isInUnsafeRegion
+    *      conditions for GC:
+    *          !JS::RuntimeHeapIsBusy()
+    *          !JSContext::suppressGC
+    *          !JSContext::isInUnsafeRegion()
+    *          !JSRuntime::isBeingDestroyed()
+    *          !GCRuntime::isShutdownGC()
+    *      checkIfGCAllowedInCurrentState
     */
-    //JS_SetGCParameter(cx, JSGC_INCREMENTAL_GC_ENABLED, 0);
     //JS_SetGCParameter(cx, JSGC_MAX_BYTES, heapSizeLimit);
     //JS_SetGCParameter(cx, JSGC_ALLOCATION_THRESHOLD, 32);
-    //JS_SetGCParameter(cx, JSGC_BALANCED_HEAP_LIMITS_ENABLED, 0);
-    //JS_SetGCParameter(cx, JSGC_PER_ZONE_GC_ENABLED, 0);
     //JS::AutoDisableGenerationalGC noggc(cx);
 
     JS::RealmOptions options;
@@ -330,6 +493,8 @@ uint32_t getSharedBufferSize()
 
 
 int main(int argc, const char* argv[]) {
+    initialMemorySize = getMemorySize();
+    initialStackPointer = getStackPointer();
     if (!JS_Init()) {
         return 1;
     }

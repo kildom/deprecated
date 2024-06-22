@@ -90,9 +90,13 @@ export interface ModuleOptions {
 };
 
 export interface InstantiateOptions {
-    maxHeapSize?: number;
-    maxWasmSize?: number;
-    // TODO: maxMessageEstimatedSize?: number;
+    maxHeapSize?: number; // default: min((maxWasmSize - estimated static data size) * 0.xx {fragmentation coefficient}, minHeapThreshold * 1.xx)
+    maxWasmSize?: number; // default: maxHeapSize ? maxHeapSize * 1.xx + estimated static data size : 32 * 1024 * 1024
+    minHeapThreshold?: number; // default: maxHeapSize * 0.xx // TODO: minHeapThreshold
+    maxMessageEstimatedSize?: number; // default: 1 * 1024 * 1024 // TODO: Estimated memory size allocated by the data flowing from guest to host.
+    maxCallRecursion?: number; // default: 10 // TODO: maximum number of calls between host and guest in one call stack.
+                               // Documentation should explain that recursion should be avoided, something like:
+                               // "Don't call guest from host function that might be called from guest."
 };
 
 export interface ExecuteOptions {
@@ -140,7 +144,9 @@ export async function setSandboxModule(
     ) {
         moduleBinary = new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
     } else {
-        throw new Error('aaa');
+        moduleBinary = null;
+        module = source;
+        return;
     }
 
     /*if (options.maxMemory) {
@@ -322,7 +328,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
             console.log('SANDBOX:', str);
         },
 
-        entry: () => { throw Error(); },
+        entry,
 
         clearValues(): void {
             valueStack.splice(0);
@@ -545,7 +551,15 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
                     break;
                 }
             }
-        }
+        },
+
+        getMemorySize(): number {
+            return memory.buffer.byteLength;
+        },
+
+        getStackPointer(): number {
+            return exports.__stack_pointer ? exports.__stack_pointer : exports.getStackPointer();
+        },
     };
 
     const wasiImports = createWasiImports();
@@ -677,7 +691,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
                         encodeValue(x);
                         exports.createArrayItem(i);
                     });
-                } else if (value instanceof ArrayBuffer || value instanceof SharedArrayBuffer) {
+                } else if (value instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && value instanceof SharedArrayBuffer)) {
                     let info = arrayBuffers.get(value);
                     let size = info!.end - info!.begin;
                     let ptr = mallocSafe(size);
@@ -686,7 +700,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
                     exports.createArrayBuffer(ptr, size);
                 } else if (typeof value.byteLength === 'number'
                     && typeof value.byteOffset === 'number'
-                    && (value.buffer instanceof ArrayBuffer || value.buffer instanceof SharedArrayBuffer)
+                    && (value.buffer instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && value.buffer instanceof SharedArrayBuffer))
                     && (value instanceof Int8Array || value instanceof Uint8Array
                         || value instanceof Int16Array || value instanceof Uint16Array
                         || value instanceof Int32Array || value instanceof Uint32Array
@@ -752,14 +766,14 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
                 value.forEach(x => {
                     prepareEncodingValue(x);
                 });
-            } else if (value instanceof ArrayBuffer || value instanceof SharedArrayBuffer) {
+            } else if (value instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && value instanceof SharedArrayBuffer)) {
                 arrayBuffers.set(value, {
                     begin: 0,
                     end: value.byteLength,
                 });
             } else if (typeof value.byteLength === 'number'
                 && typeof value.byteOffset === 'number'
-                && (value.buffer instanceof ArrayBuffer || value.buffer instanceof SharedArrayBuffer)
+                && (value.buffer instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && value.buffer instanceof SharedArrayBuffer))
                 && (value instanceof Int8Array || value instanceof Uint8Array
                     || value instanceof Int16Array || value instanceof Uint16Array
                     || value instanceof Int32Array || value instanceof Uint32Array
@@ -844,12 +858,27 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
 
     function createMemory() {
         let descriptor: WebAssembly.MemoryDescriptor = {
-            initial: memoryInitialPages["env.memory"],
+            initial: memoryInitialPages["env.memory"] + 20, // TODO: do not add
         };
         if (options.maxWasmSize) {
             descriptor.maximum = Math.ceil(options.maxWasmSize / 65536);
         }
         return new WebAssembly.Memory(descriptor);
+    }
+
+    function startup() {
+        if (exports._start) {
+            try {
+                exports._start();
+            } catch (error) {
+                if (error instanceof SandboxEntryIsNotARealException) {
+                    return;
+                } else {
+                    throw error;
+                }
+            }
+            throw Error('Sandbox startup failed.');
+        }
     }
 
     const sandbox: SandboxInternal = {
@@ -864,12 +893,15 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
             exports = instance.exports as any;
             refreshViews();
             wasiImports.setMemory(memory);
+            startup();
             sharedBufferPointer = exports.getSharedBufferPointer();
             sharedBufferSize = exports.getSharedBufferSize();
             let flags = (decoderLatin1 ? SandboxFlags.Latin1Allowed : 0)
                 | (decoderUtf16 ? SandboxFlags.Utf16Allowed : 0);
-            console.log(options.maxHeapSize || 32 * 1024 * 1024);
-            if (!exports.init(options.maxHeapSize || 32 * 1024 * 1024, flags)) { // TODO: Add try catch for each export call. Exception from wasm indicates unrecoverable error.
+            let heapSize = options.maxHeapSize || 32 * 1024 * 1024;
+            let wasmSize = options.maxWasmSize || (32 + 10) * 1024 * 1024;
+            wasmSize = Math.ceil(wasmSize / 65536) * 65536;
+            if (!exports.init(Math.round(heapSize * 0.8), heapSize, wasmSize, flags)) { // TODO: Add try catch for each export call. Exception from wasm indicates unrecoverable error.
                 throw new Error('Sandbox initialization failed.');
             }
             sandbox.execute(bootSourceCode, { fileName: '[guest boot code]' });

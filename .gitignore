@@ -9,3 +9,4 @@ package-lock.json
 /perf/*.js
 /perf/src/*.js
 /tmp/
+/dist/

@@ -1,0 +1,1058 @@
+diff -r 505ebaf6988e build/moz.configure/lto-pgo.configure
+--- a/build/moz.configure/lto-pgo.configure	Mon Jun 17 07:23:19 2024 +0000
++++ b/build/moz.configure/lto-pgo.configure	Fri Jun 21 23:11:41 2024 +0200
+@@ -396,8 +396,8 @@
+         ldflags.append("-mllvm:-import-instr-limit=10")
+     elif target.kernel == "Darwin":
+         ldflags.append("-Wl,-mllvm,-import-instr-limit=10")
+-    elif c_compiler.type == "clang":
+-        ldflags.append("-Wl,-plugin-opt=-import-instr-limit=10")
++    #elif c_compiler.type == "clang":
++    #    ldflags.append("-Wl,-plugin-opt=-import-instr-limit=10")
+ 
+     # If we're using the new pass manager, we can also enable the new PM
+     # during LTO. Further we can use the resulting size savings to increase
+@@ -410,10 +410,10 @@
+                 ldflags.append("-mllvm:-import-hot-multiplier=30")
+         elif target.kernel == "Darwin":
+             ldflags.append("-Wl,-mllvm,-import-hot-multiplier=30")
+-        else:
+-            if c_compiler.version < "13.0.0":
+-                ldflags.append("-Wl,-plugin-opt=new-pass-manager")
+-            ldflags.append("-Wl,-plugin-opt=-import-hot-multiplier=30")
++        #else:
++        #    if c_compiler.version < "13.0.0":
++        #        ldflags.append("-Wl,-plugin-opt=new-pass-manager")
++        #    ldflags.append("-Wl,-plugin-opt=-import-hot-multiplier=30")
+ 
+     # Pick Rust LTO mode in case of cross lTO. Thin is the default.
+     if "cross" in values:
+diff -r 505ebaf6988e js/public/GCAPI.h
+--- a/js/public/GCAPI.h	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/public/GCAPI.h	Fri Jun 21 23:11:41 2024 +0200
+@@ -1329,6 +1329,8 @@
+ 
+ extern JS_PUBLIC_API GCReason WantEagerMajorGC(JSRuntime* rt);
+ 
++extern JS_PUBLIC_API bool CheckIfGCAllowedInCurrentState(JSRuntime* rt);
++
+ /**
+  * Check whether the nursery should be eagerly collected as per WantEagerMajorGC
+  * above, and if so run a collection.
+diff -r 505ebaf6988e js/src/gc/Allocator.cpp
+--- a/js/src/gc/Allocator.cpp	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/gc/Allocator.cpp	Fri Jun 21 23:11:41 2024 +0200
+@@ -734,3 +734,33 @@
+   info.numArenasFree = ArenasPerChunk;
+   info.numArenasFreeCommitted = 0;
+ }
++
++__attribute__((weak)) 
++void checkAggressiveGC(uint32_t heapBytes)
++{
++  *((uint32_t*)(int32_t)-1) = heapBytes;
++}
++
++__attribute__((weak)) 
++void checkAggressiveGC2(uint32_t heapBytes)
++{
++  *((uint32_t*)(int32_t)-1) = heapBytes;
++}
++
++__attribute__((weak)) 
++void checkAggressiveGC3(uint32_t heapBytes)
++{
++  *((uint32_t*)(int32_t)-1) = heapBytes;
++}
++__attribute__((weak)) 
++void checkAggressiveGC4(uint32_t heapBytes)
++{
++  *((uint32_t*)(int32_t)-1) = heapBytes;
++}
++
++
++__attribute__((weak)) 
++void checkAggressiveGC5(uint32_t heapBytes)
++{
++  *((uint32_t*)(int32_t)-1) = heapBytes;
++}
+diff -r 505ebaf6988e js/src/gc/GCRuntime.h
+--- a/js/src/gc/GCRuntime.h	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/gc/GCRuntime.h	Fri Jun 21 23:11:41 2024 +0200
+@@ -728,7 +728,9 @@
+ 
+   // Check if the system state is such that GC has been supressed
+   // or otherwise delayed.
++public:
+   [[nodiscard]] bool checkIfGCAllowedInCurrentState(JS::GCReason reason);
++private:
+ 
+   gcstats::ZoneGCStats scanZonesBeforeGC();
+ 
+diff -r 505ebaf6988e js/src/gc/Nursery.cpp
+--- a/js/src/gc/Nursery.cpp	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/gc/Nursery.cpp	Fri Jun 21 23:11:41 2024 +0200
+@@ -1046,7 +1046,7 @@
+   if (!str) {
+     return;
+   }
+-  fputs(str.get(), stats().profileFile());
++  //fputs(str.get(), stats().profileFile());
+ }
+ 
+ void js::Nursery::printProfileHeader() {
+@@ -1073,7 +1073,7 @@
+   if (!str) {
+     return;
+   }
+-  fputs(str.get(), stats().profileFile());
++  //fputs(str.get(), stats().profileFile());
+ }
+ 
+ // static
+@@ -1139,7 +1139,7 @@
+   if (!str) {
+     return;
+   }
+-  fputs(str.get(), stats().profileFile());
++  //fputs(str.get(), stats().profileFile());
+ }
+ 
+ void js::Nursery::maybeClearProfileDurations() {
+diff -r 505ebaf6988e js/src/gc/Statistics.cpp
+--- a/js/src/gc/Statistics.cpp	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/gc/Statistics.cpp	Fri Jun 21 23:11:41 2024 +0200
+@@ -101,7 +101,7 @@
+   }
+ }
+ 
+-static FILE* MaybeOpenFileFromEnv(const char* env,
++/*static FILE* MaybeOpenFileFromEnv(const char* env,
+                                   FILE* defaultFile = nullptr) {
+   const char* value = getenv(env);
+   if (!value) {
+@@ -133,7 +133,7 @@
+   }
+ 
+   return file;
+-}
++}*/
+ 
+ struct PhaseKindInfo {
+   Phase firstPhase;
+@@ -632,6 +632,7 @@
+ void Statistics::log(const char* fmt, ...) {
+   va_list args;
+   va_start(args, fmt);
++  #if 0
+   if (gcDebugFile) {
+     TimeDuration sinceStart =
+         TimeBetween(TimeStamp::FirstTimeStamp(), TimeStamp::Now());
+@@ -640,10 +641,13 @@
+     fprintf(gcDebugFile, "\n");
+     fflush(gcDebugFile);
+   }
++  #endif
+   va_end(args);
+ }
+ #endif
+ 
++extern "C" pthread_t pthread_self(void) { return (pthread_t)0;}
++
+ UniqueChars Statistics::renderJsonMessage() const {
+   /*
+    * The format of the JSON message is specified by the GCMajorMarkerPayload
+@@ -773,8 +777,8 @@
+ 
+ Statistics::Statistics(GCRuntime* gc)
+     : gc(gc),
+-      gcTimerFile(nullptr),
+-      gcDebugFile(nullptr),
++      //gcTimerFile(nullptr),
++      //gcDebugFile(nullptr),
+       nonincrementalReason_(GCAbortReason::None),
+       creationTime_(TimeStamp::Now()),
+       tenuredAllocsSinceMinorGC(0),
+@@ -812,9 +816,9 @@
+   MOZ_ALWAYS_TRUE(phaseStack.reserve(MAX_PHASE_NESTING));
+   MOZ_ALWAYS_TRUE(suspendedPhases.reserve(MAX_SUSPENDED_PHASES));
+ 
+-  gcTimerFile = MaybeOpenFileFromEnv("MOZ_GCTIMER");
+-  gcDebugFile = MaybeOpenFileFromEnv("JS_GC_DEBUG");
+-  gcProfileFile = MaybeOpenFileFromEnv("JS_GC_PROFILE_FILE", stderr);
++  //gcTimerFile = MaybeOpenFileFromEnv("MOZ_GCTIMER");
++  //gcDebugFile = MaybeOpenFileFromEnv("JS_GC_DEBUG");
++  //gcProfileFile = MaybeOpenFileFromEnv("JS_GC_PROFILE_FILE", stderr);
+ 
+   gc::ReadProfileEnv("JS_GC_PROFILE",
+                      "Report major GCs taking more than N milliseconds for "
+@@ -823,12 +827,12 @@
+ }
+ 
+ Statistics::~Statistics() {
+-  if (gcTimerFile && gcTimerFile != stdout && gcTimerFile != stderr) {
++  /*if (gcTimerFile && gcTimerFile != stdout && gcTimerFile != stderr) {
+     fclose(gcTimerFile);
+   }
+   if (gcDebugFile && gcDebugFile != stdout && gcDebugFile != stderr) {
+     fclose(gcDebugFile);
+-  }
++  }*/
+ }
+ 
+ /* static */
+@@ -965,19 +969,19 @@
+ 
+ void Statistics::printStats() {
+   if (aborted) {
+-    fprintf(gcTimerFile,
++    /*fprintf(gcTimerFile,
+             "OOM during GC statistics collection. The report is unavailable "
+-            "for this GC.\n");
++            "for this GC.\n");*/
+   } else {
+     UniqueChars msg = formatDetailedMessage();
+     if (msg) {
+       double secSinceStart =
+           TimeBetween(TimeStamp::ProcessCreation(), slices_[0].start)
+               .ToSeconds();
+-      fprintf(gcTimerFile, "GC(T+%.3fs) %s\n", secSinceStart, msg.get());
++      //fprintf(gcTimerFile, "GC(T+%.3fs) %s\n", secSinceStart, msg.get());
+     }
+   }
+-  fflush(gcTimerFile);
++  //fflush(gcTimerFile);
+ }
+ 
+ void Statistics::beginGC(JS::GCOptions options, const TimeStamp& currentTime) {
+@@ -1235,9 +1239,9 @@
+ 
+   bool last = !gc->isIncrementalGCInProgress();
+   if (last) {
+-    if (gcTimerFile) {
++    /*if (gcTimerFile) {
+       printStats();
+-    }
++    }*/
+ 
+     if (!aborted) {
+       endGC();
+@@ -1664,7 +1668,7 @@
+   if (!str) {
+     return;
+   }
+-  fputs(str.get(), profileFile());
++  //fputs(str.get(), profileFile());
+ }
+ 
+ static TimeDuration SumAllPhaseKinds(const Statistics::PhaseKindTimes& times) {
+@@ -1709,7 +1713,7 @@
+   if (!str) {
+     return;
+   }
+-  fputs(str.get(), profileFile());
++  //fputs(str.get(), profileFile());
+ }
+ 
+ Statistics::ProfileDurations Statistics::getProfileTimes(
+@@ -1830,7 +1834,7 @@
+   if (!str) {
+     return;
+   }
+-  fputs(str.get(), profileFile());
++  //fputs(str.get(), profileFile());
+ }
+ 
+ const char* Statistics::formatTotalSlices() {
+diff -r 505ebaf6988e js/src/gc/Statistics.h
+--- a/js/src/gc/Statistics.h	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/gc/Statistics.h	Fri Jun 21 23:11:41 2024 +0200
+@@ -299,7 +299,7 @@
+ 
+   // File to write profiling information to, either stderr or file specified
+   // with JS_GC_PROFILE_FILE.
+-  FILE* profileFile() const { return gcProfileFile; }
++  //FILE* profileFile() const { return gcProfileFile; }
+ 
+   // Occasionally print header lines for profiling information.
+   void maybePrintProfileHeaders();
+@@ -333,13 +333,13 @@
+   gc::GCRuntime* const gc;
+ 
+   /* File used for MOZ_GCTIMER output. */
+-  FILE* gcTimerFile;
++  //FILE* gcTimerFile;
+ 
+   /* File used for JS_GC_DEBUG output. */
+-  FILE* gcDebugFile;
++  //FILE* gcDebugFile;
+ 
+   /* File used for JS_GC_PROFILE output. */
+-  FILE* gcProfileFile;
++  //FILE* gcProfileFile;
+ 
+   ZoneGCStats zoneStats;
+ 
+diff -r 505ebaf6988e js/src/gc/Zone.cpp
+--- a/js/src/gc/Zone.cpp	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/gc/Zone.cpp	Fri Jun 21 23:11:41 2024 +0200
+@@ -838,9 +838,11 @@
+     scriptCountsMap->traceWeak(trc);
+   }
+ 
++#ifdef INCLUDE_COV
+   if (scriptLCovMap) {
+     scriptLCovMap->traceWeak(trc);
+   }
++#endif
+ 
+ #ifdef MOZ_VTUNE
+   if (scriptVTuneIdMap) {
+@@ -867,6 +869,7 @@
+     });
+   }
+ 
++#ifdef INCLUDE_COV
+   if (scriptLCovMap) {
+     CheckTableAfterMovingGC(*scriptLCovMap, [this](const auto& entry) {
+       BaseScript* script = entry.key();
+@@ -874,6 +877,7 @@
+       return script;
+     });
+   }
++#endif
+ 
+ #  ifdef MOZ_VTUNE
+   if (scriptVTuneIdMap) {
+@@ -922,6 +926,7 @@
+ }
+ 
+ void Zone::clearScriptLCov(Realm* realm) {
++#ifdef INCLUDE_COV
+   if (!scriptLCovMap) {
+     return;
+   }
+@@ -932,6 +937,7 @@
+       i.remove();
+     }
+   }
++#endif
+ }
+ 
+ void Zone::clearRootsForShutdownGC() {
+diff -r 505ebaf6988e js/src/gc/Zone.h
+--- a/js/src/gc/Zone.h	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/gc/Zone.h	Fri Jun 21 23:11:41 2024 +0200
+@@ -429,7 +429,9 @@
+   // 1568245; this change in 1575350). The tables are initialized lazily by
+   // JSScript.
+   js::UniquePtr<js::ScriptCountsMap> scriptCountsMap;
++#ifdef INCLUDE_COV
+   js::UniquePtr<js::ScriptLCovMap> scriptLCovMap;
++#endif
+   js::MainThreadData<js::DebugScriptMap*> debugScriptMap;
+ #ifdef MOZ_VTUNE
+   js::UniquePtr<js::ScriptVTuneIdMap> scriptVTuneIdMap;
+diff -r 505ebaf6988e js/src/gc/ZoneAllocator.h
+--- a/js/src/gc/ZoneAllocator.h	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/gc/ZoneAllocator.h	Fri Jun 21 23:11:41 2024 +0200
+@@ -163,6 +163,8 @@
+     if (heap.bytes() >= threshold.startBytes()) {
+       gc::MaybeMallocTriggerZoneGC(runtimeFromAnyThread(), this, heap,
+                                    threshold, reason);
++    } else {
++      checkAggressiveGC2(heap.bytes());
+     }
+   }
+ 
+diff -r 505ebaf6988e js/src/js-config.mozbuild
+--- a/js/src/js-config.mozbuild	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/js-config.mozbuild	Fri Jun 21 23:11:41 2024 +0200
+@@ -15,9 +15,9 @@
+ 
+ # Enables CACHEIR_LOGS to diagnose IC coverage, and
+ # Structured spewer for diagnostics
+-if CONFIG["MOZ_DEBUG"] or CONFIG["NIGHTLY_BUILD"]:
+-    DEFINES["JS_CACHEIR_SPEW"] = True
+-    DEFINES["JS_STRUCTURED_SPEW"] = True
++#if CONFIG["MOZ_DEBUG"] or CONFIG["NIGHTLY_BUILD"]:
++    #DEFINES["JS_CACHEIR_SPEW"] = True
++    #DEFINES["JS_STRUCTURED_SPEW"] = True
+ 
+ # CTypes
+ if CONFIG["JS_HAS_CTYPES"]:
+diff -r 505ebaf6988e js/src/jsapi-tests/moz.build
+--- a/js/src/jsapi-tests/moz.build	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/jsapi-tests/moz.build	Fri Jun 21 23:11:41 2024 +0200
+@@ -185,9 +185,9 @@
+         "testPrintError.cpp",
+     ]
+ 
+-if CONFIG["MOZ_DEBUG"] or CONFIG["NIGHTLY_BUILD"]:
+-    DEFINES["JS_CACHEIR_SPEW"] = True
+-    DEFINES["JS_STRUCTURED_SPEW"] = True
++#if CONFIG["MOZ_DEBUG"] or CONFIG["NIGHTLY_BUILD"]:
++    #DEFINES["JS_CACHEIR_SPEW"] = True
++    #DEFINES["JS_STRUCTURED_SPEW"] = True
+ 
+ DEFINES["EXPORT_JS_API"] = True
+ 
+diff -r 505ebaf6988e js/src/jsapi.cpp
+--- a/js/src/jsapi.cpp	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/jsapi.cpp	Fri Jun 21 23:11:41 2024 +0200
+@@ -1301,6 +1301,10 @@
+   return rt->gc.wantMajorGC(true);
+ }
+ 
++JS_PUBLIC_API bool JS::CheckIfGCAllowedInCurrentState(JSRuntime* rt) {
++  return rt->gc.checkIfGCAllowedInCurrentState(JS::GCReason::TOO_MUCH_MALLOC);
++}
++
+ JS_PUBLIC_API void JS::MaybeRunNurseryCollection(JSRuntime* rt,
+                                                  JS::GCReason reason) {
+   gc::GCRuntime& gc = rt->gc;
+diff -r 505ebaf6988e js/src/jstypes.h
+--- a/js/src/jstypes.h	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/jstypes.h	Fri Jun 21 23:11:41 2024 +0200
+@@ -120,4 +120,11 @@
+ #define JS_FUNC_TO_DATA_PTR(type, fun) (mozilla::BitwiseCast<type>(fun))
+ #define JS_DATA_TO_FUNC_PTR(type, ptr) (mozilla::BitwiseCast<type>(ptr))
+ 
++
++void checkAggressiveGC(uint32_t heapBytes);
++void checkAggressiveGC2(uint32_t heapBytes);
++void checkAggressiveGC3(uint32_t heapBytes);
++void checkAggressiveGC4(uint32_t heapBytes);
++void checkAggressiveGC5(uint32_t heapBytes);
++
+ #endif /* jstypes_h */
+diff -r 505ebaf6988e js/src/vm/BytecodeUtil.cpp
+--- a/js/src/vm/BytecodeUtil.cpp	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/vm/BytecodeUtil.cpp	Fri Jun 21 23:11:41 2024 +0200
+@@ -2895,6 +2895,8 @@
+   }
+ };
+ 
++#ifdef INCLUDE_COV
++
+ static bool GenerateLcovInfo(JSContext* cx, JS::Realm* realm,
+                              GenericPrinter& out) {
+   AutoRealmUnchecked ar(cx, realm);
+@@ -2991,6 +2993,8 @@
+   return true;
+ }
+ 
++#endif
++
+ JS_PUBLIC_API UniqueChars js::GetCodeCoverageSummaryAll(JSContext* cx,
+                                                         size_t* length) {
+   Sprinter out(cx);
+@@ -2998,11 +3002,13 @@
+     return nullptr;
+   }
+ 
++#ifdef INCLUDE_COV
+   for (RealmsIter realm(cx->runtime()); !realm.done(); realm.next()) {
+     if (!GenerateLcovInfo(cx, realm, out)) {
+       return nullptr;
+     }
+   }
++#endif
+ 
+   *length = out.length();
+   return out.release();
+@@ -3015,9 +3021,11 @@
+     return nullptr;
+   }
+ 
++#ifdef INCLUDE_COV
+   if (!GenerateLcovInfo(cx, cx->realm(), out)) {
+     return nullptr;
+   }
++#endif
+ 
+   *length = out.length();
+   return out.release();
+diff -r 505ebaf6988e js/src/vm/CodeCoverage.cpp
+--- a/js/src/vm/CodeCoverage.cpp	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/vm/CodeCoverage.cpp	Fri Jun 21 23:11:41 2024 +0200
+@@ -60,6 +60,8 @@
+ namespace js {
+ namespace coverage {
+ 
++#ifdef INCLUDE_COV
++
+ LCovSource::LCovSource(LifoAlloc* alloc, UniqueChars name)
+     : name_(std::move(name)),
+       outFN_(alloc),
+@@ -673,5 +675,7 @@
+   return !source->hadOutOfMemory();
+ }
+ 
++#endif
++
+ }  // namespace coverage
+ }  // namespace js
+diff -r 505ebaf6988e js/src/vm/CodeCoverage.h
+--- a/js/src/vm/CodeCoverage.h	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/vm/CodeCoverage.h	Fri Jun 21 23:11:41 2024 +0200
+@@ -20,6 +20,8 @@
+ namespace js {
+ namespace coverage {
+ 
++#ifdef INCLUDE_COV
++
+ class LCovSource {
+  public:
+   LCovSource(LifoAlloc* alloc, JS::UniqueChars name);
+@@ -166,6 +168,18 @@
+ // Collect the code-coverage data from a script into relevant LCovSource.
+ bool CollectScriptCoverage(JSScript* script, bool finalizing);
+ 
++#else
++
++static inline void InitLCov() {}
++
++static inline void EnableLCov() {}
++
++inline bool IsLCovEnabled() {
++  return false;
++}
++
++#endif
++
+ }  // namespace coverage
+ }  // namespace js
+ 
+diff -r 505ebaf6988e js/src/vm/Interpreter.cpp
+--- a/js/src/vm/Interpreter.cpp	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/vm/Interpreter.cpp	Fri Jun 21 23:11:41 2024 +0200
+@@ -95,6 +95,7 @@
+ 
+ using js::jit::JitScript;
+ 
++
+ template <bool Eq>
+ static MOZ_ALWAYS_INLINE bool LooseEqualityOp(JSContext* cx,
+                                               InterpreterRegs& regs) {
+@@ -1820,6 +1821,30 @@
+ 
+ bool MOZ_NEVER_INLINE JS_HAZ_JSNATIVE_CALLER js::Interpret(JSContext* cx,
+                                                            RunState& state) {
++
++  uint32_t aggressiveGCCounter = 1;
++
++#define AGGRESSIVE_GC_PERIOD 20
++
++#define AGGRESSIVE_GC_FORCED() \
++      do { \
++        if (aggressiveGCCounter < AGGRESSIVE_GC_PERIOD) { \
++          aggressiveGCCounter = AGGRESSIVE_GC_PERIOD; \
++          auto allocator = ZoneAllocator::from(cx->zone()); \
++          checkAggressiveGC(allocator->mallocHeapSize.bytes() + allocator->jitHeapSize.bytes()); \
++        } \
++      } while (0)
++
++#define AGGRESSIVE_GC() \
++      do { \
++        aggressiveGCCounter--; \
++        if (aggressiveGCCounter == 0) { \
++          aggressiveGCCounter = AGGRESSIVE_GC_PERIOD; \
++          auto allocator = ZoneAllocator::from(cx->zone()); \
++          checkAggressiveGC(allocator->mallocHeapSize.bytes() + allocator->jitHeapSize.bytes()); \
++        } \
++      } while (0)
++
+ /*
+  * Define macros for an interpreter loop. Opcode dispatch is done by
+  * indirect goto (aka a threaded interpreter), which is technically
+@@ -1865,6 +1890,7 @@
+   JS_BEGIN_MACRO                                 \
+     REGS.pc += (N);                              \
+     SANITY_CHECKS();                             \
++    AGGRESSIVE_GC();                             \
+     DISPATCH_TO(*REGS.pc | activation.opMask()); \
+   JS_END_MACRO
+ 
+@@ -2387,6 +2413,7 @@
+     END_CASE(CheckPrivateField)
+ 
+     CASE(NewPrivateName) {
++      AGGRESSIVE_GC_FORCED();
+       ReservedRooted<JSAtom*> name(&rootAtom0, script->getAtom(REGS.pc));
+ 
+       auto* symbol = NewPrivateName(cx, name);
+@@ -2405,6 +2432,7 @@
+     END_CASE(IsNullOrUndefined)
+ 
+     CASE(Iter) {
++      AGGRESSIVE_GC_FORCED();
+       MOZ_ASSERT(REGS.stackDepth() >= 1);
+       HandleValue val = REGS.stackHandleAt(-1);
+       JSObject* iter = ValueToIterator(cx, val);
+@@ -2416,6 +2444,7 @@
+     END_CASE(Iter)
+ 
+     CASE(MoreIter) {
++      AGGRESSIVE_GC_FORCED();
+       MOZ_ASSERT(REGS.stackDepth() >= 1);
+       MOZ_ASSERT(REGS.sp[-1].isObject());
+       Value v = IteratorMore(&REGS.sp[-1].toObject());
+@@ -3168,6 +3197,7 @@
+ 
+     CASE(Eval)
+     CASE(StrictEval) {
++      AGGRESSIVE_GC_FORCED();
+       static_assert(JSOpLength_Eval == JSOpLength_StrictEval,
+                     "eval and stricteval must be the same size");
+ 
+@@ -3189,6 +3219,7 @@
+     CASE(SpreadNew)
+     CASE(SpreadCall)
+     CASE(SpreadSuperCall) {
++      AGGRESSIVE_GC_FORCED();
+       if (REGS.fp()->hasPushedGeckoProfilerFrame()) {
+         cx->geckoProfiler().updatePC(cx, script, REGS.pc);
+       }
+@@ -3197,6 +3228,7 @@
+ 
+     CASE(SpreadEval)
+     CASE(StrictSpreadEval) {
++      AGGRESSIVE_GC_FORCED();
+       static_assert(JSOpLength_SpreadEval == JSOpLength_StrictSpreadEval,
+                     "spreadeval and strictspreadeval must be the same size");
+       bool construct = JSOp(*REGS.pc) == JSOp::SpreadNew ||
+@@ -3233,6 +3265,7 @@
+     CASE(CallIter)
+     CASE(CallContentIter)
+     CASE(SuperCall) {
++      AGGRESSIVE_GC_FORCED();
+       static_assert(JSOpLength_Call == JSOpLength_New,
+                     "call and new must be the same size");
+       static_assert(JSOpLength_Call == JSOpLength_CallContent,
+@@ -3245,7 +3278,6 @@
+                     "call and call-content-iter must be the same size");
+       static_assert(JSOpLength_Call == JSOpLength_SuperCall,
+                     "call and supercall must be the same size");
+-
+       if (REGS.fp()->hasPushedGeckoProfilerFrame()) {
+         cx->geckoProfiler().updatePC(cx, script, REGS.pc);
+       }
+@@ -3394,6 +3426,7 @@
+     END_CASE(OptimizeSpreadCall)
+ 
+     CASE(ThrowMsg) {
++      AGGRESSIVE_GC_FORCED();
+       MOZ_ALWAYS_FALSE(ThrowMsgOperation(cx, GET_UINT8(REGS.pc)));
+       goto error;
+     }
+@@ -3479,6 +3512,7 @@
+     END_CASE(String)
+ 
+     CASE(ToString) {
++      AGGRESSIVE_GC_FORCED();
+       MutableHandleValue oper = REGS.stackHandleAt(-1);
+ 
+       if (!oper.isString()) {
+@@ -3511,6 +3545,7 @@
+     END_CASE(CallSiteObj)
+ 
+     CASE(RegExp) {
++      AGGRESSIVE_GC_FORCED();
+       /*
+        * Push a regexp object cloned from the regexp literal object mapped by
+        * the bytecode at pc.
+@@ -3573,6 +3608,7 @@
+     }
+ 
+     CASE(Arguments) {
++      AGGRESSIVE_GC_FORCED();
+       MOZ_ASSERT(script->needsArgsObj());
+       ArgumentsObject* obj = ArgumentsObject::createExpected(cx, REGS.fp());
+       if (!obj) {
+@@ -3583,6 +3619,7 @@
+     END_CASE(Arguments)
+ 
+     CASE(Rest) {
++      AGGRESSIVE_GC_FORCED();
+       ReservedRooted<JSObject*> rest(&rootObject0,
+                                      REGS.fp()->createRestParameter(cx));
+       if (!rest) {
+@@ -3648,12 +3685,14 @@
+     END_CASE(CheckAliasedLexical)
+ 
+     CASE(InitLexical) {
++      AGGRESSIVE_GC_FORCED();
+       uint32_t i = GET_LOCALNO(REGS.pc);
+       REGS.fp()->unaliasedLocal(i) = REGS.sp[-1];
+     }
+     END_CASE(InitLexical)
+ 
+     CASE(InitAliasedLexical) {
++      AGGRESSIVE_GC_FORCED();
+       EnvironmentCoordinate ec = EnvironmentCoordinate(REGS.pc);
+       EnvironmentObject& obj = REGS.fp()->aliasedEnvironment(ec);
+       obj.setAliasedBinding(ec, REGS.sp[-1]);
+@@ -3661,6 +3700,7 @@
+     END_CASE(InitAliasedLexical)
+ 
+     CASE(InitGLexical) {
++      AGGRESSIVE_GC_FORCED();
+       ExtensibleLexicalEnvironmentObject* lexicalEnv;
+       if (script->hasNonSyntacticScope()) {
+         lexicalEnv = &REGS.fp()->extensibleLexicalEnvironment();
+@@ -3748,6 +3788,7 @@
+     END_CASE(GetActualArg)
+ 
+     CASE(GlobalOrEvalDeclInstantiation) {
++      AGGRESSIVE_GC_FORCED();
+       GCThingIndex lastFun = GET_GCTHING_INDEX(REGS.pc);
+       HandleObject env = REGS.fp()->environmentChain();
+       if (!GlobalOrEvalDeclInstantiation(cx, env, script, lastFun)) {
+@@ -3757,6 +3798,7 @@
+     END_CASE(GlobalOrEvalDeclInstantiation)
+ 
+     CASE(Lambda) {
++      AGGRESSIVE_GC_FORCED();
+       /* Load the specified function object literal. */
+       ReservedRooted<JSFunction*> fun(&rootFunction0,
+                                       script->getFunction(REGS.pc));
+@@ -3771,6 +3813,7 @@
+     END_CASE(Lambda)
+ 
+     CASE(ToAsyncIter) {
++      AGGRESSIVE_GC_FORCED();
+       ReservedRooted<Value> nextMethod(&rootValue0, REGS.sp[-1]);
+       ReservedRooted<JSObject*> iter(&rootObject1, &REGS.sp[-2].toObject());
+       JSObject* asyncIter = CreateAsyncFromSyncIterator(cx, iter, nextMethod);
+@@ -3795,6 +3838,7 @@
+     END_CASE(CanSkipAwait)
+ 
+     CASE(MaybeExtractAwaitValue) {
++      AGGRESSIVE_GC_FORCED();
+       MutableHandleValue val = REGS.stackHandleAt(-2);
+       ReservedRooted<Value> canSkip(&rootValue0, REGS.sp[-1]);
+ 
+@@ -3807,6 +3851,7 @@
+     END_CASE(MaybeExtractAwaitValue)
+ 
+     CASE(AsyncAwait) {
++      AGGRESSIVE_GC_FORCED();
+       MOZ_ASSERT(REGS.stackDepth() >= 2);
+       ReservedRooted<JSObject*> gen(&rootObject1, &REGS.sp[-1].toObject());
+       ReservedRooted<Value> value(&rootValue0, REGS.sp[-2]);
+@@ -3876,6 +3921,7 @@
+     CASE(InitHiddenPropGetter)
+     CASE(InitPropSetter)
+     CASE(InitHiddenPropSetter) {
++      AGGRESSIVE_GC_FORCED();
+       MOZ_ASSERT(REGS.stackDepth() >= 2);
+ 
+       ReservedRooted<JSObject*> obj(&rootObject0, &REGS.sp[-2].toObject());
+@@ -3894,6 +3940,7 @@
+     CASE(InitHiddenElemGetter)
+     CASE(InitElemSetter)
+     CASE(InitHiddenElemSetter) {
++      AGGRESSIVE_GC_FORCED();
+       MOZ_ASSERT(REGS.stackDepth() >= 3);
+ 
+       ReservedRooted<JSObject*> obj(&rootObject0, &REGS.sp[-3].toObject());
+@@ -3912,6 +3959,7 @@
+     END_CASE(Hole)
+ 
+     CASE(NewInit) {
++      AGGRESSIVE_GC_FORCED();
+       JSObject* obj = NewObjectOperation(cx, script, REGS.pc);
+ 
+       if (!obj) {
+@@ -3922,6 +3970,7 @@
+     END_CASE(NewInit)
+ 
+     CASE(NewArray) {
++      AGGRESSIVE_GC_FORCED();
+       uint32_t length = GET_UINT32(REGS.pc);
+       ArrayObject* obj = NewArrayOperation(cx, length);
+       if (!obj) {
+@@ -3932,6 +3981,7 @@
+     END_CASE(NewArray)
+ 
+     CASE(NewObject) {
++      AGGRESSIVE_GC_FORCED();
+       JSObject* obj = NewObjectOperation(cx, script, REGS.pc);
+       if (!obj) {
+         goto error;
+@@ -4257,6 +4307,7 @@
+     END_CASE(RecreateLexicalEnv)
+ 
+     CASE(PushClassBodyEnv) {
++      AGGRESSIVE_GC_FORCED();
+       ReservedRooted<Scope*> scope(&rootScope0, script->getScope(REGS.pc));
+ 
+       if (!REGS.fp()->pushClassBodyEnvironment(cx,
+@@ -4267,6 +4318,7 @@
+     END_CASE(PushClassBodyEnv)
+ 
+     CASE(PushVarEnv) {
++      AGGRESSIVE_GC_FORCED();
+       ReservedRooted<Scope*> scope(&rootScope0, script->getScope(REGS.pc));
+ 
+       if (!REGS.fp()->pushVarEnvironment(cx, scope)) {
+@@ -4276,6 +4328,7 @@
+     END_CASE(PushVarEnv)
+ 
+     CASE(Generator) {
++      AGGRESSIVE_GC_FORCED();
+       MOZ_ASSERT(!cx->isExceptionPending());
+       MOZ_ASSERT(REGS.stackDepth() == 0);
+       JSObject* obj = AbstractGeneratorObject::createFromFrame(cx, REGS.fp());
+@@ -4430,6 +4483,7 @@
+     END_CASE(FunWithProto)
+ 
+     CASE(ObjWithProto) {
++      AGGRESSIVE_GC_FORCED();
+       JSObject* obj = ObjectWithProtoOperation(cx, REGS.stackHandleAt(-1));
+       if (!obj) {
+         goto error;
+@@ -4440,6 +4494,7 @@
+     END_CASE(ObjWithProto)
+ 
+     CASE(InitHomeObject) {
++      AGGRESSIVE_GC_FORCED();
+       MOZ_ASSERT(REGS.stackDepth() >= 2);
+ 
+       /* Load the function to be initialized */
+@@ -4471,12 +4526,14 @@
+     END_CASE(SuperBase)
+ 
+     CASE(NewTarget) {
++      AGGRESSIVE_GC_FORCED();
+       PUSH_COPY(REGS.fp()->newTarget());
+       MOZ_ASSERT(REGS.sp[-1].isObject() || REGS.sp[-1].isUndefined());
+     }
+     END_CASE(NewTarget)
+ 
+     CASE(ImportMeta) {
++      AGGRESSIVE_GC_FORCED();
+       JSObject* metaObject = ImportMetaOperation(cx, script);
+       if (!metaObject) {
+         goto error;
+@@ -4487,6 +4544,7 @@
+     END_CASE(ImportMeta)
+ 
+     CASE(DynamicImport) {
++      AGGRESSIVE_GC_FORCED();
+       ReservedRooted<Value> options(&rootValue0, REGS.sp[-1]);
+       REGS.sp--;
+ 
+@@ -5579,3 +5637,10 @@
+   // Step 8
+   return true;
+ }
++
++
++size_t realHeapBytes(JSContext* cx) {
++  auto allocator = ZoneAllocator::from(cx->zone());
++  return allocator->mallocHeapSize.bytes() + allocator->jitHeapSize.bytes();
++}
++
+diff -r 505ebaf6988e js/src/vm/JSScript.cpp
+--- a/js/src/vm/JSScript.cpp	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/vm/JSScript.cpp	Fri Jun 21 23:11:41 2024 +0200
+@@ -132,9 +132,11 @@
+   if (hasBytecode()) {
+     JSScript* script = this->asJSScript();
+ 
++#ifdef INCLUDE_COV
+     if (coverage::IsLCovEnabled()) {
+       coverage::CollectScriptCoverage(script, true);
+     }
++#endif
+ 
+     script->destroyScriptCounts();
+   }
+@@ -2499,11 +2501,13 @@
+   script->assertValidJumpTargets();
+ #endif
+ 
++#ifdef INCLUDE_COV
+   if (coverage::IsLCovEnabled()) {
+     if (!coverage::InitScriptCoverage(cx, script)) {
+       return false;
+     }
+   }
++#endif
+ 
+   return true;
+ }
+diff -r 505ebaf6988e js/src/vm/JSScript.h
+--- a/js/src/vm/JSScript.h	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/vm/JSScript.h	Fri Jun 21 23:11:41 2024 +0200
+@@ -59,10 +59,14 @@
+ 
+ class JS_PUBLIC_API Sprinter;
+ 
++#ifdef INCLUDE_COV
++
+ namespace coverage {
+ class LCovSource;
+ }  // namespace coverage
+ 
++#endif
++
+ namespace gc {
+ class AllocSite;
+ }  // namespace gc
+@@ -172,19 +176,23 @@
+     GCRekeyableHashMap<HeapPtr<BaseScript*>, UniqueScriptCounts,
+                        DefaultHasher<HeapPtr<BaseScript*>>, SystemAllocPolicy>;
+ 
++#ifdef INCLUDE_COV
+ // The 'const char*' for the function name is a pointer within the LCovSource's
+ // LifoAlloc and will be discarded at the same time.
+ using ScriptLCovEntry = std::tuple<coverage::LCovSource*, const char*>;
+ using ScriptLCovMap =
+     GCRekeyableHashMap<HeapPtr<BaseScript*>, ScriptLCovEntry,
+                        DefaultHasher<HeapPtr<BaseScript*>>, SystemAllocPolicy>;
++#endif
+ 
+ #ifdef MOZ_VTUNE
++#error Disable MOZ_VTUNE
+ using ScriptVTuneIdMap =
+     GCRekeyableHashMap<HeapPtr<BaseScript*>, uint32_t,
+                        DefaultHasher<HeapPtr<BaseScript*>>, SystemAllocPolicy>;
+ #endif
+ #ifdef JS_CACHEIR_SPEW
++#error Disable JS_CACHEIR_SPEW
+ using ScriptFinalWarmUpCountEntry = std::tuple<uint32_t, SharedImmutableString>;
+ using ScriptFinalWarmUpCountMap =
+     GCRekeyableHashMap<HeapPtr<BaseScript*>, ScriptFinalWarmUpCountEntry,
+@@ -2293,9 +2301,11 @@
+ 
+ namespace JS {
+ 
++#ifdef INCLUDE_COV
+ template <>
+ struct GCPolicy<js::ScriptLCovEntry>
+     : public IgnoreGCPolicy<js::ScriptLCovEntry> {};
++#endif
+ 
+ #ifdef JS_CACHEIR_SPEW
+ template <>
+diff -r 505ebaf6988e js/src/vm/Realm.cpp
+--- a/js/src/vm/Realm.cpp	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/vm/Realm.cpp	Fri Jun 21 23:11:41 2024 +0200
+@@ -61,10 +61,12 @@
+   MOZ_ASSERT(!hasBeenEnteredIgnoringJit());
+   MOZ_ASSERT(!isDebuggee());
+ 
++#ifdef INCLUDE_COV
+   // Write the code coverage information in a file.
+   if (lcovRealm_) {
+     runtime_->lcovOutput().writeLCovResult(*lcovRealm_);
+   }
++#endif
+ 
+   if (allocationMetadataBuilder_) {
+     forgetAllocationMetadataBuilder();
+@@ -483,12 +485,14 @@
+   clearScriptLCov();
+ }
+ 
++#ifdef INCLUDE_COV
+ coverage::LCovRealm* Realm::lcovRealm() {
+   if (!lcovRealm_) {
+     lcovRealm_ = js::MakeUnique<coverage::LCovRealm>(this);
+   }
+   return lcovRealm_.get();
+ }
++#endif
+ 
+ bool Realm::collectCoverageForDebug() const {
+   return debuggerObservesCoverage() || coverage::IsLCovEnabled();
+diff -r 505ebaf6988e js/src/vm/Realm.h
+--- a/js/src/vm/Realm.h	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/vm/Realm.h	Fri Jun 21 23:11:41 2024 +0200
+@@ -34,9 +34,11 @@
+ 
+ namespace js {
+ 
++#ifdef INCLUDE_COV
+ namespace coverage {
+ class LCovRealm;
+ }  // namespace coverage
++#endif
+ 
+ class AutoRestoreRealmDebugMode;
+ class Debugger;
+@@ -378,7 +380,9 @@
+   bool allocatedDuringIncrementalGC_;
+   bool initializingGlobal_ = true;
+ 
++#ifdef INCLUDE_COV
+   js::UniquePtr<js::coverage::LCovRealm> lcovRealm_ = nullptr;
++#endif
+ 
+  public:
+   // WebAssembly state for the realm.
+@@ -739,8 +743,10 @@
+   // realm or if the process-wide LCov option is enabled.
+   bool collectCoverageForDebug() const;
+ 
++#ifdef INCLUDE_COV
+   // Get or allocate the associated LCovRealm.
+   js::coverage::LCovRealm* lcovRealm();
++#endif
+ 
+   bool shouldCaptureStackForThrow();
+ 
+diff -r 505ebaf6988e js/src/vm/Runtime.h
+--- a/js/src/vm/Runtime.h	Mon Jun 17 07:23:19 2024 +0000
++++ b/js/src/vm/Runtime.h	Fri Jun 21 23:11:41 2024 +0200
+@@ -675,8 +675,10 @@
+   js::MainThreadData<js::UniquePtr<RootedPlainObjVec>> watchtowerTestingLog;
+ 
+  private:
++#ifdef INCLUDE_COV
+   /* Code coverage output. */
+   js::UnprotectedData<js::coverage::LCovRuntime> lcovOutput_;
++#endif
+ 
+   /* Functions to call, together with data, when the runtime is being torn down.
+    */
+@@ -684,7 +686,9 @@
+       cleanupClosures;
+ 
+  public:
++#ifdef INCLUDE_COV
+   js::coverage::LCovRuntime& lcovOutput() { return lcovOutput_.ref(); }
++#endif
+ 
+   /* Register a cleanup function to be called during runtime shutdown. Do not
+    * depend on the ordering of cleanup calls. */
+diff -r 505ebaf6988e mozglue/misc/StackWalk.cpp
+--- a/mozglue/misc/StackWalk.cpp	Mon Jun 17 07:23:19 2024 +0000
++++ b/mozglue/misc/StackWalk.cpp	Fri Jun 21 23:11:41 2024 +0200
+@@ -1106,10 +1106,10 @@
+ 
+ MFBT_API void MozWalkTheStack(FILE* aStream, const void* aFirstFramePC,
+                               uint32_t aMaxFrames) {
+-  if (WalkTheStackEnabled()) {
++  /*if (WalkTheStackEnabled()) {
+     MozStackWalk(PrintStackFrame, aFirstFramePC ? aFirstFramePC : CallerPC(),
+                  aMaxFrames, aStream);
+-  }
++  }*/
+ }
+ 
+ static void WriteStackFrame(uint32_t aFrameNumber, void* aPC, void* aSP,
+@@ -1123,8 +1123,8 @@
+ MFBT_API void MozWalkTheStackWithWriter(void (*aWriter)(const char*),
+                                         const void* aFirstFramePC,
+                                         uint32_t aMaxFrames) {
+-  if (WalkTheStackEnabled()) {
++  /*if (WalkTheStackEnabled()) {
+     MozStackWalk(WriteStackFrame, aFirstFramePC ? aFirstFramePC : CallerPC(),
+                  aMaxFrames, (void*)aWriter);
+-  }
++  }*/
+ }

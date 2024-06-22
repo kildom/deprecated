@@ -16,6 +16,7 @@ export function createWasiImports(): WasiImports {
     let arrayBuffer: ArrayBuffer;
     let view: DataView;
     let byteArray: Uint8Array;
+    let fdCnt = 4;
 
     function refreshViews() {
         if (arrayBuffer != memory.buffer) {
@@ -23,6 +24,10 @@ export function createWasiImports(): WasiImports {
             view = new DataView(arrayBuffer);
             byteArray = new Uint8Array(arrayBuffer);
         }
+    }
+
+    function getView(offset: number, length: number) {
+        return new DataView(arrayBuffer, offset, length);
     }
 
     return {
@@ -82,27 +87,139 @@ export function createWasiImports(): WasiImports {
         },
 
         fd_read() {
+            throw new Error('UNSUPPORTED: fd_read');
             return -1;
         },
 
-        fd_write() {
+        fd_write(fd: number, iovs: number, iovs_len: number, nwritten: number) {
+            if (fd != 1 && fd != 2) return ErrNo.BADF;
+            refreshViews();
+            let str = '';
+            for (let i = 0; i < iovs_len; i++) {
+                let ptr = view.getUint32(iovs + 8 * i, true);
+                let size = view.getUint32(iovs + 8 * i + 4, true);
+                str += new TextDecoder('latin1').decode(new Uint8Array(arrayBuffer, ptr, size));
+            }
+            if (fd == 1) {
+                console.log(str);
+            } else {
+                console.error(str);
+            }
             return -1;
         },
 
         fd_seek() {
+            throw new Error('UNSUPPORTED: fd_seek');
             return 0;
         },
 
         fd_close() {
+            throw new Error('UNSUPPORTED: fd_close');
             return 0;
         },
 
         fd_fdstat_get() {
+            throw new Error('UNSUPPORTED: fd_fdstat_get');
             return -1;
         },
 
         proc_exit(code: number) {
             throw new WasiSystemExit(code);
         },
+
+        fd_fdstat_set_flags() {
+            throw new Error('UNSUPPORTED: fd_fdstat_set_flags');
+            return 0;
+        },
+        fd_prestat_get(fd: number, buffer: number) {
+            return ErrNo.BADF;
+        },
+        fd_prestat_dir_name(fd: number, path: number, path_len: number) {
+            return ErrNo.BADF;
+        },
+        path_open() {
+            throw new Error('UNSUPPORTED: path_open');
+            return fdCnt++;
+        },
     };
+};
+
+enum ErrNo {
+    SUCCESS = 0,
+    TOOBIG = 1,
+    ACCES = 2,
+    ADDRINUSE = 3,
+    ADDRNOTAVAIL = 4,
+    AFNOSUPPORT = 5,
+    AGAIN = 6,
+    ALREADY = 7,
+    BADF = 8,
+    BADMSG = 9,
+    BUSY = 10,
+    CANCELED = 11,
+    CHILD = 12,
+    CONNABORTED = 13,
+    CONNREFUSED = 14,
+    CONNRESET = 15,
+    DEADLK = 16,
+    DESTADDRREQ = 17,
+    DOM = 18,
+    DQUOT = 19,
+    EXIST = 20,
+    FAULT = 21,
+    FBIG = 22,
+    HOSTUNREACH = 23,
+    IDRM = 24,
+    ILSEQ = 25,
+    INPROGRESS = 26,
+    INTR = 27,
+    INVAL = 28,
+    IO = 29,
+    ISCONN = 30,
+    ISDIR = 31,
+    LOOP = 32,
+    MFILE = 33,
+    MLINK = 34,
+    MSGSIZE = 35,
+    MULTIHOP = 36,
+    NAMETOOLONG = 37,
+    NETDOWN = 38,
+    NETRESET = 39,
+    NETUNREACH = 40,
+    NFILE = 41,
+    NOBUFS = 42,
+    NODEV = 43,
+    NOENT = 44,
+    NOEXEC = 45,
+    NOLCK = 46,
+    NOLINK = 47,
+    NOMEM = 48,
+    NOMSG = 49,
+    NOPROTOOPT = 50,
+    NOSPC = 51,
+    NOSYS = 52,
+    NOTCONN = 53,
+    NOTDIR = 54,
+    NOTEMPTY = 55,
+    NOTRECOVERABLE = 56,
+    NOTSOCK = 57,
+    NOTSUP = 58,
+    NOTTY = 59,
+    NXIO = 60,
+    OVERFLOW = 61,
+    OWNERDEAD = 62,
+    PERM = 63,
+    PIPE = 64,
+    PROTO = 65,
+    PROTONOSUPPORT = 66,
+    PROTOTYPE = 67,
+    RANGE = 68,
+    ROFS = 69,
+    SPIPE = 70,
+    SRCH = 71,
+    STALE = 72,
+    TIMEDOUT = 73,
+    TXTBSY = 74,
+    XDEV = 75,
+    NOTCAPABLE = 76,
 };

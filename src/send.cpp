@@ -57,23 +57,34 @@ static inline bool createNumberTmpl(JSContext* cx, unsigned argc, JS::Value* vp,
 template<class CbkT>
 static inline bool createStringTmpl(JS::HandleString str, CbkT callback) {
 
-    if ((sandboxFlags & SandboxFlags::Latin1Allowed) && JS::StringHasLatin1Chars(str)) {
+    // TODO: investigate why this is not working in debug mode
+    /*if ((sandboxFlags & SandboxFlags::Latin1Allowed) && JS::StringHasLatin1Chars(str)) {
         size_t len;
-        JS::AutoCheckCannotGC nogc;
-        const JS::Latin1Char* chars = JS_GetLatin1StringCharsAndLength(cx, nogc, str, &len);
+        const JS::Latin1Char* chars;
+        {
+            JS::AutoCheckCannotGC nogc;
+            chars = JS_GetLatin1StringCharsAndLength(cx, nogc, str, &len);
+            // nogc will be actually needed further, but it is not possible to remove it in host code.
+            // Host must use the content before calling guest again.
+        }
         if (chars) {
             callback(Encodings::Latin1, (const char*)chars, len);
             return true;
         }
     } else if ((sandboxFlags & SandboxFlags::Utf16Allowed) && !JS::StringHasLatin1Chars(str)) {
         size_t len;
-        JS::AutoCheckCannotGC nogc;
-        const char16_t* chars = JS_GetTwoByteStringCharsAndLength(cx, nogc, str, &len);
+        const char16_t* chars;
+        {
+            JS::AutoCheckCannotGC nogc;
+            chars = JS_GetTwoByteStringCharsAndLength(cx, nogc, str, &len);
+            // nogc will be actually needed further, but it is not possible to remove it in host code.
+            // Host must use the content before calling guest again.
+        }
         if (chars) {
             callback(Encodings::Utf16, chars, 2 * len);
             return true;
         }
-    }
+    }*/
 
     uint32_t length = JS_GetStringLength(str);
     uint32_t allocSize;
