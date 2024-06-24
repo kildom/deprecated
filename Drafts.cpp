@@ -270,7 +270,7 @@ static inline bool stringKeyEq(Value a, Value b) {
     StringData* aData = getData<StringData>(aHead);
     StringData* bData = getData<StringData>(bHead);
     if (aData->bytes != bData->bytes) return false;
-    uintptr_t aHash = aData->hash;
+    uintptr_t aHash = aData->hash; // TODO: consider moving 'hash' to head (instead of 'length'). It will be probably more ofter used.
     if (aHash == EMPTY_HASH) aHash = calculateStringHash(aData);
     uintptr_t bHash = bData->hash;
     if (bHash == EMPTY_HASH) bHash = calculateStringHash(bData);
