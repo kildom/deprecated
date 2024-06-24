@@ -69,5 +69,25 @@ Simpler approach:
     * unfreeze will instantiate the module from scratch, grow and copy memory, call __Internal__setStackPointer.
     * allowFreezing: true in setSandboxModule will not be needed in this case.
 
+
+TODO: Unnamed imports/exports
+
+let importsHandle = sandbox.registerUnnamedImports({ print: console.log });
+            // it will call registerImports({ __unnamed__: { ++NNN: { print: console.log } } })
+            // and return NNN
+sandbox.execute(`
+    globalThis.print = __sandbox__.getUnnamedImports(__sandbox__.arg).print;
+            // it return __sandbox__.imports.__unnamed__.NNN
+`, { arg: importsHandle });
+
+and the same in the other way:
+
+let exportsHandle = sandbox.execute(`
+    __sandbox__.registerUnnamedExports({ main })
+`, { returnValue: true });
+
+let guestMain = sandbox.getUnnamedExports(exportsHandle).main;
+
+
 */
 ```
