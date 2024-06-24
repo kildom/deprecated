@@ -1,81 +1,9 @@
-import { SandboxWasmExport, SandboxWasmImport, SandboxWasmImportModule, memoryInitialPages } from "./wasm-interface";
+import { SandboxWasmExport, SandboxWasmImport, SandboxWasmImportModule } from "./wasm-interface";
 import { createWasiImports } from "./wasi-stubs";
-import { ArrayBufferViewType } from "../src-guest/common";
-import bootSourceCode from "./src-guest-boot";
+import { ArrayBufferViewType } from "../src-common/common";
+import bootSourceCode from "../build/guest/boot";
+import { ExportInfoData, SandboxSpecialCommand, exportInfoPrefix } from "../src-common/common";
 
-
-//#region ------------------ Public interface
-
-/* TODO: Freeze functionality:
-
-Example:
-await setSandboxModule(fetch('sandbox.wasm'), { allowFreezing: true });
-sandboxPrototype = await sandbox.instantiate(...)
-sandboxPrototype.extend(sandboxPolyfill.console)      // console
-sandboxPrototype.extend(sandboxPolyfill.textCoders)   // TextEncode / TextDecode(only UTF-8, UTF-16le, latin1)
-sandboxPrototype.extend(sandboxPolyfill.timeout)      // setTimeout / setInterval
-sandboxPrototype.registerImports(importObject, unfreezeCallback)
-sandboxPrototype.execute(..., { unfreezeCallback })
-let checkpoint = sandboxPrototype.freeze()
-
-Execute many times:
-    sb = sandbox.instantiate({
-        unfreeze: checkpoint,
-        ...
-    });
-    sb.execute ...
-
-OR:
-    sb = checkpoint.instantiate({...}),
-    sb.execute ...
-
-Save checkpoint, e.g. as a file:
-    myUint8Array = checkpoint.raw() - returns 
-
-freeze() will:
-    * make sure that it is top level call, not from within the sandbox
-    * take current stack pointer, using export __Internal__getStackPointer()
-    * take entire memory except unused stack
-    * take registered sandbox imports and exports (make sure that all imports were registered with unfreezeCallback)
-    * process module bytecode to produce new one:
-        * Replace __stack_pointer initial value to new one.
-          (stack pointer global detection: global that was used by __Internal__getStackPointer function)
-        * Remove "data" section and replace them with entries retrieved from memory.
-        * Processing instructions of the module bytes can be prepared after release building.
-          Instructions can be in custom section, marked as {{...}} below.
-          Custom section must be the last one to allow fast access.
-            * Copy from 0 to {{offset of global sections size field}},
-            * Write LEB128(x + LEB128_SIZE(stack_pointer)), where x is the {{global sections size except stack pointer value}}
-            * Copy from {{offset after global sections size}} to {{offset of stack pointer value}}
-            * Write LEB128(stack_pointer)
-            * Copy from {{offset after stack pointer value}} to {{offset of data section size}}
-            * Write new data section
-            * Copy from {{offset after data section}} to the end
-    * compile new module
-    * return all needed information for later unfreezing
-
-unfreeze will:
-    * instantiate from the new module,
-    * restore import/exports and call appropriate unfreezeCallback
-    * call execute unfreezeCallback
-      (both types of callbacks must be called in original order)
-    * unfreezeCallback from registerImports may return a new object containing a new import functions.
-
-processing module after the build:
-    * optionally: Replace export __stack_pointer with __Internal__set/getStackPointer (looks like this can improve performance)
-    * Make sure that there just one memory (with disassembly)
-    * Make sure that function table is not modified (with disassembly)
-    * Make sure that there are no passive entries in data section (with disassembly)
-    * Prepare instructions for generating freezed modules: 7 numbers described above.
-
-Simpler approach:
-    * Instead of processing the module, only copy memory and stack pointer.
-    * unfreeze will instantiate the module from scratch, grow and copy memory, call __Internal__setStackPointer.
-    * allowFreezing: true in setSandboxModule will not be needed in this case.
-
-*/
-
-const CUSTOM_SECTION_NAME = 'js-sandbox-CpktVgXbZaAHZ1ADnsj7I';
 
 export class GuestError extends Error {
     constructor(message: string, public guestName?: string, public guestStack?: string) {
@@ -84,10 +12,6 @@ export class GuestError extends Error {
 }
 
 export class EngineError extends Error { }
-
-export interface ModuleOptions {
-    allowFreeze?: boolean;
-};
 
 export interface InstantiateOptions {
     maxHeapSize?: number; // default: min((maxWasmSize - estimated static data size) * 0.xx {fragmentation coefficient}, minHeapThreshold * 1.xx)
@@ -115,15 +39,27 @@ export interface Sandbox {
     exports: ExportsCallbacks;
 };
 
-type ModuleSourceType = WebAssembly.Module | BufferSource | Response | Request | string | URL;
+type FreezableModuleSourceType = BufferSource | Response | Request | string | URL;
+type ModuleSourceType = WebAssembly.Module | FreezableModuleSourceType;
 
 let moduleState: 'empty' | 'loading' | 'loaded' | Error = 'empty';
 let module: WebAssembly.Module | undefined = undefined;
-let moduleBinary: Uint8Array;
+let moduleBinary: Uint8Array | undefined = undefined;
+let exportInfo: ExportInfoData | undefined = undefined;
+
+export async function setSandboxModule(
+    source: FreezableModuleSourceType | PromiseLike<FreezableModuleSourceType> | undefined,
+    options: { allowFreeze: true; }
+): Promise<undefined | Error>;
 
 export async function setSandboxModule(
     source: ModuleSourceType | PromiseLike<ModuleSourceType> | undefined,
-    options: ModuleOptions = {}
+    options?: { allowFreeze?: false; }
+): Promise<undefined | Error>;
+
+export async function setSandboxModule(
+    source: ModuleSourceType | PromiseLike<ModuleSourceType> | undefined,
+    options: { allowFreeze?: boolean; } = {}
 ): Promise<undefined | Error> {
 
     if (source instanceof ArrayBuffer
@@ -144,34 +80,31 @@ export async function setSandboxModule(
     ) {
         moduleBinary = new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
     } else {
-        moduleBinary = null;
+        moduleBinary = undefined;
         module = source;
         return;
     }
 
-    /*if (options.maxMemory) {
-        let blocks = Math.ceil(options.maxMemory / 65536);
-        moduleBinary = new Uint8Array(moduleBinary.buffer.slice(
-            moduleBinary.byteOffset,
-            moduleBinary.byteOffset + moduleBinary.byteLength));
-        let sectionDataStart = moduleBinary.length - 24 - 32;
-        let sectionName = decoderUtf8.decode(moduleBinary.subarray(sectionDataStart, sectionDataStart + 32));
-        if (sectionName != CUSTOM_SECTION_NAME) {
-            throw new Error('This binary does not allow changing its memory size limit.');
-        }
-        let struct = new DataView(moduleBinary.buffer, sectionDataStart + 32, 24);
-        let version = struct.getUint32(4 * 0, true);
-        let stackPointerValueBegin = struct.getUint32(4 * 1, true);
-        let stackPointerValueEnd = struct.getUint32(4 * 2, true);
-        let dataSectionBegin = struct.getUint32(4 * 3, true);
-        let dataSectionEnd = struct.getUint32(4 * 4, true);
-        let memLimitsOffset = struct.getUint32(4 * 5, true);
-        moduleBinary[memLimitsOffset + 3] = (blocks & 0x7F) | 0x80;
-        moduleBinary[memLimitsOffset + 4] = ((blocks >> 7) & 0x7F) | 0x80;
-        moduleBinary[memLimitsOffset + 5] = ((blocks >> 14) & 0x7F);
-    }*/
-
     module = await WebAssembly.compile(moduleBinary);
+    exportInfo = undefined;
+    for (let exp of WebAssembly.Module.exports(module)) {
+        if (exp.name.startsWith(exportInfoPrefix)) {
+            let tab = exportInfoPrefix.substring(exportInfoPrefix.length).split('_');
+            exportInfo = {
+                stackPointerBegin: parseInt(tab[0], 16),
+                stackPointerSize: parseInt(tab[1], 16),
+                dataSectionBegin: parseInt(tab[2], 16),
+                dataSectionSize: parseInt(tab[3], 16),
+                initialPagesBegin: parseInt(tab[4], 16),
+                initialPagesSize: parseInt(tab[5], 16),
+                initialPages: parseInt(tab[6], 16),
+            };
+        }
+    }
+
+    if (!exportInfo) {
+        throw new Error('Invalid sandbox module.');
+    }
 
     //module = source as any; // TODO: Other types of sources
     /*
@@ -203,15 +136,6 @@ export async function instantiate(options?: InstantiateOptions): Promise<Sandbox
     sandbox.init(instance);
     return sandbox;
 }
-
-
-//#endregion
-
-
-enum SandboxCommand {
-    Register = -1,
-    Call = -2,
-};
 
 
 enum ExecuteFlags {
@@ -256,13 +180,6 @@ const decoderUtf8 = new TextDecoder();
 const decoderLatin1 = createTextDecoderIfAvailable('latin1');
 const decoderUtf16 = createTextDecoderIfAvailable('utf-16le');
 
-
-class SandboxEntryIsNotARealException extends Error { };
-
-
-function entry(): never {
-    throw new SandboxEntryIsNotARealException();
-};
 
 
 function createSandbox(options: InstantiateOptions): SandboxInternal {
@@ -328,7 +245,9 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
             console.log('SANDBOX:', str);
         },
 
-        entry,
+        entry(): number {
+            throw new Error('Should not be called.');
+        },
 
         clearValues(): void {
             valueStack.splice(0);
@@ -352,7 +271,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
                 let guestName = valueStack.pop();
                 let guestStack = valueStack.pop();
                 valueStack.push(new GuestError(decodeString(encoding, buffer, size), guestName, guestStack));
-            } catch (error) {
+            } catch (error: any) {
                 errorState = error?.message || error?.name || error?.toString?.() || 'Error';
             }
         },
@@ -361,7 +280,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
             if (errorState) return;
             try {
                 valueStack.push(new EngineError(decodeString(encoding, buffer, size)));
-            } catch (error) {
+            } catch (error: any) {
                 errorState = error?.message || error?.name || error?.toString?.() || 'Error';
             }
         },
@@ -380,7 +299,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
             if (errorState) return;
             try {
                 valueStack.push(BigInt(decodeString(encoding, buffer, size)));
-            } catch (error) {
+            } catch (error: any) {
                 errorState = error?.message || error?.name || error?.toString?.() || 'Error';
             }
         },
@@ -394,7 +313,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
             if (errorState) return;
             try {
                 valueStack.push(new Date(num));
-            } catch (error) {
+            } catch (error: any) {
                 errorState = error?.message || error?.name || error?.toString?.() || 'Error';
             }
         },
@@ -407,7 +326,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
                 let result = new RegExp(source, flags);
                 result.lastIndex = lastIndex;
                 valueStack.push(result);
-            } catch (error) {
+            } catch (error: any) {
                 errorState = error?.message || error?.name || error?.toString?.() || 'Error';
             }
         },
@@ -418,7 +337,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
                 let value = valueStack.pop();
                 let array = valueStack.at(-1);
                 array[index] = value;
-            } catch (error) {
+            } catch (error: any) {
                 errorState = error?.message || error?.name || error?.toString?.() || 'Error';
             }
         },
@@ -427,7 +346,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
             if (errorState) return;
             try {
                 valueStack.push(decodeString(encoding, buffer, size));
-            } catch (error) {
+            } catch (error: any) {
                 errorState = error?.message || error?.name || error?.toString?.() || 'Error';
             }
         },
@@ -439,7 +358,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
                 let obj = valueStack.at(-1);
                 let name = decodeString(encoding, buffer, size);
                 obj[name] = value;
-            } catch (error) {
+            } catch (error: any) {
                 errorState = error?.message || error?.name || error?.toString?.() || 'Error';
             }
         },
@@ -455,7 +374,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
                 let index = reusableStack.length;
                 reusableStack.push(valueStack.at(-1));
                 return index;
-            } catch (error) {
+            } catch (error: any) {
                 errorState = error?.message || error?.name || error?.toString?.() || 'Error';
                 return 0;
             }
@@ -465,7 +384,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
             if (errorState) return;
             try {
                 valueStack.push(reusableStack[index]);
-            } catch (error) {
+            } catch (error: any) {
                 errorState = error?.message || error?.name || error?.toString?.() || 'Error';
             }
         },
@@ -475,7 +394,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
             try {
                 refreshViews();
                 valueStack.push(arrayBuffer.slice(ptr, ptr + size));
-            } catch (error) {
+            } catch (error: any) {
                 errorState = error?.message || error?.name || error?.toString?.() || 'Error';
             }
         },
@@ -522,14 +441,14 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
                         valueStack.push(new DataView(valueStack.pop(), offset, size));
                         break;
                 }
-            } catch (error) {
+            } catch (error: any) {
                 errorState = error?.message || error?.name || error?.toString?.() || 'Error';
             }
         },
 
         callToHost(command: number): number {
             switch (command) {
-                case SandboxCommand.Register:
+                case SandboxSpecialCommand.Register:
                     registerExports(sandbox.exports, valueStack[0]);
                     return 1;
                 default: {
@@ -558,7 +477,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
         },
 
         getStackPointer(): number {
-            return exports.__stack_pointer ? exports.__stack_pointer : exports.getStackPointer();
+            return exports.getStackPointer();
         },
     };
 
@@ -850,7 +769,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
         return ids;
     }
 
-    function call(command: SandboxCommand, ...args: any[]): any {
+    function call(command: SandboxSpecialCommand, ...args: any[]): any {
         createGuestValue(...args);
         if (!exports.call(command)) throwFromValueStack();
         return valueStack[0];
@@ -858,27 +777,12 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
 
     function createMemory() {
         let descriptor: WebAssembly.MemoryDescriptor = {
-            initial: memoryInitialPages["env.memory"] + 20, // TODO: do not add
+            initial: exportInfo?.initialPages || 0,
         };
         if (options.maxWasmSize) {
             descriptor.maximum = Math.ceil(options.maxWasmSize / 65536);
         }
         return new WebAssembly.Memory(descriptor);
-    }
-
-    function startup() {
-        if (exports._start) {
-            try {
-                exports._start();
-            } catch (error) {
-                if (error instanceof SandboxEntryIsNotARealException) {
-                    return;
-                } else {
-                    throw error;
-                }
-            }
-            throw Error('Sandbox startup failed.');
-        }
     }
 
     const sandbox: SandboxInternal = {
@@ -893,7 +797,6 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
             exports = instance.exports as any;
             refreshViews();
             wasiImports.setMemory(memory);
-            startup();
             sharedBufferPointer = exports.getSharedBufferPointer();
             sharedBufferSize = exports.getSharedBufferSize();
             let flags = (decoderLatin1 ? SandboxFlags.Latin1Allowed : 0)
@@ -926,7 +829,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
 
         registerImports(callbacks: RegisterCallbacks): void {
             let ids = registerImportsInner(callbacks);
-            call(SandboxCommand.Register, ids);
+            call(SandboxSpecialCommand.Register, ids);
         },
 
         exports: {},

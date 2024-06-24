@@ -1,4 +1,5 @@
-import { GuestSandboxObject, ArrayBufferViewType, SandboxCommand, RegisterCallbacks } from './common';
+import { ArrayBufferViewType, RegisterCallbacks, SandboxSpecialCommand } from "../../src-common/common";
+import { GuestSandboxObject } from "../guest-sandbox";
 
 if (!globalThis.SharedArrayBuffer) {
     (globalThis as any).SharedArrayBuffer = ArrayBuffer;
@@ -220,7 +221,7 @@ function registerImports(branch: RegisterCallbacks, ids: RegisterCallbacksIds) {
 
 __sandbox__.callFromHost = function (command: number): any {
     switch (command) {
-        case SandboxCommand.Register:
+        case SandboxSpecialCommand.Register:
             registerImports(imports, valueStack[0]);
             break;
         default: {
@@ -249,7 +250,7 @@ function registerExportsInner(callbacks: RegisterCallbacks): RegisterCallbacksId
     return ids;
 }
 
-function call(command: SandboxCommand, ...args: any[]): any {
+function call(command: SandboxSpecialCommand, ...args: any[]): any {
     __sandbox__.createHostValue?.(...args);
     if (!__sandbox__.callToHost(command)) {
         if (valueStack[0] instanceof Error) {
@@ -263,7 +264,7 @@ function call(command: SandboxCommand, ...args: any[]): any {
 
 __sandbox__.registerExports = function(callbacks: RegisterCallbacks): void {
     let ids = registerExportsInner(callbacks);
-    call(SandboxCommand.Register, ids);
+    call(SandboxSpecialCommand.Register, ids);
 },
 
 recv.clearValues = function () {

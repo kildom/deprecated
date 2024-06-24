@@ -32,6 +32,14 @@ export function createWasiImports(): WasiImports {
 
     return {
 
+        path_remove_directory(a, b, c): number {
+            throw new Error('TODO:'); // TODO: implement
+        },
+
+        path_unlink_file(a, b, c) {
+            throw new Error('TODO:'); // TODO: implement
+        },
+
         setMemory(mem: WebAssembly.Memory) {
             memory = mem;
             arrayBuffer = memory.buffer;

@@ -1,9 +1,11 @@
 /*
  * Code was automatically generated. Do not edit manually.
- * Run "npm run wasm-api" to regenerate it.
+ * Run "npm run wasm-api unprocessed" to regenerate it.
  */
 
 export interface SandboxWasmExport {
+    __stack_pointer: any;
+    _start(): void;
     createNull(): void;
     createArray(): void;
     createUndefined(): void;
@@ -31,8 +33,6 @@ export interface SandboxWasmExport {
     init(a: number, b: number, c: number, d: number): number;
     getSharedBufferPointer(): number;
     getSharedBufferSize(): number;
-    getStackPointer(): number;
-    setStackPointer(a: number): void;
 };
 
 export namespace SandboxWasmImportModule {

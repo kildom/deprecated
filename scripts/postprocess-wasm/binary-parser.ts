@@ -1,5 +1,6 @@
 
 import assert from 'assert';
+import { ExportInfoData, exportInfoPrefix } from '../../src-common/common';
 
 enum SectionType {
     customSection = 0,
@@ -35,10 +36,7 @@ interface Section {
     outputHeaderSize: number;
 }
 
-const INTERFACE_VERSION = 0;
-const CUSTOM_SECTION_NAME = 'js-sandbox-CpktVgXbZaAHZ1ADnsj7I';
-const HARD_MEM_LIMIT = 512 * 1024 * 1024;
-const BLOCK_SIZE = 65536;
+const PAGE_SIZE = 65536;
 const SPEED_OPTIMIZE_HOLE_SIZE_THRESHOLD = 16;
 
 const encoder = new TextEncoder();
@@ -58,8 +56,34 @@ interface DataBlock {
     zeros: number;
 }
 
+interface MemoryLimits {
+    initialPages: number;
+    maximumPages: number;
+    begin: number;
+    end: number;
+}
 
 //#region ------- Output Writing -------
+
+function toHexFixed8(value: number): string {
+    let str = '0000000' + value.toString(16);
+    return str.substring(str.length - 8);
+}
+
+function toExportInfo(data: ExportInfoData): string {
+    let arr = [
+        data.stackPointerBegin, // 8
+        data.stackPointerSize,  // 1
+        data.dataSectionBegin,  // 8
+        data.dataSectionSize,   // 6
+        data.initialPagesBegin, // 8
+        data.initialPagesSize,  // 1
+        data.initialPages,      // 4
+    ];                               // total: 36 hex digits + 6 separators = 42
+    let size = 42 + exportInfoPrefix.length;
+    let str = exportInfoPrefix + arr.map(x => x.toString(16)).join('_');
+    return str + '_'.repeat(size - str.length);
+}
 
 
 function output(value: number | string | Uint8Array | number[] | null): number {
@@ -212,10 +236,10 @@ export function rewriteModule(binary: Uint8Array, memory: Uint8Array, stackPoint
         addSpHandlersToFunctionSection({ getSpTypeIndex, setSpTypeIndex });
 
     let { funcIndexStart, globalIndexStart } =
-        getIndexStartsAndMemoryFromImports({ requiredSize: memory.length });
+        getIndexStartsAndMemoryFromImports({ memorySize: memory.length });
 
     let { stackPointerIndex } =
-        addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex, setSpFuncIndex });
+        addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex, setSpFuncIndex, memorySize: memory.length });
 
     addStackHandlersCode({ stackPointerIndex });
 
@@ -223,20 +247,21 @@ export function rewriteModule(binary: Uint8Array, memory: Uint8Array, stackPoint
         generateNewDataSection(memory, stackPointer, sizeOptimize);
 
     generateDataCountSection(dataBlockCount);
-    let { stackPointerBegin, stackPointerEnd } =
+
+    let { stackPointerBegin, stackPointerSize } =
         getStackPointerLocation({ stackPointerIndex, globalIndexStart });
 
-    replaceStackPointer({ stackPointerBegin, stackPointerEnd, stackPointer });
+    replaceStackPointer({ stackPointerBegin, stackPointerSize, stackPointer });
 
     return getOutput();
 }
 
-export function parseModule(binary: Uint8Array) {
+export function addModuleInfo(binary: Uint8Array) {
 
     readSections(binary);
 
     let { funcIndexStart, globalIndexStart, memoryLimits } =
-        getIndexStartsAndMemoryFromImports({ requiredSize: 0 });
+        getIndexStartsAndMemoryFromImports({ memorySize: 0 });
 
     let { stackPointerHandlerIndex } =
         getSpHandlerIndexFromExports();
@@ -244,18 +269,18 @@ export function parseModule(binary: Uint8Array) {
     let { stackPointerIndex } =
         getSpIndexFromHandlerCode({ stackPointerHandlerIndex, funcIndexStart });
 
-    let { stackPointerBegin, stackPointerEnd } =
+    let { stackPointerBegin, stackPointerSize } =
         getStackPointerLocation({ stackPointerIndex, globalIndexStart });
 
     getOutput();
 
     stackPointerBegin += sectionsById[SectionType.globalSection].outputOffset + sectionsById[SectionType.globalSection].outputHeaderSize;
-    stackPointerEnd += sectionsById[SectionType.globalSection].outputOffset + sectionsById[SectionType.globalSection].outputHeaderSize;
-    let initialSizeOffset = memoryLimits.offset + sectionsById[SectionType.importSection].outputOffset + sectionsById[SectionType.importSection].outputHeaderSize;
+    memoryLimits.begin + sectionsById[SectionType.importSection].outputOffset + sectionsById[SectionType.importSection].outputHeaderSize;
+    memoryLimits.end + sectionsById[SectionType.importSection].outputOffset + sectionsById[SectionType.importSection].outputHeaderSize;
     let dataSectionBegin = sectionsById[SectionType.dataSection].outputOffset;
-    let dataSectionEnd = sectionsById[SectionType.dataSection].outputEndOffset;
+    let dataSectionSize = sectionsById[SectionType.dataSection].outputEndOffset - dataSectionBegin;
 
-    appendCustomSection({ stackPointerBegin, stackPointerEnd, initialSizeOffset, dataSectionBegin, dataSectionEnd });
+    writeExportInfoData({ stackPointerBegin, stackPointerSize, memoryLimitsAbsolute: memoryLimits, dataSectionBegin, dataSectionSize });
 
     return getOutput();
 }
@@ -265,40 +290,55 @@ export function getImportMemoryLimits(binary: Uint8Array) {
     readSections(binary);
 
     let { memoryLimits } =
-        getIndexStartsAndMemoryFromImports({ requiredSize: 0 });
+        getIndexStartsAndMemoryFromImports({ memorySize: 0 });
 
     return memoryLimits;
 }
 
-function appendCustomSection(
-    { stackPointerBegin, stackPointerEnd, initialSizeOffset, dataSectionBegin, dataSectionEnd }:
-        { stackPointerBegin: number, stackPointerEnd: number, initialSizeOffset: number, dataSectionBegin: number, dataSectionEnd: number }
+
+function writeExportInfoData(
+    { stackPointerBegin, stackPointerSize, memoryLimitsAbsolute, dataSectionBegin, dataSectionSize }:
+        { stackPointerBegin: number, stackPointerSize: number, memoryLimitsAbsolute: MemoryLimits, dataSectionBegin: number, dataSectionSize: number }
 ) {
-    let section: Section = {
-        begin: NaN,
-        end: NaN,
-        id: SectionType.customSection,
-        input: undefined as any,
-        output: [],
-        outputEndOffset: 0,
-        outputHeaderSize: 0,
-        outputOffset: 0,
-    };
+    setActive(SectionType.exportSection, true);
 
-    sectionsOrdered.push(section);
-    setActive(section, true);
+    let exportInfo = encoder.encode(toExportInfo({
+        stackPointerBegin: stackPointerBegin,
+        stackPointerSize: stackPointerSize,
+        dataSectionBegin: dataSectionBegin,
+        dataSectionSize: dataSectionSize,
+        initialPagesBegin: memoryLimitsAbsolute.begin,
+        initialPagesSize: memoryLimitsAbsolute.end - memoryLimitsAbsolute.begin,
+        initialPages: memoryLimitsAbsolute.initialPages,
+    }));
 
-    output(CUSTOM_SECTION_NAME);
+    let written = false;
 
-    let struct = new DataView(new ArrayBuffer(6 * 4));
-    struct.setUint32(4 * 0, INTERFACE_VERSION, true);
-    struct.setUint32(4 * 1, stackPointerBegin, true);
-    struct.setUint32(4 * 2, stackPointerEnd, true);
-    struct.setUint32(4 * 3, dataSectionBegin, true);
-    struct.setUint32(4 * 4, dataSectionEnd, true);
-    struct.setUint32(4 * 5, initialSizeOffset, true);
+    let count = leb128();
+    output(count);
+    let actual_count = 0;
+    for (let i = 0; i < count; i++) {
+        let entryBegin = offset;
+        let strLen = leb128();
+        let infoBegin = offset;
+        let name = decoder.decode(bin.subarray(offset, offset + strLen));
+        offset += strLen;
+        let infoEnd = offset;
+        byte(); // kind
+        leb128(); // index
+        if (name.startsWith(exportInfoPrefix)) {
+            assert.equal(infoEnd - infoBegin, exportInfo.length);
+            output(bin.subarray(entryBegin, infoBegin));
+            output(exportInfo);
+            output(bin.subarray(infoEnd, offset));
+            written = true;
+        } else {
+            output(bin.subarray(entryBegin, offset));
+            actual_count++;
+        }
+    }
 
-    output(new Uint8Array(struct.buffer));
+    assert(written);
 }
 
 
@@ -434,13 +474,13 @@ function addSpHandlersToFunctionSection({ getSpTypeIndex, setSpTypeIndex }: { ge
     return { getSpFuncIndex, setSpFuncIndex };
 }
 
-function addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex, setSpFuncIndex }: { funcIndexStart: number, getSpFuncIndex: number, setSpFuncIndex: number }) {
+function addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex, setSpFuncIndex, memorySize }: { funcIndexStart: number, getSpFuncIndex: number, setSpFuncIndex: number, memorySize: number }) {
     setActive(SectionType.exportSection, true);
 
     let stackPointerIndex = -1;
 
     let count = leb128();
-    output(count); // count
+    output(count + 1); // count
     let actual_count = 0;
     for (let i = 0; i < count; i++) {
         let start = offset;
@@ -466,18 +506,30 @@ function addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex,
     output(0x00);
     output(funcIndexStart + setSpFuncIndex);
     actual_count++;
+    output(toExportInfo({
+        stackPointerBegin: 0,
+        stackPointerSize: 0,
+        dataSectionBegin: 0,
+        dataSectionSize: 0,
+        initialPagesBegin: 0,
+        initialPagesSize: 0,
+        initialPages: Math.ceil(memorySize / PAGE_SIZE),
+    }));
+    output(0x00);
+    output(funcIndexStart + getSpFuncIndex);
+    actual_count++;
     assert(stackPointerIndex >= 0);
-    assert.equal(actual_count, count);
+    assert.equal(actual_count, count + 1);
 
     return { stackPointerIndex };
 }
 
-function getIndexStartsAndMemoryFromImports({ requiredSize }: { requiredSize: number }) {
+function getIndexStartsAndMemoryFromImports({ memorySize }: { memorySize: number }) {
     setActive(SectionType.importSection, true);
 
     let funcIndexStart = 0;
     let globalIndexStart = 0;
-    let memoryLimits = { initial: -1, maximum: -1, offset: -1 };
+    let memoryLimits = { initialPages: -1, maximumPages: -1, begin: -1, end: -1 };
     let count = leb128();
     output(count);
     for (let i = 0; i < count; i++) {
@@ -502,24 +554,26 @@ function getIndexStartsAndMemoryFromImports({ requiredSize }: { requiredSize: nu
         } else if (kind === 0x02) { // memory
             let maxPresent = byte();
             output(maxPresent);
-            memoryLimits.offset = outputOffset(0);
+            memoryLimits.begin = outputOffset(0);
             let moduleInitial = leb128();
-            memoryLimits.initial = Math.max(moduleInitial, Math.ceil(requiredSize / 65536));
-            output(leb128Create(memoryLimits.initial, 3));
+            memoryLimits.initialPages = Math.max(moduleInitial, Math.ceil(memorySize / PAGE_SIZE));
+            output(leb128Create(memoryLimits.initialPages, 3));
+            memoryLimits.end = outputOffset(0);
             if (maxPresent) {
-                memoryLimits.maximum = leb128();
-                output(memoryLimits.maximum);
+                memoryLimits.maximumPages = leb128();
+                output(memoryLimits.maximumPages);
             } else {
-                memoryLimits.maximum = Infinity;
+                memoryLimits.maximumPages = Infinity;
             }
         } else { // table
             assert(false);
         }
     }
 
-    assert(memoryLimits.initial > 0);
-    assert(memoryLimits.maximum > 0);
-    assert(memoryLimits.offset > 0);
+    assert(memoryLimits.initialPages > 0);
+    assert(memoryLimits.maximumPages > 0);
+    assert(memoryLimits.begin > 0);
+    assert(memoryLimits.end > 0);
 
     return { funcIndexStart, globalIndexStart, memoryLimits };
 }
@@ -678,7 +732,7 @@ function getStackPointerLocation({ stackPointerIndex, globalIndexStart }: { stac
     commitSectionOutput();
 
     let stackPointerBegin = -1;
-    let stackPointerEnd = -1;
+    let stackPointerSize = -1;
 
     let count = leb128();
 
@@ -699,18 +753,18 @@ function getStackPointerLocation({ stackPointerIndex, globalIndexStart }: { stac
         let end = offset;
         if (globalIndexStart + i === stackPointerIndex) {
             stackPointerBegin = start;
-            stackPointerEnd = end;
+            stackPointerSize = end - start;
         }
         assert.equal(byte(), 0x0B, 'END instruction');
     }
 
-    assert(stackPointerBegin > 0 && stackPointerEnd > 0);
+    assert(stackPointerBegin > 0 && stackPointerSize > 0);
 
-    return { stackPointerBegin, stackPointerEnd };
+    return { stackPointerBegin, stackPointerSize };
 }
 
-function replaceStackPointer({ stackPointerBegin, stackPointerEnd, stackPointer }: { stackPointerBegin: number, stackPointerEnd: number, stackPointer: number }) {
+function replaceStackPointer({ stackPointerBegin, stackPointerSize, stackPointer }: { stackPointerBegin: number, stackPointerSize: number, stackPointer: number }) {
     setActive(SectionType.globalSection);
     commitSectionOutput();
-    currentSection.input.subarray(stackPointerBegin, stackPointerEnd).set(leb128Create(stackPointer, stackPointerEnd - stackPointerBegin));
+    currentSection.input.subarray(stackPointerBegin, stackPointerBegin + stackPointerSize).set(leb128Create(stackPointer, stackPointerSize));
 }

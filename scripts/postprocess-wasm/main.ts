@@ -3,7 +3,7 @@ import { createWasiImports } from "./wasi-stubs";
 import fs from 'node:fs';
 import cre from 'con-reg-exp';
 import * as parser from './binary-parser';
-import * as child_process from 'node:child_process';
+import { run } from "../scripts-common";
 
 function errorFunction() {
     throw new Error('Unexpected call.');
@@ -16,6 +16,9 @@ export interface UnprocessedSandboxWasmExports {
     _start(): void;
 };
 
+
+let initialMemoryPages = 0;
+let exports: any;
 
 const sandboxImports = {
     log: () => {},
@@ -39,7 +42,23 @@ const sandboxImports = {
     createArrayBufferView: errorFunction as any,
     reuseValue: errorFunction as any,
     keepValue: errorFunction as any,
-    entry: () => { throw new Error('OK'); },
+
+    entry: () => {
+        console.log('Entry reached');
+        throw new Error('OK');
+    },
+
+    getMemorySize: () => {
+        let res = 65536 * initialMemoryPages;
+        console.log(`Get memory size: ${res}`);
+        return res;
+    },
+
+    getStackPointer: () => {
+        let res = exports?.__stack_pointer?.value ? exports.__stack_pointer.value : exports.getStackPointer();
+        console.log(`Stack pointer: ${res}`);
+        return res;
+    },
 };
 
 interface ExecutionState {
@@ -47,64 +66,13 @@ interface ExecutionState {
     memory: Uint8Array;
 }
 
-function run(...args: string[]) {
-    let out = child_process.spawnSync(args[0], args.slice(1), {
-        stdio: 'inherit',
-    });
-    if (out.status !== 0) throw Error(`"${args[0]}" command failed: ${out.status}`);
-}
 
-let afterStart: number[] | undefined = undefined;
-let afterInst2: number[] | undefined = undefined;
-
-async function checkModule(info: string, bin: Uint8Array, callStart: boolean): Promise<ArrayBuffer> {
-    let limits = parser.getImportMemoryLimits(bin);
-    let mod = await WebAssembly.compile(bin);
-    let wasi = createWasiImports();
-    let memory = new WebAssembly.Memory({ initial: limits.initial });
-    console.log(`${info}: Starting module with ${memory.buffer.byteLength / 65536} pages`);
-    let imports = { sandbox: sandboxImports, wasi_snapshot_preview1: wasi, env: { memory } };
-    let inst = await WebAssembly.instantiate(mod, imports as any);
-    let result = memory.buffer.slice(0);
-    if (afterStart) {
-        afterInst2 = [...new Uint32Array(memory.buffer, 4 * 1024 * 1024 - 608, (memory.buffer.byteLength - (4 * 1024 * 1024 - 608)) / 4)];
-        console.log(afterStart.length, afterInst2.length);
-        for (let i = 0; i < afterInst2.length; i++) {
-            if (afterInst2[i] != afterStart[i]) {
-                console.log(4 * 1024 * 1024 - 608 + 4 * i, afterInst2[i].toString(16), afterStart[i].toString(16));
-                break;
-            }
-        }
-    }
-    let exports = inst.exports as unknown as UnprocessedSandboxWasmExports;
-    wasi.setMemory(memory);
-    if (callStart) {
-        try {
-            exports._start();
-        } catch (e) {
-            if (e.message !== 'OK') throw e;
-        }
-        afterStart = [...new Uint32Array(memory.buffer, 4 * 1024 * 1024 - 608, (memory.buffer.byteLength - (4 * 1024 * 1024 - 608)) / 4)];
-    }
-    try {
-        (exports as any).init(32 * 1024 * 1024);
-    } catch (e) {
-        console.error(e);
-    }
-    if (exports.__stack_pointer) {
-        let initialStackPointer = Math.round(exports.__stack_pointer.value / 1024 / 1024) * 1024 * 1024
-        console.log(`${info}: Execution ended with ${memory.buffer.byteLength / 65536} pages, C stack ${initialStackPointer - exports.__stack_pointer.value} bytes`);
-    } else {
-        console.log(`${info}: Execution ended with ${memory.buffer.byteLength / 65536} pages`);
-    }
-    return result;
-}
-
-async function executeStartup(bin: Uint8Array, initialMemoryBlocks: number): Promise<ExecutionState> {
+async function executeStartup(bin: Uint8Array, pages: number): Promise<ExecutionState> {
+    initialMemoryPages = pages;
     let mod = await WebAssembly.compile(bin);
     let wasi = createWasiImports();
     // WASI-SDK libc requires initial memory exactly as declared in module. Giving more causes memory leaks.
-    let memory = new WebAssembly.Memory({ initial: initialMemoryBlocks });
+    let memory = new WebAssembly.Memory({ initial: initialMemoryPages });
     console.log(`Starting module with ${memory.buffer.byteLength / 65536} pages`);
     let imports = {
         sandbox: sandboxImports,
@@ -112,10 +80,11 @@ async function executeStartup(bin: Uint8Array, initialMemoryBlocks: number): Pro
         env: { memory },
     };
     let inst = await WebAssembly.instantiate(mod, imports as any);
-    let exports = inst.exports as unknown as UnprocessedSandboxWasmExports;
+    exports = inst.exports as unknown as UnprocessedSandboxWasmExports;
     wasi.setMemory(memory);
     try {
         exports._start();
+        throw new Error('Module startup failed');
     } catch (e) {
         if (e.message !== 'OK') throw e;
     }
@@ -140,74 +109,75 @@ const forbiddenInstr = cre.ignoreCase`
     }
 `;
 
+enum OptimizeMode {
+    None = 0,
+    Optimize = 1,
+    Size = 2,
+};
+
 async function main() {
-    let wasmOpt = process.env['WASM_OPT_PATH'] || '../binaryen-version_117/bin/wasm-opt';
-    let wasm2wat = process.env['WASM2WAT_PATH'] || '../wabt-1.0.35/bin/wasm2wat';
-    let sizeOptimize: boolean | null = null;
-    assert.equal(process.argv.length, 5)
-    sizeOptimize = process.argv[2].endsWith('z') || process.argv[2].endsWith('s');
-    assert(sizeOptimize !== null);
+
+    // Process parameters
+    let wasmOpt = process.env['WASM_OPT_PATH'] || 'wasm-opt';
+    let wasm2wat = process.env['WASM2WAT_PATH'] || 'wasm2wat';
+    if (process.argv.length !== 5) {
+        console.error(`Usage: ${process.argv[1]} -O[0123sz] input.wasm output.wasm`);
+        process.exit(99);
+    }
+    let args = {
+        opt: process.argv[2],
+        input: process.argv[3],
+        output: process.argv[4],
+    };
+    let optimize = args.opt.endsWith('0') ? OptimizeMode.None :
+        args.opt.endsWith('z') || args.opt.endsWith('s') ? OptimizeMode.Size :
+        OptimizeMode.Optimize;
 
     // Read input
-    let inputBin = fs.readFileSync(process.argv[3]) as Uint8Array;
-
-    await checkModule('TEST ORIGINAL', inputBin, true);
-
-    let limits = parser.getImportMemoryLimits(inputBin);
+    let moduleBin = fs.readFileSync(args.input) as Uint8Array;
 
     // Execute WASM module startup and initialization code
-    let state = await executeStartup(inputBin, limits.initial);
-    let mem1 = new Uint8Array(state.memory.buffer.slice(0));
+    let limits = parser.getImportMemoryLimits(moduleBin);
+    let state = await executeStartup(moduleBin, limits.initialPages);
 
-    // Parse module and generate module containing current state
-    let processedBin = parser.rewriteModule(inputBin, state.memory, state.stackPointer, sizeOptimize);
-    fs.writeFileSync(process.argv[4] + '.proc.wasm', processedBin);
-    let mem2 = new Uint8Array(await checkModule('TEST PROCESSED', processedBin, false));
+    // Rewrite module, so it contains current state now
+    moduleBin = parser.rewriteModule(moduleBin, state.memory, state.stackPointer, optimize == OptimizeMode.Size);
 
-    for (let i = state.stackPointer; i < mem2.length; i++) {
-        if (mem1[i] !== mem2[i]) {
-            console.log(i, `after _start: ${mem1[i]}, after inst: ${mem2[i]}`);
-            throw Error();
-        }
-    }
-
-    let optBin: Uint8Array;
-    if (0) {
-        // Optimize again, because startup function can be discarded now
+    // Optimize again since the startup functions can be discarded now
+    if (optimize !== OptimizeMode.None) {
+        fs.writeFileSync(args.output + '.proc.wasm', moduleBin);
         run(
             wasmOpt,
-            process.argv[2],
-            '-o', process.argv[4] + '.opt.wasm',
-            process.argv[4] + '.proc.wasm'
+            args.opt,
+            '-o', args.output + '.opt.wasm',
+            args.output + '.proc.wasm'
         );
-        optBin = fs.readFileSync(process.argv[4] + '.opt.wasm');
-    } else {
-        optBin = processedBin;
+        moduleBin = fs.readFileSync(args.output + '.opt.wasm');
     }
 
-    let finalBin = parser.parseModule(optBin);
+    // Add custom sections containing information needed for freeze functionality
+    moduleBin = parser.addModuleInfo(moduleBin);
 
     // Write final output
-    fs.writeFileSync(process.argv[4], finalBin);
+    fs.writeFileSync(args.output, moduleBin);
 
     // Make sure there are no forbidden instructions (not supported by freeze functionality)
     run(
         wasm2wat,
-        '-o', process.argv[4] + '.wat',
-        process.argv[3],
+        '-o', args.output + '.wat',
+        args.input,
     );
-    let text = fs.readFileSync(process.argv[4] + '.wat', 'utf8');
+    let text = fs.readFileSync(args.output + '.wat', 'utf8');
     for (let line of text.split('\n')) {
         assert.doesNotMatch(line, forbiddenInstr);
     }
 
-    if (0) {
-        fs.unlinkSync(process.argv[4] + '.wat');
-        try {
-            fs.unlinkSync(process.argv[4] + '.opt.wasm');
-            fs.unlinkSync(process.argv[4] + '.proc.wasm');
-        } catch (e) { }
-    }
+    // Remove temporary files
+    fs.unlinkSync(args.output + '.wat');
+    try {
+        fs.unlinkSync(args.output + '.opt.wasm');
+        fs.unlinkSync(args.output + '.proc.wasm');
+    } catch (e) { }
 }
 
 main();

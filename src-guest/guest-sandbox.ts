@@ -1,26 +1,5 @@
 
-export type RegisterCallbacks = { [key: string]: Function | RegisterCallbacks };
-
-export enum SandboxCommand {
-    Register = -1,
-    Call = -2,
-};
-
-
-export enum ArrayBufferViewType {
-    Int8Array = 0,
-    Uint8Array = 1,
-    Uint8ClampedArray = 2,
-    Int16Array = 3,
-    Uint16Array = 4,
-    Int32Array = 5,
-    Uint32Array = 6,
-    Float32Array = 7,
-    Float64Array = 8,
-    BigInt64Array = 9,
-    BigUint64Array = 10,
-    DataView = 11,
-}
+import { ArrayBufferViewType, RegisterCallbacks } from '../src-common/common';
 
 
 export interface GuestSandboxObject {

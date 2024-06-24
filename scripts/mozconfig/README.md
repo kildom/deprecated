@@ -1,6 +1,8 @@
 
 # Scripts for managing the Spidermonkey build process
 
+TODO: Move it to main readme file.
+
 I suggest using Docker to build the Spidermonkey.
 
 1. Clone repository from Github to `../gecko-dev`:

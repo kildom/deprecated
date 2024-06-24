@@ -1,34 +1,36 @@
 
-# Debug mozilla build:   MOZ_OBJDIR=`realpath ../mozdebug` MOZCONFIG=`realpath ../project/mozdebug` ./mach build
-# Release mozilla build: MOZ_OBJDIR=`realpath ../mozrelease` MOZCONFIG=`realpath ../project/mozrelease` ./mach build
-
-TARGET=sandbox
-
 
 ifeq (debug,$(MODE))
   CXXFLAGS=-O0 -g -DDEBUG=1
-  LINK_TARGET=$(OUTDIR)/$(TARGET).wasm
+  LINK_TARGET=$(OUTDIR)/sandbox.wasm
   OPT_TARGET=$(OUTDIR)/non-existing-file
   MODE_MOZ=debug
+  OPT_PARAM=-O0
+  TS_BUNDLE_DEP=sandbox.wasm # This file already exists, so 'make' will not generate it.
 else ifeq (release,$(MODE))
   CXXFLAGS=-flto -O2
-  LINK_TARGET=$(OUTDIR)/obj/$(TARGET)-no-opt.wasm
-  OPT_TARGET=$(OUTDIR)/$(TARGET).wasm
+  LINK_TARGET=$(OUTDIR)/obj/sandbox-no-opt.wasm
+  OPT_TARGET=$(OUTDIR)/sandbox.wasm
   MODE_MOZ=release
+  OPT_PARAM=-O2
+  TS_BUNDLE_DEP=$(MODE).ts
 else ifeq (size,$(MODE))
   CXXFLAGS=-flto -Oz
-  LINK_TARGET=$(OUTDIR)/obj/$(TARGET)-no-opt.wasm
-  OPT_TARGET=$(OUTDIR)/$(TARGET).wasm
+  LINK_TARGET=$(OUTDIR)/obj/sandbox-no-opt.wasm
+  OPT_TARGET=$(OUTDIR)/sandbox.wasm
   MODE_MOZ=release
+  OPT_PARAM=-Oz
+  TS_BUNDLE_DEP=$(MODE).ts
 else
   $(error Give mode parameter: MODE=debug, MODE=release, or MODE=size)
 endif
 
 
+DISTDIR=../dist
 OUTDIR=../build/$(MODE)
 MOZ_BUILD_DIR=../../moz$(MODE)
 CPP=$(HOME)/.mozbuild/clang/bin/clang++
-OPT=wasm-opt -O2 --strip-debug
+OPT=wasm-opt $(OPT_PARAM) --strip-debug
 CXXFLAGS+=-target wasm32-wasi --sysroot $(HOME)/.mozbuild/sysroot-wasm32-wasi -I $(MOZ_BUILD_DIR)/dist/include -D_WASI_EMULATED_SIGNAL
 CPPFLAGS=-Wno-invalid-offsetof
 
@@ -64,7 +66,7 @@ LDFLAGS=\
 
 OBJ := $(patsubst ./%.cpp,$(OUTDIR)/obj/%.o,$(wildcard ./*.cpp))
 
-all: $(OUTDIR)/$(TARGET).wasm
+all: $(DISTDIR)/$(MODE).wasm $(OUTDIR)/$(TS_BUNDLE_DEP)
 
 clean:
 	rm -Rf $(OUTDIR)
@@ -77,9 +79,16 @@ rebuild: clean
 
 $(OUTDIR)/obj/marker.txt:
 	mkdir -p $(OUTDIR)/obj
+	mkdir -p $(DISTDIR)
 	echo OK > $(OUTDIR)/obj/marker.txt
 
-$(OPT_TARGET): $(OUTDIR)/obj/$(TARGET)-no-opt.wasm
+$(DISTDIR)/$(MODE).wasm: $(OUTDIR)/sandbox.wasm
+	npx tsx ../scripts/postprocess-wasm/main.ts $(OPT_PARAM) $< $@
+
+$(OUTDIR)/$(MODE).ts: $(DISTDIR)/$(MODE).wasm
+	npx tsx ../scripts/file-to-base64.ts $< $@
+
+$(OPT_TARGET): $(OUTDIR)/obj/sandbox-no-opt.wasm
 	$(OPT) -o $@ $<
 
 $(LINK_TARGET): $(OBJ)
