@@ -250,3 +250,22 @@ Can be located on both ROM and RAM.
   1. When counting references to find roots, travel weak references the same as normal references.
   1. When traveling graph to mark reachable objects, ignore weak references.
   1. Walk over all weak references and clear those pointing to unreachable objects.
+
+# Other notes
+
+* Each object can have its own "virtual functions": dispose, get, set, has, ownKeys, e.t.c.
+  * Something similar to `Proxy` but in native code
+  * Size optimization: some fields are optional and may be groupped to reduce overall size if not all groups are implmented
+  * There are no NULL function pointers. If it should be a default implementation, the pointer will point to default function
+  * Standard objects can point to default implementation of those functions, so there will be no API difference between standard object and non-standard
+  * This should simplify `Proxy` class implementation.
+  * This way, we don't need a different type for standard objects, native objects, `Proxy` instances, `Function` instances.
+* Array and any other object should have the same layout: chunks of array for ineger indexed properties, key-value pairs for others.
+  * This way following problems are solved:
+    * Strange order of property enumaration when integer indexed properties are ordered and first
+    * Using `Array.prototype` functions on other object, e.g. `Array.prototype.slice.call(arguments, 0)`
+      * Problematic may be case when object has custom virtual functions, but looks like other engines does not support it.
+  * `arguments` object will have values in this array chunks (one chunk)
+  * For objects without integer keys, the first array chunk pointer will be null.
+  * Optional size optimization: integer-only objects (`Array`, `arguments`) may have its first chunk after the object data (instead of key-vaule pairs)
+    If non-integer key is added, array should be moved to a new chunk and key-value pairs will reuse the old array space.
