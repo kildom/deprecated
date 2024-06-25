@@ -260,6 +260,15 @@ Can be located on both ROM and RAM.
   * Standard objects can point to default implementation of those functions, so there will be no API difference between standard object and non-standard
   * This should simplify `Proxy` class implementation.
   * This way, we don't need a different type for standard objects, native objects, `Proxy` instances, `Function` instances.
+  * If "virtual functions" are inside Head, and they are fully customized (including GC travelsal functions),
+    the second value of the Head don't need to point to a heap block with object data.
+    * This allows creating lightweight native objects,
+    * Need to be investigated, but probably it may be benefitial:
+      Maybe even `string` can be handled this way. This will reduce code hadnling string as a special type, but
+      may increase code to detect if it is a string or not.
+* If Head contains pointer (offset) to heap block, it must be the second value.
+  * The heap block will contain the block index, so when defragmenting, moved blocks can be automatically updated without knowing the object type.
+  * This may require adding new type of object "RawBuffer" that holds raw allocated buffer (e.g. for array chunks) and optionally 32-bit tag (in Head).
 * Array and any other object should have the same layout: chunks of array for ineger indexed properties, key-value pairs for others.
   * This way following problems are solved:
     * Strange order of property enumaration when integer indexed properties are ordered and first
