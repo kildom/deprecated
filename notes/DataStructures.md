@@ -269,3 +269,20 @@ Can be located on both ROM and RAM.
   * For objects without integer keys, the first array chunk pointer will be null.
   * Optional size optimization: integer-only objects (`Array`, `arguments`) may have its first chunk after the object data (instead of key-vaule pairs)
     If non-integer key is added, array should be moved to a new chunk and key-value pairs will reuse the old array space.
+  * String hash of valid integer key should be spacial:
+    * bit 31 - 0: this is valid integer key, 1: it is not
+    * If full compatibility is enabled:
+       * bit 30 - the value is above 2^30-1
+         * If 0: bit 0..29 - actual value
+         * If 1: bit 0..29 - lower 30 bits of actual value
+    * If not full compatibility: valid ingener keys are limited to 0..2^31-1
+       * bit 0..30 - actual value
+    * If PERFORMANCE: Number to string functions should set hash if it is valid integer key.
+* The code should have `#ifdef`s or `if`s around code that is optional, and it is only for performance.
+  Optionally, if some code can be much smaller in cost of performance, `#elseif` should be used.
+  ```cpp
+  dtoa(strData, value);
+  if (PERFORMANCE) {
+     strHead->hash = calculateNumberStringHash(strData);
+  }
+  ```
