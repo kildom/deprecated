@@ -286,3 +286,7 @@ Can be located on both ROM and RAM.
      strHead->hash = calculateNumberStringHash(strData);
   }
   ```
+    * `PERFORMANCE` - this code is optional, it will increase code size, and also increase performance, e.g. setting hash of valid integer key after convertion.
+    * `HEAPUSAGE` - this code is optional, it will increase code size, but decrease engine heap usage, e.g. putting array chunk directly into object (instead of separate memory block).
+    * `PERFORMANCE && !HEAPUSAGE` - this code is optinal, it will increase code size and heap usage, and also increase performance
+    * `HEAPUSAGE && !PERFORMANCE` - ...
