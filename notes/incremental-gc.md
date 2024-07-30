@@ -123,3 +123,13 @@ Algorytm incremental GC - taki jak non-incrementa tylko że:
 * stos objektów do sprawdzenia jest statyczny,
 * zminana właściciela objektu (takrze dodanie nowego właściciela) powoduje ustawienie PENDING
 * nie ma PENDING_STACK_OVERFLOW, tylko algorytm kończy, gdy nie ma już więcej PENDING
+
+# Warianty
+
+Podsumowując zalety i wady, można stworzyć taką listę wszystkich opcji GC:
+* `BASIC` - classic GC
+* `BASIC+INCREMENTAL` (może nie potrzebny, jeżeli nie ma dużej przewagi w stosunku do REFCOUNT+INCREMENTAL)
+* `REFCOUNT` - reference counting CG
+* `REFCOUNT+INCREMENTAL`
+* `REFCOUNT+GENERATIONAL`
+* `REFCOUNT+INCREMENTAL+GENERATIONAL`
