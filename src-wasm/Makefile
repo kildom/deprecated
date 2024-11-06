@@ -83,6 +83,7 @@ $(OUTDIR)/obj/marker.txt:
 	echo OK > $(OUTDIR)/obj/marker.txt
 
 $(DISTDIR)/$(MODE).wasm: $(OUTDIR)/sandbox.wasm
+	mkdir -p $(DISTDIR)
 	npx tsx ../scripts/postprocess-wasm/main.ts $(OPT_PARAM) $< $@
 
 $(OUTDIR)/$(MODE).ts: $(DISTDIR)/$(MODE).wasm

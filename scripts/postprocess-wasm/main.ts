@@ -133,6 +133,17 @@ async function main() {
         args.opt.endsWith('z') || args.opt.endsWith('s') ? OptimizeMode.Size :
         OptimizeMode.Optimize;
 
+    // Make sure there are no forbidden instructions (not supported by freeze or pre-startup functionality)
+    run(
+        wasm2wat,
+        '-o', args.output + '.wat',
+        args.input,
+    );
+    let text = fs.readFileSync(args.output + '.wat', 'utf8');
+    for (let line of text.split('\n')) {
+        assert.doesNotMatch(line, forbiddenInstr);
+    }
+
     // Read input
     let moduleBin = fs.readFileSync(args.input) as Uint8Array;
 
@@ -155,22 +166,8 @@ async function main() {
         moduleBin = fs.readFileSync(args.output + '.opt.wasm');
     }
 
-    // Add custom sections containing information needed for freeze functionality
-    moduleBin = parser.addModuleInfo(moduleBin);
-
     // Write final output
     fs.writeFileSync(args.output, moduleBin);
-
-    // Make sure there are no forbidden instructions (not supported by freeze functionality)
-    run(
-        wasm2wat,
-        '-o', args.output + '.wat',
-        args.input,
-    );
-    let text = fs.readFileSync(args.output + '.wat', 'utf8');
-    for (let line of text.split('\n')) {
-        assert.doesNotMatch(line, forbiddenInstr);
-    }
 
     // Remove temporary files
     fs.unlinkSync(args.output + '.wat');

@@ -2,7 +2,7 @@ import { SandboxWasmExport, SandboxWasmImport, SandboxWasmImportModule } from ".
 import { createWasiImports } from "./wasi-stubs";
 import { ArrayBufferViewType } from "../src-common/common";
 import bootSourceCode from "../build/guest/boot";
-import { ExportInfoData, SandboxSpecialCommand, exportInfoPrefix } from "../src-common/common";
+import { SandboxSpecialCommand, exportInfoPrefix } from "../src-common/common";
 
 
 export class GuestError extends Error {
@@ -45,7 +45,7 @@ type ModuleSourceType = WebAssembly.Module | FreezableModuleSourceType;
 let moduleState: 'empty' | 'loading' | 'loaded' | Error = 'empty';
 let module: WebAssembly.Module | undefined = undefined;
 let moduleBinary: Uint8Array | undefined = undefined;
-let exportInfo: ExportInfoData | undefined = undefined;
+let initialPages: number | undefined = undefined;
 
 export async function setSandboxModule(
     source: FreezableModuleSourceType | PromiseLike<FreezableModuleSourceType> | undefined,
@@ -85,24 +85,16 @@ export async function setSandboxModule(
         return;
     }
 
-    module = await WebAssembly.compile(moduleBinary);
-    exportInfo = undefined;
+    module = await WebAssembly.compile(moduleBinary); // TODO: WebAssembly.compileStreaming() can be another option since we are not modifying the module at binary level.
+    initialPages = undefined;
     for (let exp of WebAssembly.Module.exports(module)) {
         if (exp.name.startsWith(exportInfoPrefix)) {
-            let tab = exportInfoPrefix.substring(exportInfoPrefix.length).split('_');
-            exportInfo = {
-                stackPointerBegin: parseInt(tab[0], 16),
-                stackPointerSize: parseInt(tab[1], 16),
-                dataSectionBegin: parseInt(tab[2], 16),
-                dataSectionSize: parseInt(tab[3], 16),
-                initialPagesBegin: parseInt(tab[4], 16),
-                initialPagesSize: parseInt(tab[5], 16),
-                initialPages: parseInt(tab[6], 16),
-            };
+            let tab = exp.name.substring(exportInfoPrefix.length).split('_');
+            initialPages = parseInt(tab[0], 16);
         }
     }
 
-    if (!exportInfo) {
+    if (!initialPages) {
         throw new Error('Invalid sandbox module.');
     }
 
@@ -777,7 +769,7 @@ function createSandbox(options: InstantiateOptions): SandboxInternal {
 
     function createMemory() {
         let descriptor: WebAssembly.MemoryDescriptor = {
-            initial: exportInfo?.initialPages || 0,
+            initial: initialPages!,
         };
         if (options.maxWasmSize) {
             descriptor.maximum = Math.ceil(options.maxWasmSize / 65536);

@@ -1,6 +1,6 @@
 FROM rust:1.78.0-bookworm
 
-ENV SHELL /bin/bash
+ENV SHELL=/bin/bash
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -9,6 +9,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     DEBIAN_FRONTEND=noninteractive apt install -y -qq sudo python3 python3-pip python-is-python3 \
         wget curl findutils gzip libxml2 m4 make perl tar unzip watchman
 
+RUN mkdir -p /usr/local/nvm
+ENV NVM_DIR=/usr/local/nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 RUN bash --login -c 'nvm install 18'
 RUN rustup target add wasm32-wasi

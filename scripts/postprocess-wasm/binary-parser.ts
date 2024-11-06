@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import { ExportInfoData, exportInfoPrefix } from '../../src-common/common';
+import { exportInfoPrefix } from '../../src-common/common';
 
 enum SectionType {
     customSection = 0,
@@ -64,26 +64,6 @@ interface MemoryLimits {
 }
 
 //#region ------- Output Writing -------
-
-function toHexFixed8(value: number): string {
-    let str = '0000000' + value.toString(16);
-    return str.substring(str.length - 8);
-}
-
-function toExportInfo(data: ExportInfoData): string {
-    let arr = [
-        data.stackPointerBegin, // 8
-        data.stackPointerSize,  // 1
-        data.dataSectionBegin,  // 8
-        data.dataSectionSize,   // 6
-        data.initialPagesBegin, // 8
-        data.initialPagesSize,  // 1
-        data.initialPages,      // 4
-    ];                               // total: 36 hex digits + 6 separators = 42
-    let size = 42 + exportInfoPrefix.length;
-    let str = exportInfoPrefix + arr.map(x => x.toString(16)).join('_');
-    return str + '_'.repeat(size - str.length);
-}
 
 
 function output(value: number | string | Uint8Array | number[] | null): number {
@@ -256,35 +236,6 @@ export function rewriteModule(binary: Uint8Array, memory: Uint8Array, stackPoint
     return getOutput();
 }
 
-export function addModuleInfo(binary: Uint8Array) {
-
-    readSections(binary);
-
-    let { funcIndexStart, globalIndexStart, memoryLimits } =
-        getIndexStartsAndMemoryFromImports({ memorySize: 0 });
-
-    let { stackPointerHandlerIndex } =
-        getSpHandlerIndexFromExports();
-
-    let { stackPointerIndex } =
-        getSpIndexFromHandlerCode({ stackPointerHandlerIndex, funcIndexStart });
-
-    let { stackPointerBegin, stackPointerSize } =
-        getStackPointerLocation({ stackPointerIndex, globalIndexStart });
-
-    getOutput();
-
-    stackPointerBegin += sectionsById[SectionType.globalSection].outputOffset + sectionsById[SectionType.globalSection].outputHeaderSize;
-    memoryLimits.begin + sectionsById[SectionType.importSection].outputOffset + sectionsById[SectionType.importSection].outputHeaderSize;
-    memoryLimits.end + sectionsById[SectionType.importSection].outputOffset + sectionsById[SectionType.importSection].outputHeaderSize;
-    let dataSectionBegin = sectionsById[SectionType.dataSection].outputOffset;
-    let dataSectionSize = sectionsById[SectionType.dataSection].outputEndOffset - dataSectionBegin;
-
-    writeExportInfoData({ stackPointerBegin, stackPointerSize, memoryLimitsAbsolute: memoryLimits, dataSectionBegin, dataSectionSize });
-
-    return getOutput();
-}
-
 export function getImportMemoryLimits(binary: Uint8Array) {
 
     readSections(binary);
@@ -293,52 +244,6 @@ export function getImportMemoryLimits(binary: Uint8Array) {
         getIndexStartsAndMemoryFromImports({ memorySize: 0 });
 
     return memoryLimits;
-}
-
-
-function writeExportInfoData(
-    { stackPointerBegin, stackPointerSize, memoryLimitsAbsolute, dataSectionBegin, dataSectionSize }:
-        { stackPointerBegin: number, stackPointerSize: number, memoryLimitsAbsolute: MemoryLimits, dataSectionBegin: number, dataSectionSize: number }
-) {
-    setActive(SectionType.exportSection, true);
-
-    let exportInfo = encoder.encode(toExportInfo({
-        stackPointerBegin: stackPointerBegin,
-        stackPointerSize: stackPointerSize,
-        dataSectionBegin: dataSectionBegin,
-        dataSectionSize: dataSectionSize,
-        initialPagesBegin: memoryLimitsAbsolute.begin,
-        initialPagesSize: memoryLimitsAbsolute.end - memoryLimitsAbsolute.begin,
-        initialPages: memoryLimitsAbsolute.initialPages,
-    }));
-
-    let written = false;
-
-    let count = leb128();
-    output(count);
-    let actual_count = 0;
-    for (let i = 0; i < count; i++) {
-        let entryBegin = offset;
-        let strLen = leb128();
-        let infoBegin = offset;
-        let name = decoder.decode(bin.subarray(offset, offset + strLen));
-        offset += strLen;
-        let infoEnd = offset;
-        byte(); // kind
-        leb128(); // index
-        if (name.startsWith(exportInfoPrefix)) {
-            assert.equal(infoEnd - infoBegin, exportInfo.length);
-            output(bin.subarray(entryBegin, infoBegin));
-            output(exportInfo);
-            output(bin.subarray(infoEnd, offset));
-            written = true;
-        } else {
-            output(bin.subarray(entryBegin, offset));
-            actual_count++;
-        }
-    }
-
-    assert(written);
 }
 
 
@@ -381,56 +286,6 @@ function commitSectionOutput() {
     }
     currentSection.output = [currentSection.input];
 }
-
-function getSpHandlerIndexFromExports() {
-    setActive(SectionType.exportSection);
-
-    let stackPointerHandlerIndex = -1;
-
-    let count = leb128();
-    for (let i = 0; i < count; i++) {
-        let strLen = leb128();
-        let name = decoder.decode(bin.subarray(offset, offset + strLen));
-        offset += strLen;
-        let kind = byte();
-        let index = leb128();
-        if (name === 'getStackPointer') {
-            stackPointerHandlerIndex = index;
-        }
-    }
-
-    assert(stackPointerHandlerIndex >= 0);
-
-    return { stackPointerHandlerIndex };
-}
-
-function getSpIndexFromHandlerCode({ stackPointerHandlerIndex, funcIndexStart }: { stackPointerHandlerIndex: number, funcIndexStart: number }) {
-    setActive(SectionType.codeSection);
-
-    let index = stackPointerHandlerIndex - funcIndexStart;
-
-    let stackPointerIndex = -1;
-
-    let count = leb128();
-    assert(index < count);
-
-    for (let i = 0; i < index; i++) {
-        let size = leb128();
-        offset += size;
-    }
-
-    let size = leb128();
-    let locals = leb128();
-    assert.equal(locals, 0);
-    let instr = byte();
-    assert.equal(instr, 0x23); // global.get
-    stackPointerIndex = leb128();
-    instr = byte();
-    assert.equal(instr, 0x0B); // end
-
-    return { stackPointerIndex };
-}
-
 
 function parseTypeSection() {
     setActive(SectionType.typeSection);
@@ -506,15 +361,7 @@ function addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex,
     output(0x00);
     output(funcIndexStart + setSpFuncIndex);
     actual_count++;
-    output(toExportInfo({
-        stackPointerBegin: 0,
-        stackPointerSize: 0,
-        dataSectionBegin: 0,
-        dataSectionSize: 0,
-        initialPagesBegin: 0,
-        initialPagesSize: 0,
-        initialPages: Math.ceil(memorySize / PAGE_SIZE),
-    }));
+    output(exportInfoPrefix + Math.ceil(memorySize / PAGE_SIZE).toString(16));
     output(0x00);
     output(funcIndexStart + getSpFuncIndex);
     actual_count++;

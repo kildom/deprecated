@@ -1,16 +1,6 @@
 
 export const exportInfoPrefix = '__xTa0gM2eh3_';
 
-export interface ExportInfoData {
-    stackPointerBegin: number;
-    stackPointerSize: number;
-    dataSectionBegin: number;
-    dataSectionSize: number;
-    initialPagesBegin: number;
-    initialPagesSize: number;
-    initialPages: number;
-}
-
 export type RegisterCallbacks = { [key: string]: Function | RegisterCallbacks };
 
 
