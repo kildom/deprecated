@@ -135,6 +135,7 @@ static inline bool createStringTmpl(JS::HandleString str, CbkT callback) {
     }
 
     callback(Encodings::Utf8, buffer, written);
+    js_free(buffer);
     return true;
 }
 
