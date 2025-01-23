@@ -66,4 +66,7 @@ TODO: security risk: how about passing anything as object property named 'toStri
 
 TODO: freeze/unfreeze callbacks can postpone itself, e.g. when dependent module is not ready yet.
 
+TODO: Give host access to guest raw memory structures, e.g. strings, ArrayBuffers. It will allow, e.g.
+      use native TextDecoder/Encoder to implement guest TextDecoder/Encoder.
+
 */
