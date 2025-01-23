@@ -67,6 +67,37 @@ TODO: security risk: how about passing anything as object property named 'toStri
 TODO: freeze/unfreeze callbacks can postpone itself, e.g. when dependent module is not ready yet.
 
 TODO: Give host access to guest raw memory structures, e.g. strings, ArrayBuffers. It will allow, e.g.
-      use native TextDecoder/Encoder to implement guest TextDecoder/Encoder.
-
+      use native TextDecoder/Encoder to implement guest TextDecoder/Encoder. For example:
+      // Guest
+      function decode(data: ArrayBuffer|TypedArray|DataView) {
+          return __sandbox__.imports._Encoding_fskjhGAkdfksdf978689.decode(__sandbox__.raw(data));
+      }
+      function encode(data: string) {
+          return __sandbox__.imports._Encoding_fskjhGAkdfksdf978689.encode(__sandbox__.raw(data));
+      }
+      function encodeInto(data: string, output: Uint8Array) {
+          return __sandbox__.imports._Encoding_fskjhGAkdfksdf978689.encodeInto(__sandbox__.raw(data), __sandbox__.raw(output));
+      }
+      // Host
+      // This way decoder will handle all charsets supported by the host
+      function decode(rawData: RawMemory) { // It is passed as RawMemory object (not converted to TypedArray) to prevent
+                                            // guest from sending raw memory reference when host expects normal Typed array.
+          sandbox.claimTempMemory(64 + 2 * rawData.length);
+          let data = rawData.createUint8Array(); // Underlying buffer is WASM memory
+          return decoder.decode(data);
+      }
+      // This is just an example, using functions implemented in WASM is more efficient than that:
+      function encode(sandbox: Sandbox, rawData: RawMemory) { // strings are converted to UTF-8 raw memory, is it really needed?
+          sandbox.claimTempMemory(64 * rawData.count + 2 * rawData.length);
+          return rawData.createUint8Array().slice(); // Return copy since unrelaying WASM memory may change during serialization
+      }
+      function encodeInto(sandbox: Sandbox, rawData: RawMemory, rawOutput: RawMemory) { // strings are converted to UTF-8 raw memory, is it really needed?
+          if (rawData.length <= rawOutput.length) {
+              // Copy from rawData to rawOutput
+              return { read: rawData.stringLength, written: rawData.length };
+          } else {
+              str = decoder.decode(rawData.createUint8Array());
+              return encoder.encodeInto(str, rawOutput.createUint8Array());
+          }
+      }
 */
