@@ -307,3 +307,12 @@ Can be located on both ROM and RAM.
     * `HEAPUSAGE` - this code is optional, it will increase code size, but decrease engine heap usage, e.g. putting array chunk directly into object (instead of separate memory block).
     * `PERFORMANCE && !HEAPUSAGE` - this code is optinal, it will increase code size and heap usage, and also increase performance
     * `HEAPUSAGE && !PERFORMANCE` - ...
+* During compilation:
+  * General structure is similar to runtime architecture.
+  * Functions will go to code blocks
+  * Objects will go to the heap-like structure.
+  * (optional optimization step) Code can be executed until first interaction with host.
+  * Final code will be generated:
+    * Code blocks will be merged
+    * Objects heads table in ROM will be generated
+    * Objects content will be places in the output
