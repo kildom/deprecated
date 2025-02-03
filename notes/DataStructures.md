@@ -311,7 +311,7 @@ Can be located on both ROM and RAM.
   * General structure is similar to runtime architecture.
   * Functions will go to code blocks
   * Objects will go to the heap-like structure.
-  * (optional optimization step) Code can be executed until first interaction with host.
+  * (optional optimization step) Code can be executed until first interaction with host (with full GC after that).
   * Final code will be generated:
     * Code blocks will be merged
     * Objects heads table in ROM will be generated
