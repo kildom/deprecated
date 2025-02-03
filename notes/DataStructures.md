@@ -287,6 +287,14 @@ Can be located on both ROM and RAM.
     * If not full compatibility: valid ingener keys are limited to 0..2^31-1
        * bit 0..30 - actual value
     * If PERFORMANCE: Number to string functions should set hash if it is valid integer key.
+* If performance is enabled, UTF-8 string may have "character boundary hint":
+  * contains: character index and byte offset to that character
+  * it is set e.g. after character recently accessed by `charCodeAt` or after the `substring`.
+  * it is used for faster indexing characters in case of sequential access,
+  * if some index is closer to the hint than string begining/end, the counting characters starts from hint.
+  * hint is 32-bit long: 16-bit character index, 16-bit byte offset, greaten values are not stored and the old ones stays.
+  * It is [0, 0] on startup.
+  * It can share the same space as flag that informs that string is ASCII-only (0-127 char codes), e.g. value `0xFFFFFFFF` indicates ASCII-only string.
 * The code should have `#ifdef`s or `if`s around code that is optional, and it is only for performance.
   Optionally, if some code can be much smaller in cost of performance, `#elseif` should be used.
   ```cpp
