@@ -4,6 +4,7 @@
 
 #include "logdpcm.h"
 
+#pragma region 8 BIT
 
 static const int16_t logTable[] = {
     // if index < 12: index
@@ -142,3 +143,123 @@ int16_t decodeSampleSafe(uint8_t encoded, int16_t* state)
     (*state) = (int16_t)result;
     return (*state);
 }
+
+#pragma endregion
+
+#pragma region 4 BIT
+
+static const int16_t logTable4[] = {
+    /*
+    0   1   2   3   4    5     6     7 
+    0,  8, 25, 61, 149, 363,  883, 2152 */
+    0, 16, 39, 95, 232, 565, 1378, 3360
+
+};
+
+
+static uint32_t indexFromValue4(int32_t value) {
+    if (value < 149) {
+        if (value < 25) {
+            if (value < 8) {
+                return 0; // value 0
+            } else {
+                return 1; // value 16
+            }
+        } else {
+            if (value < 61) {
+                return 2; // value 43
+            } else {
+                return 3; // value 116
+            }
+        }
+    } else {
+        if (value < 883) {
+            if (value < 363) {
+                return 4; // value 312
+            } else {
+                return 5; // value 840
+            }
+        } else {
+            if (value < 2152) {
+                return 6; // value 2261
+            } else {
+                return 7; // value 6087
+            }
+        }
+    }
+}
+
+uint8_t encodeSample4(int16_t sampleValue, int16_t* state)
+{
+    uint8_t index;
+    int32_t newState;
+    uint8_t result = 0x00;;
+    int32_t diff = (int32_t)sampleValue - (int32_t)(*state);
+
+    if (diff > -8) {
+        index = indexFromValue4(diff);
+        newState = (int32_t)(*state) + (int32_t)logTable4[index];
+        if (newState > 32767) {
+            index--;
+            newState = (int32_t)(*state) + (int32_t)logTable4[index];
+        }
+    } else {
+        index = indexFromValue4(-diff);
+        newState = (int32_t)(*state) - (int32_t)logTable4[index];
+        if (newState < -32768) {
+            index--;
+            newState = (int32_t)(*state) - (int32_t)logTable4[index];
+        }
+        if (index > 0) {
+            result = 0x08;
+        }
+    }
+
+    result |= index;
+    (*state) = newState;
+
+    if (result == 0x08) exit(1);
+
+    if (abs(sampleValue) <= abs((*state) - sampleValue)) {
+        result = 0x08;
+        (*state) = 0;
+    }
+
+    return result;
+}
+
+int16_t decodeSample4(uint8_t encoded, int16_t *state)
+{
+    int16_t diff = logTable4[encoded & 0x07];
+    if (encoded & 0x08) {
+        if (diff == 0) {
+            (*state) = diff;
+            return diff;
+        }
+        diff = -diff;
+    }
+    (*state) += diff;
+    return (*state);
+}
+
+int16_t decodeSampleSafe4(uint8_t encoded, int16_t* state)
+{
+    int32_t diff = logTable4[encoded & 0x07];
+    if (encoded & 0x08) {
+        if (diff == 0) {
+            (*state) = diff;
+            return diff;
+        }
+        diff = -diff;
+    }
+    int32_t result = (int32_t)(*state) + diff;
+    if (result > 32767) {
+        result = 32767;
+    } else if (result < -32768) {
+        result = -32768;
+    }
+    (*state) = (int16_t)result;
+    return (*state);
+}
+
+#pragma endregion

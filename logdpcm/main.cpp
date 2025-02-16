@@ -111,10 +111,22 @@ int main() {
     int samples = fread(input, sizeof(int16_t), 512 * 1024, f);
     fclose(f);
 
+    for (int i = 0; i < samples; i++) {
+        input[i] &= 0xFF00;
+    }
+
+    f = fopen("../output_8.raw", "wb");
+    fwrite(input, sizeof(int16_t), samples, f);
+    fclose(f);
+
+    f = fopen("../input.raw", "rb");
+    samples = fread(input, sizeof(int16_t), 512 * 1024, f);
+    fclose(f);
+
     int16_t state = 0;
 
     for (int i = 0; i < samples; i++) {
-        output[i] = encodeSample(input[i], &state);
+        output[i] = encodeSample4(input[i], &state);
     }
 
     f = fopen("../output.logdpcm", "wb");
@@ -124,7 +136,7 @@ int main() {
     state = 0;
 
     for (int i = 0; i < samples; i++) {
-        input[i] = decodeSampleSafe(output[i], &state);
+        input[i] = decodeSampleSafe4(output[i], &state);
     }
 
     f = fopen("../output.raw", "wb");

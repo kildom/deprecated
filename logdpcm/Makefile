@@ -14,7 +14,7 @@ CSRC := \
 
 CFLAGS :=
 CPPFLAGS += -flto -O3 -g3 -fdata-sections -ffunction-sections -Wl,--gc-sections \
-	-Wall -fno-strict-aliasing \
+	-Wall -fno-strict-aliasing -Wno-unknown-pragmas \
 	-I../libvorbis/lib \
 	-I../libvorbis/include \
 	-I../libogg/include \
