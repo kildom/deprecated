@@ -1,0 +1,14 @@
+{
+    "files.associations": {
+        "define.h": "c",
+        "api.h": "c",
+        "window.h": "c",
+        "mdct.h": "c",
+        "cmath": "cpp",
+        "functional": "cpp",
+        "*.tcc": "cpp",
+        "deque": "cpp",
+        "string": "cpp",
+        "vector": "cpp"
+    }
+}

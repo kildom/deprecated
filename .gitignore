@@ -1,0 +1,13 @@
+
+/dist/*
+/libogg/*
+/libvorbis/*
+/opus/*
+/*.raw
+/*.wav
+/*.logdpcm
+/*.opus
+/*.ppm
+
+!_dir_info.txt
+
