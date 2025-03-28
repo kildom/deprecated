@@ -255,7 +255,7 @@ Can be located on both ROM and RAM.
 
 * Each object can have its own "virtual functions": dispose, get, set, has, ownKeys, e.t.c.
   * Something similar to `Proxy` but in native code
-  * Size optimization: some fields are optional and may be groupped to reduce overall size if not all groups are implmented
+  * Size optimization: some fields are optional and may be groupped to reduce overall size if not all groups are implmented (not so big optimization)
   * There are no NULL function pointers. If it should be a default implementation, the pointer will point to default function
   * Standard objects can point to default implementation of those functions, so there will be no API difference between standard object and non-standard
   * This should simplify `Proxy` class implementation.
@@ -266,6 +266,14 @@ Can be located on both ROM and RAM.
     * Need to be investigated, but probably it may be benefitial:
       Maybe even `string` can be handled this way. This will reduce code hadnling string as a special type, but
       may increase code to detect if it is a string or not.
+  * Bytecode stream must be different than final ROM, because:
+    * It must allow streaming validation, dependecies must be in rigth order.
+    * It must be validated, e.g. single head must have at most 1 block, so they can be encoded together,
+    * Virtual table pointer must be converted from table id to actual pointer.
+    * Virtual table contains function that validates associated block, e.g.
+      * check if string is well formated UTF-8 with correct sizes and optionally index hints.
+      * check if indexes are in correct range
+      * convert indexes to pointers if needed
 * If Head contains pointer (offset) to heap block, it must be the second value.
   * The heap block will contain the block index, so when defragmenting, moved blocks can be automatically updated without knowing the object type.
   * This may require adding new type of object "RawBuffer" that holds raw allocated buffer (e.g. for array chunks) and optionally 32-bit tag (in Head).
