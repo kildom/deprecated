@@ -276,7 +276,7 @@ Can be located on both ROM and RAM.
       * convert indexes to pointers if needed
 * If Head contains pointer (offset) to heap block, it must be the second value.
   * The heap block will contain the block index, so when defragmenting, moved blocks can be automatically updated without knowing the object type.
-  * This may require adding new type of object "RawBuffer" that holds raw allocated buffer (e.g. for array chunks) and optionally 32-bit tag (in Head).
+  * This may require adding new type of object "RawBuffer" that holds raw allocated buffer (e.g. for array chunks) and optionally 32-bit tag (in Head). --- BETTER: It should be NativeData object
 * Array and any other object should have the same layout: chunks of array for ineger indexed properties, key-value pairs for others.
   * This way following problems are solved:
     * Strange order of property enumaration when integer indexed properties are ordered and first
