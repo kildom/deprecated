@@ -1,0 +1,32 @@
+{
+  "name": "panel-plan",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Panel-Plan helps you plan and optimize flooring layouts, reducing waste and saving time. Perfect for professionals and DIY enthusiasts looking for efficient and precise installation.",
+  "main": "web/src/index.ts",
+  "scripts": {
+    "build-web": "npx tsx web/scripts/build.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kildom/panel-plan.git"
+  },
+  "keywords": [
+    "Laminate",
+    "flooring",
+    "panel",
+    "plank"
+  ],
+  "author": "Dominik Kilian <kontakt@dominik.cc>",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/kildom/panel-plan/issues"
+  },
+  "homepage": "https://kildom.github.io/panel-plan/",
+  "devDependencies": {
+    "esbuild": "^0.25.1",
+    "esbuild-copy-static-files": "^0.1.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}
