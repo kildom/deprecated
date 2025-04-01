@@ -49,10 +49,10 @@ struct Head
     uint32_t refCounter;
 };
 
-template<class TT>
+template<class T>
 struct HeadWithData
 {
-    TT* data;
+    T* data;
 };
 
 struct DoubleHead: public Head
@@ -156,7 +156,7 @@ struct MyesContext
     Head* heads;
 };
 
-template<class TT>
+template<class T>
 struct HeadHelper;
 
 template<>
@@ -167,10 +167,10 @@ struct HeadHelper<ObjectHead>
 
 Head* getHeadImpl(MyesContext* ctx, Value value, ValueType expectedType);
 
-template<class TT>
-TT* getHead(MyesContext* ctx, Value value)
+template<class T>
+T* getHead(MyesContext* ctx, Value value)
 {
-    return (TT*)getHeadImpl(ctx, value, HeadHelper<TT>::type);
+    return (T*)getHeadImpl(ctx, value, HeadHelper<T>::type);
 }
 
 bool isHeap(MyesContext* ctx, void* ptr);

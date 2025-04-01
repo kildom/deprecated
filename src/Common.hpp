@@ -11,6 +11,7 @@ namespace mues {
 #define MUES_GC_TRACING 0
 #define MUES_GC_INCREMENTAL 0
 #define MUES_GC_GENERATIONAL 0
+#define MUES_CHECK_REFCOUNT 1  // Can be automatically disabled if ROM + heap size < 256M
 #define MUES_DOUBLE_ALIGNMENT_STRICT 0
 #define MUES_DOUBLE_ALIGNMENT_BY_COMPILER 0
 #define MUES_DOUBLE_ALIGNMENT_NONE 1
@@ -30,11 +31,15 @@ class Instance
 
 #if MUES_SINGLE_INSTANCE
 #  define MUES_PARAMS
+#  define MUES_NO_PARAMS
 #  define MUES_ARGS
+#  define MUES_NO_ARGS
 extern Instance instance;
 #else
 #  define MUES_PARAMS Instance &instance,
+#  define MUES_NO_PARAMS Instance &instance
 #  define MUES_ARGS instance,
+#  define MUES_NO_ARGS instance
 #endif
 
 }  // namespace mues

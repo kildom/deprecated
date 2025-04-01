@@ -109,8 +109,8 @@ struct Value
     static constexpr Value::T BigInt = 0xB;       // Head Index
     static constexpr Value::T NativeBlock = 0xC;  // Head Index          any[]
 
-    static constexpr Value::T TypeMask = 0xF;     // lower 4 bits
-    static constexpr Value::T ValueShift = 4;     // lower 4 bits
+    static constexpr Value::T TypeMask = 0xF;  // lower 4 bits
+    static constexpr Value::T ValueShift = 4;  // lower 4 bits
     static constexpr Value::T HeapHeadIndexShift = 8;
     static constexpr Value::T RomHeadIndexShift = 9;
 
@@ -132,17 +132,17 @@ struct Value
 
     static const AccessFunctionTable &getAccessFunctionTable(PARAMS Value::T value);
 
-    template<typename TT>
-    static TT* getHead(PARAMS Value::T value);
+    template<typename T>
+    static T* getHead(PARAMS Value::T value);
 
-    template<typename TT>
-    static TT* getBlock(PARAMS Head::T* head)
+    template<typename T>
+    static T* getBlock(PARAMS Head::T* head)
     {
         return nullptr;  // TODO: implement this
     }
 
-    template<typename TT>
-    static TT* getBlock(PARAMS Value::T value)
+    template<typename T>
+    static T* getBlock(PARAMS Value::T value)
     {
         return nullptr;  // TODO: implement this
     }
@@ -231,11 +231,11 @@ static const Head::T* from(PARAMS Value::T value, bool check = true)
 }
 }  // namespace prv
 
-template<typename TT = T>
-static const TT* from(PARAMS Value::T value, bool check = true)
+template<typename T = T>
+static const T* from(PARAMS Value::T value, bool check = true)
 {
-    ASSERT(TT::checkType(value & Value::TypeMask));
-    return (TT*)prv::from(ARGS value);
+    ASSERT(T::checkType(value & Value::TypeMask));
+    return (T*)prv::from(ARGS value);
 }
 
 struct Double: public Head::T
@@ -306,7 +306,7 @@ struct WithBlock: public Head::T
 };
 
 namespace prv {
-template<typename TT, Value::T t>
+template<typename T, Value::T t>
 struct WithBlockTemplate: public Head::WithBlock
 {
     T &getBlock()
@@ -351,8 +351,8 @@ const AccessFunctionTable &Value::getAccessFunctionTable(PARAMS Value::T value)
     }
 }
 
-template<typename TT>
-TT* Value::getHead(PARAMS Value::T value)
+template<typename T>
+T* Value::getHead(PARAMS Value::T value)
 {
     let type = Value::getType(value);
     return nullptr;  // TODO: implement this

@@ -3,7 +3,8 @@
     "gitlens.codeLens.authors.enabled": false,
     "gitlens.codeLens.recentChange.enabled": false,
     "[cpp]": {
-        "editor.formatOnSave": true
+        "editor.formatOnSave": true,
+        "files.trimTrailingWhitespace": true,
     },
     "cSpell.words": [
         "mues"
