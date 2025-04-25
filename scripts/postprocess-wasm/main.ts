@@ -59,6 +59,19 @@ const sandboxImports = {
         console.log(`Stack pointer: ${res}`);
         return res;
     },
+
+    getTime: (realTime: number) => {
+        return realTime !== 0 ? 1718795365619n : 0n;
+    },
+
+    getRandom(ptr: number, len: number) {
+        console.log(`Get random: ${ptr}, ${len}`);
+        // TODO: generate random data
+    },
+
+    exit(code: number) {
+        throw new Error(`Unexpected exit with code: ${code}`);
+    },
 };
 
 interface ExecutionState {

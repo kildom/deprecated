@@ -30,6 +30,7 @@ DISTDIR=../dist
 OUTDIR=../build/$(MODE)
 MOZ_BUILD_DIR=../../moz$(MODE)
 CPP=$(HOME)/.mozbuild/clang/bin/clang++
+CC=$(HOME)/.mozbuild/clang/bin/clang
 OPT=wasm-opt $(OPT_PARAM) --strip-debug
 CXXFLAGS+=-target wasm32-wasi --sysroot $(HOME)/.mozbuild/sysroot-wasm32-wasi -I $(MOZ_BUILD_DIR)/dist/include -D_WASI_EMULATED_SIGNAL
 CPPFLAGS=-Wno-invalid-offsetof
@@ -39,6 +40,7 @@ LDFLAGS=\
     -Wl,--stack-first -z stack-size=1048576 \
     -Wl,--export=__stack_pointer \
     -Wl,--import-memory \
+    -Wl,--export-memory \
     -lwasi-emulated-signal \
     $(MOZ_BUILD_DIR)/js/src/build/libjs_static.a \
     $(MOZ_BUILD_DIR)/wasm32-wasi/$(MODE_MOZ)/libjsrust.a \
@@ -90,12 +92,23 @@ $(OUTDIR)/$(MODE).ts: $(DISTDIR)/$(MODE).wasm
 	npx tsx ../scripts/file-to-base64.ts $< $@
 
 $(OPT_TARGET): $(OUTDIR)/obj/sandbox-no-opt.wasm
-	$(OPT) -o $@ $<
+	$(OPT) --disable-multimemory -o $@ $<
 
-$(LINK_TARGET): $(OBJ)
+$(LINK_TARGET).wasi: $(OBJ)
 	$(CPP) $(CXXFLAGS) $(CPPFLAGS) $(OBJ) $(LDFLAGS) -o $@
+
+$(LINK_TARGET): $(LINK_TARGET).wasi $(OUTDIR)/obj/wasi-stubs.wasm
+	wasm-merge --enable-multimemory $(LINK_TARGET).wasi mod $(OUTDIR)/obj/wasi-stubs.wasm wasi_snapshot_preview1 -o $(LINK_TARGET) > /dev/null
 
 $(OUTDIR)/obj/%.o : ./%.cpp $(OUTDIR)/obj/marker.txt Makefile
 	$(CPP) -MD -c $(CXXFLAGS) $(CPPFLAGS) $(word 1,$<) -o $@
+
+$(OUTDIR)/obj/wasi-stubs.wasm: ./wasi-stubs.c $(OUTDIR)/obj/marker.txt
+	$(CC) $(CXXFLAGS) $(CPPFLAGS) \
+		-nostdlib -Wl,--no-entry -nostartfiles -Wl,--import-memory \
+		-mexec-model=reactor -flto -Oz -g0 \
+		./wasi-stubs.c -o $@.no-opt
+	wasm-opt -Oz --strip-debug -o $@ $@.no-opt
+	npx tsx ../scripts/mem-import-rename.ts $@ mod.memory
 
 -include $(OUTDIR)/obj/*.d
