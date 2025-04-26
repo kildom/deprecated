@@ -36,10 +36,10 @@ static JSClass SandboxGlobalClass = { "SandboxGlobal", JSCLASS_GLOBAL_FLAGS, &JS
 #pragma region ------------------ WASM IMPORTS ------------------
 
 
-WASM_IMPORT(sandbox, entry) int entry();
-WASM_IMPORT(sandbox, createEngineError) void createEngineError(uint32_t encoding, const void* buffer, uint32_t size);
-WASM_IMPORT(sandbox, log) void logWasm(const void* str, uint32_t len);
-WASM_IMPORT(sandbox, callToHost) bool callToHost(int32_t command);
+WASM_IMPORT(entry) int entry();
+WASM_IMPORT(createEngineError) void createEngineError(uint32_t encoding, const void* buffer, uint32_t size);
+WASM_IMPORT(log) void logWasm(const void* str, uint32_t len);
+WASM_IMPORT(callToHost) bool callToHost(int32_t command);
 
 
 #pragma endregion
@@ -131,8 +131,8 @@ JSFunctionSpec sandboxGeneralFunctions[] = {
     JS_FS_END};
 
 
-WASM_IMPORT(sandbox, getMemorySize) uint32_t getMemorySize();
-WASM_IMPORT(sandbox, getStackPointer) uint32_t getStackPointer();
+WASM_IMPORT(getMemorySize) uint32_t getMemorySize();
+WASM_IMPORT(getStackPointer) uint32_t getStackPointer();
 
 static uint32_t memoryLimit;
 static uint32_t aggressiveGCThreshold;

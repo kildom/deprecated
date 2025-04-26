@@ -98,7 +98,7 @@ $(LINK_TARGET).wasi: $(OBJ)
 	$(CPP) $(CXXFLAGS) $(CPPFLAGS) $(OBJ) $(LDFLAGS) -o $@
 
 $(LINK_TARGET): $(LINK_TARGET).wasi $(OUTDIR)/obj/wasi-stubs.wasm
-	wasm-merge --enable-multimemory $(LINK_TARGET).wasi mod $(OUTDIR)/obj/wasi-stubs.wasm wasi_snapshot_preview1 -o $(LINK_TARGET) > /dev/null
+	wasm-merge --enable-multimemory $(LINK_TARGET).wasi mod $(OUTDIR)/obj/wasi-stubs.wasm wasi_snapshot_preview1 -o $(LINK_TARGET)
 
 $(OUTDIR)/obj/%.o : ./%.cpp $(OUTDIR)/obj/marker.txt Makefile
 	$(CPP) -MD -c $(CXXFLAGS) $(CPPFLAGS) $(word 1,$<) -o $@

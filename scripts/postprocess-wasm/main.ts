@@ -21,7 +21,7 @@ let initialMemoryPages = 0;
 let exports: any;
 
 const sandboxImports = {
-    log: () => {},
+    log: () => { console.log('Log called'); },
     clearValues: errorFunction as any,
     createEngineError: errorFunction as any,
     callToHost: errorFunction as any,
@@ -83,14 +83,13 @@ interface ExecutionState {
 async function executeStartup(bin: Uint8Array, pages: number): Promise<ExecutionState> {
     initialMemoryPages = pages;
     let mod = await WebAssembly.compile(bin);
+    console.log(WebAssembly.Module.imports(mod));
     let wasi = createWasiImports();
     // WASI-SDK libc requires initial memory exactly as declared in module. Giving more causes memory leaks.
     let memory = new WebAssembly.Memory({ initial: initialMemoryPages });
     console.log(`Starting module with ${memory.buffer.byteLength / 65536} pages`);
     let imports = {
-        sandbox: sandboxImports,
-        wasi_snapshot_preview1: wasi,
-        env: { memory },
+        env: { memory, ...sandboxImports },
     };
     let inst = await WebAssembly.instantiate(mod, imports as any);
     exports = inst.exports as unknown as UnprocessedSandboxWasmExports;
@@ -160,12 +159,16 @@ async function main() {
     // Read input
     let moduleBin = fs.readFileSync(args.input) as Uint8Array;
 
+    console.log(`Input module size: ${moduleBin.byteLength}`);
+
     // Execute WASM module startup and initialization code
     let limits = parser.getImportMemoryLimits(moduleBin);
     let state = await executeStartup(moduleBin, limits.initialPages);
 
     // Rewrite module, so it contains current state now
     moduleBin = parser.rewriteModule(moduleBin, state.memory, state.stackPointer, optimize == OptimizeMode.Size);
+
+    console.log(`Rewritten module size: ${moduleBin.byteLength}`);
 
     // Optimize again since the startup functions can be discarded now
     if (optimize !== OptimizeMode.None) {
@@ -177,6 +180,7 @@ async function main() {
             args.output + '.proc.wasm'
         );
         moduleBin = fs.readFileSync(args.output + '.opt.wasm');
+        console.log(`Optimized module size: ${moduleBin.byteLength}`);
     }
 
     // Write final output

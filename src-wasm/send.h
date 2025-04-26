@@ -15,7 +15,7 @@
 
 #include "wasm.h"
 
-WASM_IMPORT(sandbox, clearValues) void clearValues();
+WASM_IMPORT(clearValues) void clearValues();
 bool sendError(JS::HandleValue errorVal);
 
 extern JSFunctionSpec sandboxSendFunctions[];
