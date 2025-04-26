@@ -329,15 +329,40 @@ function addSpHandlersToFunctionSection({ getSpTypeIndex, setSpTypeIndex }: { ge
     return { getSpFuncIndex, setSpFuncIndex };
 }
 
+const removeExports = new Set<string>([
+    '_start',
+    '__stack_pointer',
+    'memory',
+    'path_remove_directory',
+    'path_unlink_file',
+    'args_get',
+    'args_sizes_get',
+    'environ_get',
+    'environ_sizes_get',
+    'clock_res_get',
+    'clock_time_get',
+    'random_get',
+    'fd_read',
+    'fd_write',
+    'fd_seek',
+    'fd_close',
+    'fd_fdstat_get',
+    'proc_exit',
+    'fd_fdstat_set_flags',
+    'fd_prestat_get',
+    'fd_prestat_dir_name',
+    'path_open',
+]);
+
 function addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex, setSpFuncIndex, memorySize }: { funcIndexStart: number, getSpFuncIndex: number, setSpFuncIndex: number, memorySize: number }) {
     setActive(SectionType.exportSection, true);
 
     let stackPointerIndex = -1;
 
-    let count = leb128();
-    output(count + 1); // count
-    let actual_count = 0;
-    for (let i = 0; i < count; i++) {
+    let outputExports: Uint8Array[] = [];
+
+    let inputCount = leb128();
+    for (let i = 0; i < inputCount; i++) {
         let start = offset;
         let strLen = leb128();
         let name = decoder.decode(bin.subarray(offset, offset + strLen));
@@ -346,27 +371,25 @@ function addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex,
         let index = leb128();
         if (name === '__stack_pointer') {
             stackPointerIndex = index;
-        } else if (name === '_start') {
-            // The "_start" function is not needed any more. It was already executed.
-        } else {
-            output(bin.subarray(start, offset));
-            actual_count++;
         }
+        if (!removeExports.has(name)) {
+            outputExports.push(bin.subarray(start, offset));
+        };
+    }
+    output(outputExports.length + 3);
+    for (let exportItem of outputExports) {
+        output(exportItem);
     }
     output('getStackPointer');
     output(0x00);
     output(funcIndexStart + getSpFuncIndex);
-    actual_count++;
     output('setStackPointer');
     output(0x00);
     output(funcIndexStart + setSpFuncIndex);
-    actual_count++;
     output(exportInfoPrefix + Math.ceil(memorySize / PAGE_SIZE).toString(16));
     output(0x00);
     output(funcIndexStart + getSpFuncIndex);
-    actual_count++;
     assert(stackPointerIndex >= 0);
-    assert.equal(actual_count, count + 1);
 
     return { stackPointerIndex };
 }
