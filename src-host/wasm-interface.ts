@@ -36,7 +36,8 @@ export interface SandboxWasmExport {
 };
 
 export namespace SandboxWasmImportModule {
-    export interface sandbox {
+    export interface env {
+        memory: WebAssembly.Memory;
         clearValues(): void;
         createEngineError(a: number, b: number, c: number): void;
         callToHost(a: number): number;
@@ -83,13 +84,9 @@ export namespace SandboxWasmImportModule {
         proc_exit(a: number): void;
         random_get(a: number, b: number): number;
     };
-    export interface env {
-        memory: WebAssembly.Memory;
-    };
 };
 
 export interface SandboxWasmImport {
-    sandbox: SandboxWasmImportModule.sandbox;
-    wasi_snapshot_preview1: SandboxWasmImportModule.wasi_snapshot_preview1;
     env: SandboxWasmImportModule.env;
+    wasi_snapshot_preview1: SandboxWasmImportModule.wasi_snapshot_preview1;
 };

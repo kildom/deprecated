@@ -23,7 +23,6 @@ const uint32_t MIN_THRESHOLD_INCREMENT = 8 * 1024;
 
 
 JSContext* cx;
-SandboxFlags::T sandboxFlags;
 uint8_t sharedBuffer[SHARED_BUFFER_SIZE];
 DynamicContext* dx;
 
@@ -36,10 +35,10 @@ static JSClass SandboxGlobalClass = { "SandboxGlobal", JSCLASS_GLOBAL_FLAGS, &JS
 #pragma region ------------------ WASM IMPORTS ------------------
 
 
-WASM_IMPORT(sandbox, entry) int entry();
-WASM_IMPORT(sandbox, createEngineError) void createEngineError(uint32_t encoding, const void* buffer, uint32_t size);
-WASM_IMPORT(sandbox, log) void logWasm(const void* str, uint32_t len);
-WASM_IMPORT(sandbox, callToHost) bool callToHost(int32_t command);
+WASM_IMPORT(entry) int entry();
+WASM_IMPORT(createEngineError) void createEngineError(uint32_t encoding, const void* buffer, uint32_t size);
+WASM_IMPORT(log) void logWasm(const void* str, uint32_t len);
+WASM_IMPORT(callToHost) bool callToHost(int32_t command);
 
 
 #pragma endregion
@@ -131,8 +130,8 @@ JSFunctionSpec sandboxGeneralFunctions[] = {
     JS_FS_END};
 
 
-WASM_IMPORT(sandbox, getMemorySize) uint32_t getMemorySize();
-WASM_IMPORT(sandbox, getStackPointer) uint32_t getStackPointer();
+WASM_IMPORT(getMemorySize) uint32_t getMemorySize();
+WASM_IMPORT(getStackPointer) uint32_t getStackPointer();
 
 static uint32_t memoryLimit;
 static uint32_t aggressiveGCThreshold;
@@ -381,15 +380,14 @@ void checkAggressiveGC2(uint32_t heapBytes)
 }
 
 WASM_EXPORT(init)
-bool init(uint32_t aggressiveGCThreshold, uint32_t hardGCThreshold, uint32_t memoryLimit, SandboxFlags::T flags)
+bool init(uint32_t aggressiveGCThreshold, uint32_t hardGCThreshold, uint32_t memoryLimit)
 {
     ::aggressiveGCThreshold = aggressiveGCThreshold;
     ::hardGCThreshold = hardGCThreshold;
     ::memoryLimit = memoryLimit;
     currentThreshold = aggressiveGCThreshold;
-    sandboxFlags = flags;
 
-    cx = JS_NewContext(aggressiveGCThreshold);
+    cx = JS_NewContext(std::max(aggressiveGCThreshold, hardGCThreshold / 4 * 3));
     if (!cx) {
         return false;
     }
@@ -400,7 +398,7 @@ bool init(uint32_t aggressiveGCThreshold, uint32_t hardGCThreshold, uint32_t mem
         return false;
     }
 
-    JS_SetGCParameter(cx, JSGC_INCREMENTAL_GC_ENABLED, flags & SandboxFlags::IncrementalGC ? 1 : 0);
+    JS_SetGCParameter(cx, JSGC_INCREMENTAL_GC_ENABLED, 1);
     JS_SetGCParameter(cx, JSGC_BALANCED_HEAP_LIMITS_ENABLED, 0);
     JS_SetGCParameter(cx, JSGC_PER_ZONE_GC_ENABLED, 0);
 

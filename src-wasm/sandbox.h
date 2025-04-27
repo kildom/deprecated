@@ -17,18 +17,8 @@ struct Encodings {
     enum T : uint32_t {
         Utf8 = 0,
         Latin1 = 1,
-        Utf16 = 2,
     };
     Encodings() = delete;
-};
-
-struct SandboxFlags {
-    enum T : uint32_t {
-        Latin1Allowed = 1,
-        Utf16Allowed = 2,
-        IncrementalGC = 3,
-    };
-    SandboxFlags() = delete;
 };
 
 struct ExecuteFlags {
@@ -45,7 +35,6 @@ struct ExecuteFlags {
 static const uint32_t SHARED_BUFFER_SIZE = 16 * 1024;
 
 extern JSContext* cx;
-extern SandboxFlags::T sandboxFlags;
 extern uint8_t sharedBuffer[SHARED_BUFFER_SIZE];
 
 struct DynamicContext {

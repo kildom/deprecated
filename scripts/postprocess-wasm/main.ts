@@ -75,9 +75,8 @@ async function executeStartup(bin: Uint8Array, pages: number): Promise<Execution
     let memory = new WebAssembly.Memory({ initial: initialMemoryPages });
     console.log(`Starting module with ${memory.buffer.byteLength / 65536} pages`);
     let imports = {
-        sandbox: sandboxImports,
         wasi_snapshot_preview1: wasi,
-        env: { memory },
+        env: { memory, ...sandboxImports },
     };
     let inst = await WebAssembly.instantiate(mod, imports as any);
     exports = inst.exports as unknown as UnprocessedSandboxWasmExports;

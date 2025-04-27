@@ -33,23 +33,20 @@ export interface GuestSandboxObject {
 
     recv: {
         clearValues?: () => void;
+        createValue?: (value: number | string | boolean | ArrayBuffer) => void;
         createNull?: () => void;
-        createArray?: () => void;
         createUndefined?: () => void;
+        createArray?: () => void;
+        createArrayItem?: (index: number) => void;
         createObject?: () => void;
-        createNumber?: (value: number) => void;
+        createObjectProperty?: (name: string) => void;
+        createBigInt?: (value: string) => void;
         createDate?: (time: number) => void;
         createRegExp?: (lastIndex: number) => void;
-        createArrayItem?: (index: number) => void;
-        reuseValue?: (index: number) => void;
-        createString?: (value: string) => void;
         createError?: (message: string) => void;
-        createBigInt?: (value: string) => void;
-        createObjectProperty?: (name: string) => void;
-        createBoolean?: (value: boolean) => void;
-        createArrayBuffer?: (value: ArrayBuffer) => void;
         createArrayBufferView?: (type: ArrayBufferViewType, offset: number, length: number) => void;
         keepValue?: () => number;
+        reuseValue?: (index: number) => void;
         getRecvError?: () => Error | undefined;
     };
 };

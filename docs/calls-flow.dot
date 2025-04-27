@@ -1,0 +1,40 @@
+digraph D {
+    rankdir = LR;
+
+    subgraph cluster_guest {
+        label = "Guest";
+        subgraph cluster_guestrecv {
+            label = "recv";
+            recv_createNull [label = "recv.createNull";];
+            recv_createArray [label = "recv.createArray";];
+            recv_createUndefined [label = "recv.createUndefined";];
+            recv_createObject [label = "recv.createObject";];
+            recv_createValue [label = "recv.createValue";];
+        }
+    }
+
+    subgraph cluster_recv_cpp {
+        label = "recv.cpp";
+        createNullGuest;
+        createArrayGuest;
+        createUndefinedGuest;
+        createObjectGuest;
+        createNumberGuest;
+        createStringGuest;
+        createBooleanGuest;
+        createArrayBufferGuest;
+    }
+    
+    subgraph cluster_wasm_exports {
+        label = "WASM Exports";
+        createNull -> createNullGuest -> recv_createNull;
+        createArray -> createArrayGuest -> recv_createArray;
+        createUndefined -> createUndefinedGuest -> recv_createUndefined;
+        createObject -> createObjectGuest -> recv_createObject;
+        createDate;
+        createNumber -> createNumberGuest -> recv_createValue;
+        createString -> createStringGuest -> recv_createValue;
+        createBoolean -> createBooleanGuest -> recv_createValue;
+        createArrayBuffer -> createArrayBufferGuest -> recv_createValue;
+    }
+}

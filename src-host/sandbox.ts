@@ -1,9 +1,6 @@
-import { SandboxWasmExport, SandboxWasmImport, SandboxWasmImportModule } from "./wasm-interface";
+import { exportInfoPrefix } from "../src-common/common";
 import { createWasiImports } from "./wasi-stubs";
-import { ArrayBufferViewType } from "../src-common/common";
-import bootSourceCode from "../build/guest/boot";
-import { SandboxSpecialCommand, exportInfoPrefix } from "../src-common/common";
-
+import { SandboxWasmExport, SandboxWasmImport, SandboxWasmImportModule } from "./wasm-interface";
 
 export class GuestError extends Error {
     constructor(message: string, public guestName?: string, public guestStack?: string) {
@@ -11,7 +8,9 @@ export class GuestError extends Error {
     }
 }
 
+
 export class EngineError extends Error { }
+
 
 export interface InstantiateOptions {
     maxHeapSize?: number; // default: min((maxWasmSize - estimated static data size) * 0.xx {fragmentation coefficient}, minHeapThreshold * 1.xx)
@@ -19,814 +18,327 @@ export interface InstantiateOptions {
     minHeapThreshold?: number; // default: maxHeapSize * 0.xx // TODO: minHeapThreshold
     maxMessageEstimatedSize?: number; // default: 1 * 1024 * 1024 // TODO: Estimated memory size allocated by the data flowing from guest to host.
     maxCallRecursion?: number; // default: 10 // TODO: maximum number of calls between host and guest in one call stack.
-                               // Documentation should explain that recursion should be avoided, something like:
-                               // "Don't call guest from host function that might be called from guest."
+    // Documentation should explain that recursion should be avoided, something like:
+    // "Don't call guest from host function that might be called from guest."
+    module?: ModuleSourceType;
 };
+
+interface ValidatedInstantiateOptions extends InstantiateOptions {
+    maxHeapSize: number;
+    maxWasmSize: number;
+    minHeapThreshold: number;
+    maxMessageEstimatedSize: number;
+    maxCallRecursion: number;
+}
+
 
 export interface ExecuteOptions {
     fileName?: string;
     asModule?: boolean;
+    args?: any;
     returnValue?: boolean;
 };
 
-type RegisterCallbacksIds = { [key: string]: number | RegisterCallbacksIds };
-export type RegisterCallbacks = { [key: string]: Function | RegisterCallbacks };
+export type Storage = Record<symbol, any>;
+export type RegisterCallbacks = { [key: string]: Function & RegisterCallbacks };
 export type ExportsCallbacks = { readonly [key: string]: Function & RegisterCallbacks };
 
-export interface Sandbox {
-    execute(code: string, options?: ExecuteOptions): any;
-    registerImports(callbacks: RegisterCallbacks): void;
-    exports: ExportsCallbacks;
-};
 
-type FreezableModuleSourceType = BufferSource | Response | Request | string | URL;
-type ModuleSourceType = WebAssembly.Module | FreezableModuleSourceType;
-
-let moduleState: 'empty' | 'loading' | 'loaded' | Error = 'empty';
-let module: WebAssembly.Module | undefined = undefined;
-let moduleBinary: Uint8Array | undefined = undefined;
-let initialPages: number | undefined = undefined;
-
-export async function setSandboxModule(
-    source: FreezableModuleSourceType | PromiseLike<FreezableModuleSourceType> | undefined,
-    options: { allowFreeze: true; }
-): Promise<undefined | Error>;
-
-export async function setSandboxModule(
-    source: ModuleSourceType | PromiseLike<ModuleSourceType> | undefined,
-    options?: { allowFreeze?: false; }
-): Promise<undefined | Error>;
-
-export async function setSandboxModule(
-    source: ModuleSourceType | PromiseLike<ModuleSourceType> | undefined,
-    options: { allowFreeze?: boolean; } = {}
-): Promise<undefined | Error> {
-
-    if (source instanceof ArrayBuffer
-        || (typeof SharedArrayBuffer !== 'undefined' && source instanceof SharedArrayBuffer)
-    ) {
-        moduleBinary = new Uint8Array(source);
-    } else if ((source instanceof Int8Array)
-        || (source instanceof Uint8Array)
-        || (typeof Uint8ClampedArray !== 'undefined' && source instanceof Uint8ClampedArray)
-        || (source instanceof Int16Array)
-        || (source instanceof Uint16Array)
-        || (source instanceof Int32Array)
-        || (source instanceof Uint32Array)
-        || (source instanceof Float32Array)
-        || (source instanceof Float64Array)
-        || (typeof BigInt64Array !== 'undefined' && source instanceof BigInt64Array)
-        || (typeof BigUint64Array !== 'undefined' && source instanceof BigUint64Array)
-    ) {
-        moduleBinary = new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
-    } else {
-        moduleBinary = undefined;
-        module = source;
-        return;
-    }
-
-    module = await WebAssembly.compile(moduleBinary); // TODO: WebAssembly.compileStreaming() can be another option since we are not modifying the module at binary level.
-    initialPages = undefined;
-    for (let exp of WebAssembly.Module.exports(module)) {
-        if (exp.name.startsWith(exportInfoPrefix)) {
-            let tab = exp.name.substring(exportInfoPrefix.length).split('_');
-            initialPages = parseInt(tab[0], 16);
-        }
-    }
-
-    if (!initialPages) {
-        throw new Error('Invalid sandbox module.');
-    }
-
-    //module = source as any; // TODO: Other types of sources
-    /*
-    while 'loading':
-        wait for completed
-    set 'loading'
-    while source is PromiseLike:
-        source = await source
-    if source is Module:
-        module = source
-        set 'loaded'
-        resolve promise
-    if source is BufferSource:
-        wasm.compile and do the same as "is Module"
-    if source is Response:
-        wasm.compileStreaming and do the same as "is Module"
-    if source is Request or string or URL:
-        wasm.compileStreaming(fetch(...)) and do the same as "is Module"
-    catch:
-        set error state and throw it
-    */
-    return undefined; // do not throw, return Error if failed, undefiend otherwise.
-}
-
-export async function instantiate(options?: InstantiateOptions): Promise<Sandbox> {
-    await ensureModuleLoaded();
-    let sandbox = createSandbox(options || {});
-    let instance = await WebAssembly.instantiate(module as WebAssembly.Module, sandbox.imports as any);
-    sandbox.init(instance);
-    return sandbox;
-}
-
-
-enum ExecuteFlags {
-    Script = 0,
-    Module = 1,
-    TransferBufferOwnership = 2,
-    ReturnValue = 4,
-};
-
-async function ensureModuleLoaded() {
-    // TODO: if module is not set, use fetch('sandbox.wasm'), if failed, try to guess script location and do fetch('[script_file_without_extension].wasm')
-    return;
-}
-
-
-interface SandboxInternal extends Sandbox {
-    imports: SandboxWasmImport;
-    init(instance: WebAssembly.Instance, options?: InstantiateOptions): void;
-}
-
-enum SandboxFlags {
-    Latin1Allowed = 1,
-    Utf16Allowed = 2,
+export interface SnapshotCallbacks {
+    beforeTakeSnapshot?: (sandbox: Sandbox) => void;
+    afterTakeSnapshot?: (sandbox: Sandbox, snapshot: Snapshot) => void;
+    instantiateSnapshot?: (sandbox: Sandbox, snapshot: Snapshot) => void;
 };
 
 enum Encodings {
     Utf8 = 0,
     Latin1 = 1,
-    Utf16 = 2,
 };
 
-function createTextDecoderIfAvailable(encoding: string): TextDecoder | undefined {
-    try {
-        return new TextDecoder(encoding);
-    } catch (e) {
-        return undefined;
-    }
+/**
+ * Represents an isolated environment for executing JavaScript code.
+ */
+export interface Sandbox {
+    /**
+     * Executes the given code inside sandbox.
+     * 
+     * @param code - The code string to execute.
+     * @param options - Optional execution options.
+     * @returns The result of the code execution if `options.returnValue` is true, `undefined` otherwise.
+     */
+    execute(code: string, options?: ExecuteOptions): any;
+
+    /**
+     * Registers callbacks that are available in the guest as imports.
+     * 
+     * The callback are passed the the guest and they are available there using `__sandbox__.imports(<handle>)`,
+     * where `<handle>` is the number returned by this function.
+     * Only functions can be imported. If you want to pass some data, create a wrapper function.
+     * 
+     * You can update already registered import by providing `handle` parameter.
+     * Callbacks are merge with the guest object.
+     * The deep merging is used, so nested objects are also merged.
+     * If you want to deregister function or entire object, you can use `null` as value.
+     * 
+     * Special `handle` value `0` is used to register the default imports that are available
+     * in the guest from `__sandbox__.imports` object. There is no need to pass handle in this case,
+     * for example `__sandbox__.imports.myImportedFunction()`.
+     * 
+     * When a snapshot is taken, the registered callbacks are also stored in the snapshot.
+     * Use `registerSnapshotCallbacks` if you need some special behavior during snapshot creation or instantiation.
+     * 
+     * @param callbacks - The callbacks to register for handling imports.
+     * @param handle - An optional handle, if you want to modify already registered imports. `0` is used to update default imports.
+     * @returns A unique handle identifying the registered imports.
+     */
+    imports(callbacks: RegisterCallbacks, handle?: number): number;
+
+    /**
+     * Provides access to the guest's exports.
+     * 
+     * They are registered in the guest with the `__sandbox__.exports(<callbacks>, <handle>)` function.
+     */
+    exports: ExportsCallbacks & ((handle: number) => ExportsCallbacks);
+
+    /**
+     * Registers callbacks to be triggered during snapshot operations.
+     * 
+     * When a snapshot is taken:
+     * - All the `beforeTakeSnapshot` callbacks are executed the opposite order as they are added.
+     * - All the `afterTakeSnapshot` callbacks are executed the opposite order as they are added.
+     * 
+     * When a snapshot is instantiated:
+     * - All the `instantiateSnapshot` callbacks are executed the order as they are added.
+     * 
+     * @param callbacks - The snapshot-related callbacks to added.
+     */
+    addSnapshotCallbacks(callbacks: SnapshotCallbacks): void;
+
+    /**
+     * Creates a snapshot of the current state of the sandbox.
+     * 
+     * @returns A snapshot representing the sandbox's state at the time of invocation.
+     */
+    takeSnapshot(): Snapshot;
+
+    /**
+     * A storage object can be used by external modules or extensions to store data associated with the sandbox.
+     * 
+     * When a snapshot is taken, the storage is shallow copied to the snapshot.
+     * When a snapshot is instantiated, the storage is shallow copied to the new sandbox.
+     * Use `registerSnapshotCallbacks` function if you need some special handling of
+     * your data during snapshot creation or instantiation.
+     */
+    storage: Storage;
+};
+
+
+/**
+ * Represents a saved state of a sandboxed environment that can be restored and reused.
+ */
+export interface Snapshot {
+    /**
+     * Instantiates a new sandbox instance from the stored snapshot.
+     * 
+     * @returns A promise that resolves to a new {@link Sandbox} created from this snapshot.
+     */
+    instantiate(): Promise<Sandbox>;
+
+    /**
+     * A storage object can be used by external modules or extensions to store data associated with the snapshot.
+     * 
+     * @see {@link Sandbox.storage}
+     */
+    storage: Storage;
 }
 
-const encoder = new TextEncoder();
-const decoderUtf8 = new TextDecoder();
-const decoderLatin1 = createTextDecoderIfAvailable('latin1');
-const decoderUtf16 = createTextDecoderIfAvailable('utf-16le');
+type ModuleSyncSourceType = WebAssembly.Module | BufferSource | Response | Request | string | URL
+
+type ModuleSourceType = ModuleSyncSourceType | Promise<ModuleSyncSourceType>;
+
+let currentModule: WebAssembly.Module | undefined = undefined;
+let initialPages: number = 0;
+let setModulePromise: Promise<void> | undefined = undefined;
 
 
+export function setModule(moduleSource?: ModuleSourceType): Promise<void> {
 
-function createSandbox(options: InstantiateOptions): SandboxInternal {
-
-    let exports: SandboxWasmExport;
-
-    const memory: WebAssembly.Memory = createMemory();
-    let arrayBuffer: ArrayBuffer = undefined as any;
-    let byteArray: Uint8Array; // TODO: Maybe not needed
-
-    const valueStack: any[] = [];
-    const reusableStack: any[] = [];
-    let errorState: any = undefined;
-
-    let sharedBufferPointer: number;
-    let sharedBufferSize: number;
-
-    function refreshViews(): void {
-        if (arrayBuffer !== memory.buffer) {
-            arrayBuffer = memory.buffer;
-            byteArray = new Uint8Array(arrayBuffer);
-        }
+    if (currentModule || setModulePromise) {
+        return Promise.reject(new Error('Module already set.'));
+    } else if (setModulePromise) {
+        return setModulePromise;
     }
 
-    function decodeString(encoding: number, buffer: number, size: number): string {
-        refreshViews();
-        if (encoding === Encodings.Latin1) {
-            return decoderLatin1!.decode(new Uint8Array(arrayBuffer, buffer, size));
-        } else if (encoding === Encodings.Utf16) {
-            return decoderUtf16!.decode(new Uint8Array(arrayBuffer, buffer, size));
-        } else {
-            return decoderUtf8.decode(new Uint8Array(arrayBuffer, buffer, size));
-        }
-    }
+    setModulePromise = setModuleInternal(moduleSource);
 
-    function createExportWrapper(number: number): Function {
-        return function (...args: any[]): any {
-            return call(number, ...args);
-        }
-    }
-
-    function registerExports(branch: RegisterCallbacks, ids: RegisterCallbacksIds) {
-        for (let name in ids) {
-            let value = ids[name];
-            if (typeof value === 'object') {
-                if (typeof branch[name] !== 'object') {
-                    branch[name] = {};
-                }
-                registerExports(branch[name] as any, value);
-            } else if (typeof value === 'number') {
-                branch[name] = createExportWrapper(value);
-            }
-        }
-    }
-
-
-    let sandboxImports: SandboxWasmImportModule.sandbox = {
-
-        log(ptr: number, len: number): void {
-            refreshViews();
-            let str: string;
-            str = decoderUtf8.decode(new Uint8Array(arrayBuffer, ptr, len));
-            console.log('SANDBOX:', str);
-        },
-
-        entry(): number {
-            throw new Error('Should not be called.');
-        },
-
-        clearValues(): void {
-            valueStack.splice(0);
-            reusableStack.splice(0);
-            errorState = undefined;
-        },
-
-        createNull(): void {
-            if (errorState) return;
-            valueStack.push(null);
-        },
-
-        createUndefined(): void {
-            if (errorState) return;
-            valueStack.push(undefined);
-        },
-
-        createError(encoding: number, buffer: number, size: number): void {
-            if (errorState) return;
-            try {
-                let guestName = valueStack.pop();
-                let guestStack = valueStack.pop();
-                valueStack.push(new GuestError(decodeString(encoding, buffer, size), guestName, guestStack));
-            } catch (error: any) {
-                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
-            }
-        },
-
-        createEngineError(encoding: number, buffer: number, size: number): void {
-            if (errorState) return;
-            try {
-                valueStack.push(new EngineError(decodeString(encoding, buffer, size)));
-            } catch (error: any) {
-                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
-            }
-        },
-
-        createArray(): void {
-            if (errorState) return;
-            valueStack.push([]);
-        },
-
-        createObject(): void {
-            if (errorState) return;
-            valueStack.push({});
-        },
-
-        createBigInt(encoding: number, buffer: number, size: number): void {
-            if (errorState) return;
-            try {
-                valueStack.push(BigInt(decodeString(encoding, buffer, size)));
-            } catch (error: any) {
-                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
-            }
-        },
-
-        createNumber(num: number): void {
-            if (errorState) return;
-            valueStack.push(num);
-        },
-
-        createDate(num: number): void {
-            if (errorState) return;
-            try {
-                valueStack.push(new Date(num));
-            } catch (error: any) {
-                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
-            }
-        },
-
-        createRegExp(lastIndex: number): void {
-            if (errorState) return;
-            try {
-                let flags = valueStack.pop();
-                let source = valueStack.pop();
-                let result = new RegExp(source, flags);
-                result.lastIndex = lastIndex;
-                valueStack.push(result);
-            } catch (error: any) {
-                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
-            }
-        },
-
-        createArrayItem(index: number): void {
-            if (errorState) return;
-            try {
-                let value = valueStack.pop();
-                let array = valueStack.at(-1);
-                array[index] = value;
-            } catch (error: any) {
-                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
-            }
-        },
-
-        createString(encoding: number, buffer: number, size: number): void {
-            if (errorState) return;
-            try {
-                valueStack.push(decodeString(encoding, buffer, size));
-            } catch (error: any) {
-                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
-            }
-        },
-
-        createObjectProperty(encoding: number, buffer: number, size: number): void {
-            if (errorState) return;
-            try {
-                let value = valueStack.pop();
-                let obj = valueStack.at(-1);
-                let name = decodeString(encoding, buffer, size);
-                obj[name] = value;
-            } catch (error: any) {
-                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
-            }
-        },
-
-        createBoolean(num: number): void {
-            if (errorState) return;
-            valueStack.push(num === 0 ? false : true);
-        },
-
-        keepValue(): number {
-            if (errorState) return 0;
-            try {
-                let index = reusableStack.length;
-                reusableStack.push(valueStack.at(-1));
-                return index;
-            } catch (error: any) {
-                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
-                return 0;
-            }
-        },
-
-        reuseValue(index: number): void {
-            if (errorState) return;
-            try {
-                valueStack.push(reusableStack[index]);
-            } catch (error: any) {
-                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
-            }
-        },
-
-        createArrayBuffer(ptr: number, size: number) {
-            if (errorState) return;
-            try {
-                refreshViews();
-                valueStack.push(arrayBuffer.slice(ptr, ptr + size));
-            } catch (error: any) {
-                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
-            }
-        },
-
-        createArrayBufferView(type: number, offset: number, size: number) {
-            if (errorState) return;
-            try {
-                switch (type) {
-                    default:
-                    case ArrayBufferViewType.Uint8Array:
-                        valueStack.push(new Uint8Array(valueStack.pop(), offset, size));
-                        break;
-                    case ArrayBufferViewType.Int8Array:
-                        valueStack.push(new Int8Array(valueStack.pop(), offset, size));
-                        break;
-                    case ArrayBufferViewType.Uint8ClampedArray:
-                        valueStack.push(new Uint8ClampedArray(valueStack.pop(), offset, size));
-                        break;
-                    case ArrayBufferViewType.Int16Array:
-                        valueStack.push(new Int16Array(valueStack.pop(), offset, size));
-                        break;
-                    case ArrayBufferViewType.Uint16Array:
-                        valueStack.push(new Uint16Array(valueStack.pop(), offset, size));
-                        break;
-                    case ArrayBufferViewType.Int32Array:
-                        valueStack.push(new Int32Array(valueStack.pop(), offset, size));
-                        break;
-                    case ArrayBufferViewType.Uint32Array:
-                        valueStack.push(new Uint32Array(valueStack.pop(), offset, size));
-                        break;
-                    case ArrayBufferViewType.Float32Array:
-                        valueStack.push(new Float32Array(valueStack.pop(), offset, size));
-                        break;
-                    case ArrayBufferViewType.Float64Array:
-                        valueStack.push(new Float64Array(valueStack.pop(), offset, size));
-                        break;
-                    case ArrayBufferViewType.BigInt64Array:
-                        valueStack.push(new BigInt64Array(valueStack.pop(), offset, size));
-                        break;
-                    case ArrayBufferViewType.BigUint64Array:
-                        valueStack.push(new BigUint64Array(valueStack.pop(), offset, size));
-                        break;
-                    case ArrayBufferViewType.DataView:
-                        valueStack.push(new DataView(valueStack.pop(), offset, size));
-                        break;
-                }
-            } catch (error: any) {
-                errorState = error?.message || error?.name || error?.toString?.() || 'Error';
-            }
-        },
-
-        callToHost(command: number): number {
-            switch (command) {
-                case SandboxSpecialCommand.Register:
-                    registerExports(sandbox.exports, valueStack[0]);
-                    return 1;
-                default: {
-                    let func = importFunctions[command];
-                    if (!func) {
-                        createGuestValue(new Error('Invalid command id.'));
-                        return 0;
-                    }
-                    try {
-                        let ret = func(...valueStack);
-                        createGuestValue(ret);
-                        return 1;
-                    } catch (error) {
-                        try {
-                            createGuestValue(error);
-                        } catch (e) { }
-                        return 0;
-                    }
+    return setModulePromise
+        .then(() => {
+            initialPages = 0;
+            for (let exp of WebAssembly.Module.exports(currentModule!)) {
+                if (exp.name.startsWith(exportInfoPrefix)) {
+                    initialPages = parseInt(exp.name.substring(exportInfoPrefix.length), 16);
                     break;
                 }
             }
-        },
+            if (initialPages <= 0) {
+                throw new Error('Invalid WebAssembly sandbox module.');
+            }
+        })
+        .finally(() => {
+            setModulePromise = undefined;
+        });
+}
 
-        getMemorySize(): number {
-            return memory.buffer.byteLength;
-        },
+function isThenable(obj: any): obj is PromiseLike<any> {
+    return obj != null && (typeof obj === 'object' || typeof obj === 'function')
+        && typeof obj.then === 'function' && typeof obj.catch === 'function' && typeof obj.finally === 'function';
+}
 
-        getStackPointer(): number {
-            return exports.getStackPointer();
-        },
+async function setModuleInternal(moduleSource?: ModuleSourceType): Promise<void> {
+
+    if (!moduleSource) {
+        // TODO: detect moduleSource
+        throw new Error('Module source is not provided.');
+    }
+
+    if (isThenable(moduleSource)) {
+        moduleSource = (await moduleSource) as ModuleSyncSourceType;
+    }
+
+    if (typeof moduleSource === 'string' || moduleSource instanceof URL || moduleSource instanceof Request) {
+        currentModule = await WebAssembly.compileStreaming(fetch(moduleSource));
+    } else if (moduleSource instanceof Response) {
+        currentModule = await WebAssembly.compileStreaming(moduleSource);
+    } else if (moduleSource instanceof WebAssembly.Module) {
+        currentModule = moduleSource;
+    } else {
+        currentModule = await WebAssembly.compile(moduleSource);
+    }
+}
+
+
+async function getModule(moduleSource?: ModuleSourceType): Promise<WebAssembly.Module> {
+    if (currentModule) {
+        return currentModule;
+    } else if (setModulePromise) {
+        await setModulePromise;
+    } else {
+        await setModule(moduleSource);
+    }
+    return currentModule as unknown as WebAssembly.Module;
+}
+
+
+export async function instantiate(options?: InstantiateOptions): Promise<Sandbox> {
+
+    let module = await getModule(options?.module);
+
+    WebAssembly.instantiate(module, {});
+
+
+}
+
+
+const FRAGMENTATION_COEFFICIENT = 1.3;
+const STATIC_DATA_SIZE = 5 * 1024 * 1024;
+const HEAP_THRESHOLD_COEFFICIENT = 0.75;
+const DEFAULT_MAX_WASM_SIZE = 32 * 1024 * 1024;
+const MIN_WASM_SIZE_LIMIT = 16 * 1024 * 1024;
+const MIN_HEAP_SIZE_LIMIT = 8 * 1024 * 1024;
+const MESSAGE_SIZE_COEFFICIENT = 0.125;
+
+
+function validateOptions(invalidOptions?: InstantiateOptions): ValidatedInstantiateOptions {
+
+    let options = { ...invalidOptions } as InstantiateOptions;
+
+    if (!options.maxWasmSize) {
+        if (options.maxHeapSize) {
+            options.maxWasmSize = Math.ceil(STATIC_DATA_SIZE + FRAGMENTATION_COEFFICIENT * options.maxHeapSize);
+        } else if (options.minHeapThreshold) {
+            options.maxWasmSize = Math.ceil(STATIC_DATA_SIZE + FRAGMENTATION_COEFFICIENT * options.minHeapThreshold / HEAP_THRESHOLD_COEFFICIENT);
+        } else {
+            options.maxWasmSize = DEFAULT_MAX_WASM_SIZE;
+        }
+    } else if (options.maxWasmSize < MIN_WASM_SIZE_LIMIT) {
+        throw new Error(`The "maxWasmSize" value must be at least ${MIN_WASM_SIZE_LIMIT} bytes.`);
+    }
+
+    if (!options.maxHeapSize) {
+        options.maxHeapSize = Math.ceil((options.maxWasmSize - STATIC_DATA_SIZE) / FRAGMENTATION_COEFFICIENT);
+    } else if (options.maxHeapSize < MIN_HEAP_SIZE_LIMIT) {
+        throw new Error(`The "maxHeapSize" value must be at least ${MIN_HEAP_SIZE_LIMIT} bytes.`);
+    } else if (options.maxHeapSize >= options.maxWasmSize) {
+        throw new Error(`The "maxHeapSize" value must be smaller than "maxWasmSize".`);
+    }
+
+    if (!options.minHeapThreshold) {
+        options.minHeapThreshold = Math.ceil(options.maxHeapSize * HEAP_THRESHOLD_COEFFICIENT);
+    } else if (options.minHeapThreshold < 0) {
+        throw new Error(`The "minHeapThreshold" value must must be positive.`);
+    } else if (options.minHeapThreshold >= options.maxHeapSize) {
+        throw new Error(`The "minHeapThreshold" value must be smaller than "maxHeapSize".`);
+    }
+
+    if (!options.maxMessageEstimatedSize) {
+        options.maxMessageEstimatedSize = Math.ceil(options.maxWasmSize * MESSAGE_SIZE_COEFFICIENT);
+    }
+
+    if (!options.maxCallRecursion) {
+        options.maxCallRecursion = 16;
+    }
+
+    return options as ValidatedInstantiateOptions;
+}
+
+async function createSandbox(options?: InstantiateOptions, module: WebAssembly.Module): Promise<Sandbox> {
+
+    let validatedOptions = validateOptions(options);
+
+    let memory = new WebAssembly.Memory({
+        initial: initialPages,
+        maximum: (validatedOptions.maxWasmSize + 65535) >> 16,
+    });
+
+    let buffer = memory.buffer;
+    let view = new DataView(memory.buffer);
+
+    function updateView() {
+        if (buffer !== memory.buffer) {
+            buffer = memory.buffer;
+            view = new DataView(buffer);
+        }
+    }
+
+    let wasmExports: SandboxWasmExport;
+
+    let env: SandboxWasmImportModule.env = {
+        memory,
+        ...(null as any), // TODO: 
     };
 
-    const wasiImports = createWasiImports();
+    let wasi_snapshot_preview1 = createWasiImports(memory);
 
-    function mallocSafe(size: number): number {
-        let ptr = exports.malloc(size);
-        refreshViews();
-        if (ptr === 0) {
-            throw new Error('Sandbox out of memory.');
-        }
-        return ptr;
-    }
+    let instance: WebAssembly.Instance;
 
-    function reallocSafe(oldPtr: number, newSize: number, oldSize: number): number {
-        let newPtr = exports.realloc(oldPtr, newSize, oldSize);
-        refreshViews();
-        if (newPtr === 0) {
-            freeSafe(oldPtr);
-            throw new Error('Sandbox out of memory.');
-        }
-        return newPtr;
-    }
+    let wasmImports: SandboxWasmImport = { env, wasi_snapshot_preview1 };
 
-    function freeSafe(ptr: number): void {
-        exports.free(ptr);
-    }
+    instance = await WebAssembly.instantiate(module, wasmImports as any);
 
-    function prepareCodeBuffer(code: string, fileName: string): [number, number, boolean] {
-        refreshViews();
-        // Encode file name
-        let stat = encoder.encodeInto(fileName + '\0', new Uint8Array(arrayBuffer, sharedBufferPointer, sharedBufferSize));
-        if (stat.read < fileName.length + 1 || stat.written >= sharedBufferSize) {
-            throw new Error('Source file name is too long.');
-        }
-        // Calculate remaining buffer
-        let bufferPtr = sharedBufferPointer + stat.written;
-        let bufferSize = sharedBufferSize - stat.written;
-        if (code.length <= bufferSize) {
-            let stat = encoder.encodeInto(code, new Uint8Array(arrayBuffer, bufferPtr, bufferSize));
-            if (stat.read < code.length) {
-                let remaining = 3 * (code.length - stat.read);
-                let bufferSize = stat.written + remaining;
-                let bufferPtr = mallocSafe(bufferSize);
-                stat = encoder.encodeInto(code, new Uint8Array(arrayBuffer, bufferPtr, bufferSize));
-                return [bufferPtr, stat.written, true];
-            } else {
-                return [bufferPtr, stat.written, false];
-            }
-        } else {
-            bufferSize = 2 * code.length;
-            bufferPtr = mallocSafe(bufferSize);
-            let stat = encoder.encodeInto(code, new Uint8Array(arrayBuffer, bufferPtr, bufferSize));
-            if (stat.read < code.length) {
-                let remaining = 3 * (code.length - stat.read);
-                bufferPtr = reallocSafe(bufferPtr, bufferSize, bufferSize + remaining);
-                bufferSize += remaining;
-                let stat2 = encoder.encodeInto(code, new Uint8Array(arrayBuffer, bufferPtr + stat.written, bufferSize - stat.written));
-                return [bufferPtr, stat.written + stat2.written, true];
-            } else {
-                return [bufferPtr, stat.written, true];
-            }
-        }
-    }
+    wasmExports = instance.exports as any;
 
-    let reusableObjects = new Map<any, number>();
-    const arrayBuffers = new Map<ArrayBufferLike, { begin: number, end: number }>();
+    wasmExports.init(validatedOptions.minHeapThreshold, validatedOptions.maxHeapSize, validatedOptions.maxWasmSize);
 
-    function getArrayBufferViewType(input: any): ArrayBufferViewType {
-        if (input instanceof Int8Array) return ArrayBufferViewType.Int8Array;
-        if (input instanceof Uint8Array) return ArrayBufferViewType.Uint8Array;
-        if (input instanceof Uint8ClampedArray) return ArrayBufferViewType.Uint8ClampedArray;
-        if (input instanceof Int16Array) return ArrayBufferViewType.Int16Array;
-        if (input instanceof Uint16Array) return ArrayBufferViewType.Uint16Array;
-        if (input instanceof Int32Array) return ArrayBufferViewType.Int32Array;
-        if (input instanceof Uint32Array) return ArrayBufferViewType.Uint32Array;
-        if (input instanceof Float32Array) return ArrayBufferViewType.Float32Array;
-        if (input instanceof Float64Array) return ArrayBufferViewType.Float64Array;
-        if (input instanceof BigInt64Array) return ArrayBufferViewType.BigInt64Array;
-        if (input instanceof BigUint64Array) return ArrayBufferViewType.BigUint64Array;
-        if (input instanceof DataView) return ArrayBufferViewType.DataView;
-        return ArrayBufferViewType.Uint8Array;
-    }
+    let exports: ExportsCallbacks & ((handle: number) => ExportsCallbacks);
 
-    function encodeStringBuffer(value: string, callback: (ptr: number, size: number, encoding: Encodings) => void): void {
-        refreshViews();
-        if (value.length <= sharedBufferSize) {
-            let stat = encoder.encodeInto(value, new Uint8Array(arrayBuffer, sharedBufferPointer, sharedBufferSize));
-            if (stat.read >= value.length) {
-                callback(sharedBufferPointer, stat.written, stat.read === stat.written ? Encodings.Latin1 : Encodings.Utf8);
-                return;
-            }
-        }
-        let firstSize = 2 * value.length;
-        let strBufferPtr = mallocSafe(firstSize);
-        refreshViews();
-        let stat1 = encoder.encodeInto(value, new Uint8Array(arrayBuffer, strBufferPtr, firstSize));
-        if (stat1.read >= value.length) {
-            callback(strBufferPtr, stat1.written, stat1.read === stat1.written ? Encodings.Latin1 : Encodings.Utf8);
-            return;
-        }
-        let remaining = value.length - stat1.read;
-        let fullSize = stat1.written + 3 * remaining;
-        strBufferPtr = reallocSafe(strBufferPtr, fullSize, firstSize);
-        refreshViews();
-        let stat2 = encoder.encodeInto(value.substring(stat1.read), new Uint8Array(arrayBuffer, strBufferPtr + stat1.written, fullSize - stat1.written));
-        callback(strBufferPtr, stat2.written + stat1.written, Encodings.Utf8);
-        freeSafe(strBufferPtr);
-    }
+    exports = function (handle: number): ExportsCallbacks {
+    } as any;
 
-    function encodeValue(value: any): void {
-        switch (typeof value) {
-            case 'object':
-            case 'function': {
-                if (value === null) {
-                    exports.createNull();
-                    return;
-                }
-
-                let reusableIndex = reusableObjects.get(value);
-
-                if (reusableIndex !== undefined && reusableIndex >= 0) {
-                    exports.reuseValue(reusableIndex);
-                    return;
-                }
-
-                if (Array.isArray(value)) {
-                    exports.createArray();
-                    value.forEach((x, i) => {
-                        encodeValue(x);
-                        exports.createArrayItem(i);
-                    });
-                } else if (value instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && value instanceof SharedArrayBuffer)) {
-                    let info = arrayBuffers.get(value);
-                    let size = info!.end - info!.begin;
-                    let ptr = mallocSafe(size);
-                    refreshViews();
-                    byteArray.set(new Uint8Array(value, info!.begin, size), ptr);
-                    exports.createArrayBuffer(ptr, size);
-                } else if (typeof value.byteLength === 'number'
-                    && typeof value.byteOffset === 'number'
-                    && (value.buffer instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && value.buffer instanceof SharedArrayBuffer))
-                    && (value instanceof Int8Array || value instanceof Uint8Array
-                        || value instanceof Int16Array || value instanceof Uint16Array
-                        || value instanceof Int32Array || value instanceof Uint32Array
-                        || value instanceof Float32Array || value instanceof Float64Array
-                        || value instanceof BigInt64Array || value instanceof BigUint64Array
-                        || value instanceof Uint8ClampedArray || value instanceof DataView
-                    )
-                ) {
-                    let underlyingBuffer = value.buffer;
-                    let info = arrayBuffers.get(underlyingBuffer);
-                    encodeValue(underlyingBuffer);
-                    let length = (value instanceof DataView) ? value.byteLength : value.length;
-                    exports.createArrayBufferView(getArrayBufferViewType(value), value.byteOffset - info!.begin, length);
-                } else if (value instanceof Date) {
-                    exports.createDate(value.getTime());
-                } else if (value instanceof RegExp) {
-                    encodeValue(value.source);
-                    encodeValue(value.flags);
-                    exports.createRegExp(value.lastIndex);
-                } else if (value instanceof Error) {
-                    encodeStringBuffer(value.toString(), exports.createError);
-                } else {
-                    exports.createObject();
-                    for (let key in value) {
-                        encodeValue(value[key]);
-                        encodeStringBuffer(key, exports.createObjectProperty);
-                    }
-                }
-
-                if (reusableIndex !== undefined) {
-                    reusableIndex = exports.keepValue();
-                    reusableObjects.set(value, reusableIndex);
-                }
-                break;
-            }
-            case 'string':
-                encodeStringBuffer(value, exports.createString);
-                break;
-            case 'bigint':
-                encodeStringBuffer(value.toString(), exports.createBigInt);
-                break;
-            case 'number':
-                exports.createNumber(value);
-                break;
-            case 'boolean':
-                exports.createBoolean(value ? 1 : 0);
-                break;
-            case 'symbol':
-                throw new Error('Cannot send Symbol to guest.');
-            case 'undefined':
-                exports.createUndefined();
-                break;
-        }
-    }
-
-    function prepareEncodingValue(value: any): void {
-        if ((typeof value === 'function' || typeof value === 'object') && value !== null) {
-
-            let currentCount = reusableObjects.get(value) || 0;
-            reusableObjects.set(value, currentCount + 1);
-
-            if (Array.isArray(value)) {
-                value.forEach(x => {
-                    prepareEncodingValue(x);
-                });
-            } else if (value instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && value instanceof SharedArrayBuffer)) {
-                arrayBuffers.set(value, {
-                    begin: 0,
-                    end: value.byteLength,
-                });
-            } else if (typeof value.byteLength === 'number'
-                && typeof value.byteOffset === 'number'
-                && (value.buffer instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && value.buffer instanceof SharedArrayBuffer))
-                && (value instanceof Int8Array || value instanceof Uint8Array
-                    || value instanceof Int16Array || value instanceof Uint16Array
-                    || value instanceof Int32Array || value instanceof Uint32Array
-                    || value instanceof Float32Array || value instanceof Float64Array
-                    || value instanceof BigInt64Array || value instanceof BigUint64Array
-                    || value instanceof Uint8ClampedArray || value instanceof DataView
-                )
-            ) {
-                let underlyingBuffer = value.buffer;
-                let underlyingBufferCount = reusableObjects.get(underlyingBuffer) || 0;
-                reusableObjects.set(underlyingBuffer, underlyingBufferCount + 1);
-                let range = arrayBuffers.get(underlyingBuffer)
-                if (!range) {
-                    range = { begin: value.byteOffset, end: value.byteOffset + value.byteLength };
-                    arrayBuffers.set(underlyingBuffer, range);
-                }
-                range.begin = Math.min(value.byteOffset, range.begin);
-                range.end = Math.max(value.byteOffset + value.byteLength, range.end);
-            } else if ((value instanceof Date) || (value instanceof RegExp) || (value instanceof Error)) {
-                // Ignore leaf objects
-            } else {
-                for (let key in value) {
-                    prepareEncodingValue(value[key]);
-                }
-            }
-        }
-    }
-
-    function createGuestValue(...args: any[]) {
-        exports.clearValues();
-        reusableObjects.clear();
-        arrayBuffers.clear();
-        try {
-            for (let value of args) {
-                prepareEncodingValue(value);
-            }
-            let objectCounts = reusableObjects;
-            reusableObjects = new Map<any, number>();
-            for (let [obj, count] of objectCounts) {
-                if (count > 1) {
-                    reusableObjects.set(obj, -1);
-                }
-            }
-            for (let value of args) {
-                encodeValue(value);
-            }
-            if (!exports.getRecvError()) throwFromValueStack();
-        } finally {
-            reusableObjects.clear();
-            arrayBuffers.clear();
-        }
-    }
-
-    function throwFromValueStack(): never {
-        if (valueStack.length > 0 && (valueStack[0] instanceof GuestError || valueStack[0] instanceof EngineError)) {
-            throw valueStack[0];
-        } else {
-            throw new GuestError('Unknown guest error.');
-        }
-    }
-
-    const importFunctions: Function[] = [];
-
-    function registerImportsInner(callbacks: RegisterCallbacks): RegisterCallbacksIds {
-        let ids: RegisterCallbacksIds = {}; // TODO: If some function is overridden by another function or null/undefined, then release old one here and on the guest by sending id=-1
-        for (let name in callbacks) {
-            let value = callbacks[name];
-            if (typeof value === 'object') {
-                ids[name] = registerImportsInner(value);
-            } else if (typeof value === 'function') {
-                ids[name] = importFunctions.push(value) - 1;
-            }
-        }
-        return ids;
-    }
-
-    function call(command: SandboxSpecialCommand, ...args: any[]): any {
-        createGuestValue(...args);
-        if (!exports.call(command)) throwFromValueStack();
-        return valueStack[0];
-    }
-
-    function createMemory() {
-        let descriptor: WebAssembly.MemoryDescriptor = {
-            initial: initialPages!,
-        };
-        if (options.maxWasmSize) {
-            descriptor.maximum = Math.ceil(options.maxWasmSize / 65536);
-        }
-        return new WebAssembly.Memory(descriptor);
-    }
-
-    const sandbox: SandboxInternal = {
-
-        imports: {
-            sandbox: sandboxImports,
-            wasi_snapshot_preview1: wasiImports,
-            env: { memory },
+    return {
+        imports,
+        execute(code, options) {
+            
         },
-
-        init(instance: WebAssembly.Instance): void {
-            exports = instance.exports as any;
-            refreshViews();
-            wasiImports.setMemory(memory);
-            sharedBufferPointer = exports.getSharedBufferPointer();
-            sharedBufferSize = exports.getSharedBufferSize();
-            let flags = (decoderLatin1 ? SandboxFlags.Latin1Allowed : 0)
-                | (decoderUtf16 ? SandboxFlags.Utf16Allowed : 0);
-            let heapSize = options.maxHeapSize || 32 * 1024 * 1024;
-            let wasmSize = options.maxWasmSize || (32 + 10) * 1024 * 1024;
-            wasmSize = Math.ceil(wasmSize / 65536) * 65536;
-            if (!exports.init(Math.round(heapSize * 0.8), heapSize, wasmSize, flags)) { // TODO: Add try catch for each export call. Exception from wasm indicates unrecoverable error.
-                throw new Error('Sandbox initialization failed.');
-            }
-            sandbox.execute(bootSourceCode, { fileName: '[guest boot code]' });
-        },
-
-        execute(code: string, options?: ExecuteOptions): any {
-            const fileName = options?.fileName || '[string]';
-            const asModule = !!options?.asModule;
-            const returnValue = !!options?.returnValue;
-            const [bufferPtr, bufferSize, dealloc] = prepareCodeBuffer(code, fileName);
-            valueStack.splice(0);
-            const success = !!exports.execute(bufferPtr, bufferSize, sharedBufferPointer,
-                (asModule ? ExecuteFlags.Module : ExecuteFlags.Script) |
-                (returnValue ? ExecuteFlags.ReturnValue : 0) |
-                (dealloc ? ExecuteFlags.TransferBufferOwnership : 0));
-            if (!success) {
-                throwFromValueStack();
-            } else if (returnValue) {
-                return valueStack[0];
-            }
-        },
-
-        registerImports(callbacks: RegisterCallbacks): void {
-            let ids = registerImportsInner(callbacks);
-            call(SandboxSpecialCommand.Register, ids);
-        },
-
-        exports: {},
-    }
-
-    return sandbox;
+    };
 }
 

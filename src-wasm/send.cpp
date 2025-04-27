@@ -14,11 +14,11 @@
 #include "sandbox.h"
 
 
-WASM_IMPORT(sandbox, createBoolean) void createBoolean(bool value);
-WASM_IMPORT(sandbox, createArrayBuffer) void createArrayBuffer(const void* data, uint32_t size);
-WASM_IMPORT(sandbox, createArrayBufferView) void createArrayBufferView(uint32_t type, uint32_t offset, uint32_t length);
-WASM_IMPORT(sandbox, keepValue) uint32_t keepValue();
-WASM_IMPORT(sandbox, createError) void createError(uint32_t encoding, const void* buffer, uint32_t size);
+WASM_IMPORT(createBoolean) void createBoolean(bool value);
+WASM_IMPORT(createArrayBuffer) void createArrayBuffer(const void* data, uint32_t size);
+WASM_IMPORT(createArrayBufferView) void createArrayBufferView(uint32_t type, uint32_t offset, uint32_t length);
+WASM_IMPORT(keepValue) uint32_t keepValue();
+WASM_IMPORT(createError) void createError(uint32_t encoding, const void* buffer, uint32_t size);
 
 
 static bool createBooleanJs(JSContext* cx, unsigned argc, JS::Value* vp) {
@@ -30,7 +30,7 @@ static bool createBooleanJs(JSContext* cx, unsigned argc, JS::Value* vp) {
 
 
 #define NO_PARAMS_SANDBOX_FUNC(name) \
-    WASM_IMPORT(sandbox, name) void name(); \
+    WASM_IMPORT(name) void name(); \
     static bool name##Js(JSContext* cx, unsigned argc, JS::Value* vp) { \
         name(); \
         return true; \
@@ -48,7 +48,7 @@ static inline bool createNumberTmpl(JSContext* cx, unsigned argc, JS::Value* vp,
 }
 
 #define NUMBER_PARAM_SANDBOX_FUNC(name, T) \
-    WASM_IMPORT(sandbox, name) void name(T value); \
+    WASM_IMPORT(name) void name(T value); \
     static bool name##Js(JSContext* cx, unsigned argc, JS::Value* vp) { \
         return createNumberTmpl(cx, argc, vp, name, #name); \
     }
@@ -155,7 +155,7 @@ static inline bool createStringTmpl(JSContext* cx, unsigned argc, JS::Value* vp,
 
 
 #define STRING_PARAM_SANDBOX_FUNC(name) \
-    WASM_IMPORT(sandbox, name) void name(uint32_t encoding, const void* buffer, uint32_t size); \
+    WASM_IMPORT(name) void name(uint32_t encoding, const void* buffer, uint32_t size); \
     static bool name##Js(JSContext* cx, unsigned argc, JS::Value* vp) { \
         return createStringTmpl(cx, argc, vp, name, #name); \
     }
@@ -276,7 +276,6 @@ JSFunctionSpec sandboxSendFunctions[] = {
     JS_FN("createError", createErrorJs, 1, 0),
     JS_FN("createArray", createArrayJs, 0, 0),
     JS_FN("createObject", createObjectJs, 0, 0),
-    JS_FN("createBigInt", createBigIntJs, 0, 0),
     JS_FN("createNumber", createNumberJs, 1, 0),
     JS_FN("createDate", createDateJs, 1, 0),
     JS_FN("createRegExp", createRegExpJs, 1, 0),

@@ -3,8 +3,7 @@ import * as fs from 'node:fs';
 import * as child_process from 'node:child_process';
 import cre from 'con-reg-exp';
 import assert from 'node:assert';
-
-const exportInfoPrefix = '__xTa0gM2eh3_';
+import { exportInfoPrefix } from '../../src-common/common';
 
 
 let inputs: string[];

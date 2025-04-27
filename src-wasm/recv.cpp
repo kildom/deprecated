@@ -52,21 +52,21 @@ NO_PARAMS_RECV_GUEST_FUNC(createUndefined);
 NO_PARAMS_RECV_GUEST_FUNC(createObject);
 
 
-#define NUM_PARAM_RECV_GUEST_FUNC(name) \
+#define NUM_PARAM_RECV_GUEST_FUNC(name, guestName) \
     WASM_EXPORT(name) \
     void name##Guest(double value) { \
         if (recvErrorState) return; \
         JSAutoRealm ar(cx, dx->globalObject); \
         JS::RootedValueArray<1> args(cx); \
         args[0].setNumber(value); \
-        createValueTail(#name, args); \
+        createValueTail(guestName, args); \
     }
 
-NUM_PARAM_RECV_GUEST_FUNC(createNumber);
-NUM_PARAM_RECV_GUEST_FUNC(createDate);
-NUM_PARAM_RECV_GUEST_FUNC(createRegExp);
-NUM_PARAM_RECV_GUEST_FUNC(createArrayItem);
-NUM_PARAM_RECV_GUEST_FUNC(reuseValue);
+NUM_PARAM_RECV_GUEST_FUNC(createNumber, "createValue");
+NUM_PARAM_RECV_GUEST_FUNC(createDate, "createDate");
+NUM_PARAM_RECV_GUEST_FUNC(createRegExp, "createRegExp");
+NUM_PARAM_RECV_GUEST_FUNC(createArrayItem, "createArrayItem");
+NUM_PARAM_RECV_GUEST_FUNC(reuseValue, "reuseValue");
 
 
 static JSString* recvDecodeString(const char* buffer, uint32_t size, Encodings::T encoding)
@@ -85,7 +85,7 @@ static JSString* recvDecodeString(const char* buffer, uint32_t size, Encodings::
 }
 
 
-#define STR_PARAM_RECV_GUEST_FUNC(name) \
+#define STR_PARAM_RECV_GUEST_FUNC(name, guestName) \
     WASM_EXPORT(name) \
     void name##Guest(const char* buffer, uint32_t size, Encodings::T encoding) \
     { \
@@ -93,13 +93,13 @@ static JSString* recvDecodeString(const char* buffer, uint32_t size, Encodings::
         JSAutoRealm ar(cx, dx->globalObject); \
         JS::RootedValueArray<1> args(cx); \
         args[0].setString(recvDecodeString(buffer, size, encoding)); \
-        createValueTail(#name, args); \
+        createValueTail(guestName, args); \
     }
 
-STR_PARAM_RECV_GUEST_FUNC(createString);
-STR_PARAM_RECV_GUEST_FUNC(createError);
-STR_PARAM_RECV_GUEST_FUNC(createBigInt);
-STR_PARAM_RECV_GUEST_FUNC(createObjectProperty);
+STR_PARAM_RECV_GUEST_FUNC(createString, "createValue");
+STR_PARAM_RECV_GUEST_FUNC(createError, "createError");
+STR_PARAM_RECV_GUEST_FUNC(createBigInt, "createBigInt");
+STR_PARAM_RECV_GUEST_FUNC(createObjectProperty, "createObjectProperty");
 
 
 WASM_EXPORT(clearValues)
@@ -118,7 +118,7 @@ void createBooleanGuest(int32_t value) {
     JSAutoRealm ar(cx, dx->globalObject);
     JS::RootedValueArray<1> args(cx);
     args[0].setBoolean(value ? true : false);
-    createValueTail("createBoolean", args);
+    createValueTail("createValue", args);
 }
 
 WASM_EXPORT(createArrayBuffer)
@@ -128,7 +128,7 @@ void createArrayBufferGuest(void* buffer, int32_t size) {
     JS::RootedValueArray<1> args(cx);
     mozilla::UniquePtr<uint8_t[], JS::FreePolicy> bufferUnique(static_cast<uint8_t*>(buffer));
     args[0].setObject(*JS::NewArrayBufferWithContents(cx, size, std::move(bufferUnique)));
-    createValueTail("createArrayBuffer", args);
+    createValueTail("createValue", args);
 }
 
 WASM_EXPORT(createArrayBufferView)
