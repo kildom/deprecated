@@ -4,64 +4,26 @@
  */
 
 export interface SandboxWasmExport {
-    createNull(): void;
-    createArray(): void;
-    createUndefined(): void;
-    createObject(): void;
-    createNumber(a: number): void;
-    createDate(a: number): void;
-    createRegExp(a: number): void;
-    createArrayItem(a: number): void;
-    reuseValue(a: number): void;
-    createString(a: number, b: number, c: number): void;
-    createError(a: number, b: number, c: number): void;
-    createBigInt(a: number, b: number, c: number): void;
-    createObjectProperty(a: number, b: number, c: number): void;
-    clearValues(): void;
-    createBoolean(a: number): void;
-    createArrayBuffer(a: number, b: number): void;
-    createArrayBufferView(a: number, b: number, c: number): void;
-    keepValue(): number;
-    getRecvError(): number;
-    execute(a: number, b: number, c: number, d: number): number;
-    call(a: number): number;
-    malloc(a: number): number;
-    realloc(a: number, b: number, c: number): number;
-    free(a: number): void;
-    init(a: number, b: number, c: number, d: number): number;
-    getSharedBufferPointer(): number;
-    getSharedBufferSize(): number;
-    getStackPointer(): number;
-    setStackPointer(a: number): void;
+    malloc(/* uint32_t */ size: number): /* void* */ number;
+    realloc(/* void* */ ptr: number, /* uint32_t */ oldSize: number, /* uint32_t */ newSize: number): /* void* */ number;
+    free(/* void* */ ptr: number): void;
+    create(/* uint32_t */ type: number, /* uint32_t */ additionalSize: number): /* SandboxObject* */ number;
+    dispose(/* SandboxObject* */ object: number): void;
+    compile(/* SandboxString* */ source: number, /* SandboxString* */ fileName: number, /* ExecuteFlags::T */ flags: number): /* SandboxObject* */ number;
+    execute(/* CompileResult* */ code: number, /* SandboxString* */ arg: number): /* SandboxObject* */ number;
+    call(/* uint32_t */ groupId: number, /* uint32_t */ functionId: number, /* SandboxString* */ arg: number): /* SandboxObject* */ number;
+    init(/* uint32_t */ aggressiveGCThreshold: number, /* uint32_t */ hardGCThreshold: number, /* uint32_t */ memoryLimit: number, /* LogLevel::T */ logLevel: number): /* bool */ number;
+    getStackPointer(): /* uint32_t */ number;
+    setStackPointer(/* uint32_t */ value: number): void;
 };
 
 export namespace SandboxWasmImportModule {
     export interface env {
         memory: WebAssembly.Memory;
-        clearValues(): void;
-        createEngineError(a: number, b: number, c: number): void;
-        callToHost(a: number): number;
-        log(a: number, b: number): void;
+        log(/* LogLevel::T */ level: number, /* const void* */ str: number, /* uint32_t */ len: number): void;
         getMemorySize(): number;
         getStackPointer(): number;
         entry(): number;
-        createString(a: number, b: number, c: number): void;
-        createUndefined(): void;
-        createError(a: number, b: number, c: number): void;
-        createNull(): void;
-        createArray(): void;
-        createObject(): void;
-        createBigInt(a: number, b: number, c: number): void;
-        createNumber(a: number): void;
-        createDate(a: number): void;
-        createRegExp(a: number): void;
-        createArrayItem(a: number): void;
-        createObjectProperty(a: number, b: number, c: number): void;
-        createBoolean(a: number): void;
-        createArrayBuffer(a: number, b: number): void;
-        createArrayBufferView(a: number, b: number, c: number): void;
-        reuseValue(a: number): void;
-        keepValue(): number;
     };
     export interface wasi_snapshot_preview1 {
         fd_write(a: number, b: number, c: number, d: number): number;

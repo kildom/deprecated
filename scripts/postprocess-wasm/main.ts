@@ -24,7 +24,7 @@ const sandboxImports = {
     log: () => {},
     clearValues: errorFunction as any,
     createEngineError: errorFunction as any,
-    callToHost: errorFunction as any,
+    call: errorFunction as any,
     createString: errorFunction as any,
     createUndefined: errorFunction as any,
     createError: errorFunction as any,

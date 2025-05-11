@@ -14,6 +14,7 @@
 #include "sandbox.h"
 #include "send.h"
 
+#if 0
 
 static const char* const recvErrorIsFromGuest = "<guest>";
 static const char* recvErrorState = nullptr;
@@ -190,3 +191,5 @@ bool getRecvErrorGuest()
 
     return true;
 }
+
+#endif

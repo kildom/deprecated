@@ -1,0 +1,378 @@
+
+#include <stdint.h>
+#include <algorithm>
+
+#include <jsapi.h>
+#include <js/Initialization.h>
+#include <js/Exception.h>
+#include <js/CompilationAndEvaluation.h>
+#include <js/SourceText.h>
+#include <js/Conversions.h>
+#include <js/MemoryFunctions.h>
+#include <js/Exception.h>
+#include <js/ArrayBuffer.h>
+#include <js/GCAPI.h>
+
+#include "sandbox-api.h"
+#include "sandbox.h"
+#include "exec.h"
+
+
+
+struct GetPropertyResult {
+    enum T : uint32_t {
+        NotFound = 0,
+        Ok = 1,
+        Error = 2,
+    };
+    GetPropertyResult() = delete;
+};
+
+
+
+static void throwEngineError(const char* message = nullptr);
+static void throwEngineErrorFormatted(const char* messageFormat, ...);
+
+#pragma region ------------------ JS VALUES HANDLING ------------------
+
+
+/**
+ * Convert value to a UTF-8 string and put it to a fixed size buffer.
+ * 
+ * @param value - value to convert.
+ * @param buffer - buffer to write the string to.
+ * @param size - size of the buffer.
+ * @return - number of bytes written to the buffer,
+ *           or -1 if an error occurred or string does not fit into buffer.
+ */
+static int32_t stringToFixedBuffer(JS::HandleValue value, char* buffer, uint32_t size)
+{
+    JS::RootedString str(cx, value.toString());
+    if (!str) {
+        return -1;
+    }
+    uint32_t length = JS_GetStringLength(str);
+    auto stat = JS_EncodeStringToUTF8BufferPartial(cx, str, mozilla::Span(buffer, size));
+    if (stat.isNothing()) {
+        return -1;
+    }
+    auto read = std::get<0>(*stat);
+    if (read == length) {
+        return std::get<1>(*stat);
+    } else {
+        return -1;
+    }
+}
+
+
+/**
+ * Get property from object.
+ * 
+ * It will set EngineError if an error occurs.
+ * 
+ * @param obj - object to get property from.
+ * @param name - name of the property to get.
+ * @param vp - output value to set.
+ * @return - result of the operation.
+ *           If property is found, it will be set to `vp` and GetPropertyResult::Ok is returned.
+ *           If property is not found, GetPropertyResult::NotFound is returned.
+ *           If an error occurs, GetPropertyResult::Error is returned and EngineError is set.
+ */
+GetPropertyResult::T getProperty(JS::HandleObject obj, const char *name, JS::MutableHandleValue vp, bool allowEngineError = true)
+{
+    bool found;
+
+    if (!JS_HasProperty(cx, obj, name, &found)) {
+        logError("Cannot check if object has property '%s'.", name);
+        if (allowEngineError) throwEngineError("Cannot get property from object.");
+        return GetPropertyResult::Error;
+    }
+
+    if (found) {
+        if (!JS_GetProperty(cx, obj, name, vp)) {
+            logError("Cannot get property '%s' from object.", name);
+            if (allowEngineError) throwEngineError("Cannot get property from object.");
+            return GetPropertyResult::Error;
+        }
+        return GetPropertyResult::Ok;
+    } else {
+        return GetPropertyResult::NotFound;
+    }
+}
+
+
+#pragma endregion
+
+
+#pragma region ------------------ THROWING ERRORS ------------------
+
+
+/**
+ * Append current stack trace to the error in static data.
+ * 
+ * It never fails. It does nothing if error occurred or stack trace is does not fit into buffer.
+ * It may put a new pending JS exception, so you must clean it up afterwards with JS_ClearPendingException.
+ */
+static void appendCurrentStackTrace()
+{
+    int32_t maxStackSize = AUX_BUFFER_SIZE - data.dataSize - 1;
+
+    if (maxStackSize < 1) {
+        logWarning("No space available for the stack trace.");
+        return;
+    }
+
+    JS::RootedObject stack(cx);
+    if (!JS::CaptureCurrentStack(cx, &stack) || !stack) {
+        logWarning("Cannot capture current stack.");
+        return;
+    }
+
+    JS::RootedValue stackVal(cx, JS::ObjectValue(*stack));
+    int32_t stackSize = stringToFixedBuffer(stackVal, data.dataBuffer + data.dataSize + 1, maxStackSize);
+    if (stackSize < 0) {
+        logError("Cannot stringify current stack.");
+        return;
+    }
+
+    data.dataBuffer[data.dataSize] = 0;
+    data.dataSize += 1 + stackSize;
+}
+
+/**
+ * Put engine error into static data.
+ * 
+ * It never fails.
+ * It adds current stack trace to the error information.
+ * It clears any pending exception.
+ *
+ * @param message - error message, UTF-8 encoded.
+ */
+static void throwEngineError(const char* message)
+{
+    clearData();
+    data.dataBuffer = data.auxBuffer;
+    data.dataType = DataType::EngineError;
+    data.dataOwned = 0;
+
+    if (!message || 11 + 1 + strlen(message) >= AUX_BUFFER_SIZE) {
+        message = "Unknown error";
+    }
+
+    strcpy(data.dataBuffer, "EngineError");
+    strcpy(data.dataBuffer + 11 + 1, message);
+    data.dataSize = 11 + 1 + strlen(message);
+
+    appendCurrentStackTrace();
+    JS_ClearPendingException(cx);
+}
+
+
+/**
+ * Put engine error into static data.
+ * 
+ * It never fails.
+ * It adds current stack trace to the error information.
+ * It clears any pending exception.
+ *
+ * @param message - error message format, UTF-8 encoded.
+ */
+static void throwEngineErrorFormatted(const char* messageFormat, ...)
+{
+    clearData();
+    data.dataBuffer = data.auxBuffer;
+    data.dataType = DataType::EngineError;
+    data.dataOwned = 0;
+
+    strcpy(data.dataBuffer, "EngineError");
+    data.dataSize = 11 + 1;
+
+    va_list args;
+    va_start(args, messageFormat);
+    int written = vsnprintf(data.dataBuffer + data.dataSize, AUX_BUFFER_SIZE - data.dataSize, messageFormat, args);
+    va_end(args);
+
+    if (written < 0) {
+        logError("Error message format error %d.", written);
+        throwEngineError("Error message format error.");
+        return;
+    } else if (written >= AUX_BUFFER_SIZE - data.dataSize) {
+        logError("Error message too long, required %d bytes, available %d bytes.", written + 1, AUX_BUFFER_SIZE - data.dataSize);
+        throwEngineError("Error message too long.");
+        return;
+    }
+
+    data.dataSize += written;
+
+    appendCurrentStackTrace();
+    JS_ClearPendingException(cx);
+}
+
+
+static void throwObjectError(JS::HandleObject errorObj)
+{
+    struct N {
+    static void appendProperty(JS::HandleObject obj, const char *name, const char *defaultValue, uint32_t maxSize)
+    {
+        JS::RootedValue value(cx);
+        auto r = getProperty(obj, name, &value);
+
+        if (r == GetPropertyResult::Ok) {
+
+            auto written = stringToFixedBuffer(value, auxBuffer + data.dataSize, maxSize);
+            if (written >= 0) {
+                data.dataSize += written;
+                return true;
+            } else {
+                // Fallback to default value
+            }
+
+        } else if (r == GetPropertyResult::NotFound) {
+
+            logInfo("Error object without '%s' property.", name);
+            // Fallback to default value
+
+        } else {
+
+            // Fallback to default value
+
+        }
+
+        strcpy(auxBuffer + data.dataSize, defaultValue);
+        data.dataSize += strlen(defaultValue);
+    }};
+
+    clearData();
+    data.dataBuffer = auxBuffer;
+    data.dataType = DataType::GuestError;
+    data.dataOwned = 0;
+    data.dataSize = 0;
+
+    // Save exception stack in case it will be overwritten
+    JS::RootedObject stackObj(cx, ExceptionStackOrNull(errorObj));
+
+    // Append error name
+    if (!N::appendProperty(errorObj, "name", "Error", AUX_BUFFER_SIZE - 15)) {
+        return;
+    }
+
+    // Append null separator
+    auxBuffer[data.dataSize] = 0;
+    data.dataSize++;
+
+    // Append error message
+    if (!N::appendProperty(errorObj, "message", "Unknown Error", AUX_BUFFER_SIZE - data.dataSize)) {
+        return;
+    }
+
+    if (!stackObj || data.dataSize >= AUX_BUFFER_SIZE - 1) {
+
+
+    } else {
+        auto written = stringToFixedBuffer(JS::ObjectValue(*stackObj), auxBuffer + data.dataSize, AUX_BUFFER_SIZE - data.dataSize);
+    }
+
+        /*JS::RootedValue value(cx);
+        JS::RootedObject errorObj(cx, &errorValue.toObject());
+        char* ptr = data.auxBuffer;
+        uint32_t size = 0;
+
+        // Get error name
+        auto r = getProperty(errorObj, "name", &value);
+        if (r == GetPropertyResult::NotFound) {
+            strcpy(ptr, "Error");
+            size = 5;
+        } else if (r == GetPropertyResult::Ok) {
+            size = SHARED_BUFFER_SIZE - 1 - 14;
+            if (!stringToFixedBuffer(value, ptr, size)) {
+                throwEngineError("Error name too long.");
+                return;
+            }
+        } else {
+            return false;
+        }
+
+        // Add null separator
+        ptr[size] = 0;
+        size++;
+
+        // Get error name
+        r = getProperty(errorObj, "message", &value);
+        if (r == GetPropertyResult::NotFound) {
+            strcpy(ptr + size, "Unknown error");
+            size += 13;
+        } else if (r == GetPropertyResult::Ok) {
+            uint32_t len = SHARED_BUFFER_SIZE - 1 - size;
+            if (!stringToFixedBuffer(value, ptr + size, len)) {
+                throwEngineError("Error name too long.");
+                return;
+            }
+            size += len;
+        } else {
+            return false;
+        }
+
+        // Get error stack
+        auto stack = ExceptionStackOrNull(errorObj);
+        if (stack) {
+            JS::RootedObject stackObj(cx, stack);
+            JS::RootedValue stackVal(cx, JS::ObjectValue(*stackObj));
+            if (!data.errorStack.set(stackVal)) return false;
+        } else {
+            data.errorStack.clear();
+        }*/
+}
+
+static void throwNonObjectError(JS::HandleValue errorValue)
+{
+    clearData();
+    data.dataBuffer = data.auxBuffer;
+    data.dataType = DataType::GuestError;
+    data.dataOwned = 0;
+
+    // Append error name
+    strcpy(data.dataBuffer, "GuestError");
+    data.dataSize = 10;
+
+    // Append null separator and error message
+    auto written = stringToFixedBuffer(errorValue, data.dataBuffer + data.dataSize + 1, AUX_BUFFER_SIZE - data.dataSize - 1);
+    if (written < 0) {
+        logWarning("Cannot stringify error value.");
+        throwEngineError("Cannot stringify error value.");
+        return;
+    }
+    data.dataBuffer[data.dataSize] = 0;
+    data.dataSize += 1 + written;
+
+    // Append null separator and current stack if available
+    appendCurrentStackTrace();
+    JS_ClearPendingException(cx);
+}
+
+static void throwPendingErrorImpl()
+{
+    JS::RootedValue errorValue(cx);
+
+    if (!JS_GetPendingException(cx, &errorValue)) {
+        throwEngineError("Cannot get pending exception.");
+        return;
+    }
+
+    if (errorValue.isObject()) {
+        JS::RootedObject errorObj(cx, &errorValue.toObject());
+        throwObjectError(errorObj);
+    } else {
+        throwNonObjectError(errorValue);
+    }
+}
+
+
+void throwPendingError() {
+    throwPendingErrorImpl();
+    JS_ClearPendingException(cx);
+}
+
+#pragma endregion
+
+
+#error OK

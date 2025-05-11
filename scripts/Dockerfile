@@ -9,22 +9,23 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     DEBIAN_FRONTEND=noninteractive apt install -y -qq sudo python3 python3-pip python-is-python3 \
         wget curl findutils gzip libxml2 m4 make perl tar unzip watchman
 
+RUN rustup target add wasm32-wasi
+
 RUN mkdir -p /usr/local/nvm
 ENV NVM_DIR=/usr/local/nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-RUN bash --login -c 'nvm install 18'
-RUN rustup target add wasm32-wasi
+RUN bash --login -c 'nvm install 20'
 
 RUN mkdir -p /usr/local/tools && \
     cd /usr/local/tools && \
-    wget https://github.com/WebAssembly/binaryen/releases/download/version_117/binaryen-version_117-x86_64-linux.tar.gz && \
-    tar -xf binaryen-version_117-x86_64-linux.tar.gz && \
+    wget https://github.com/WebAssembly/binaryen/releases/download/version_123/binaryen-version_123-x86_64-linux.tar.gz && \
+    tar -xf binaryen-version_*-x86_64-linux.tar.gz && \
     rm *.tar.gz && \
     mv binaryen-* binaryen
 
 RUN cd /usr/local/tools && \
-    wget https://github.com/WebAssembly/wabt/releases/download/1.0.35/wabt-1.0.35-ubuntu-20.04.tar.gz && \
-    tar -xf wabt-1.0.35-ubuntu-20.04.tar.gz && \
+    wget https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-ubuntu-20.04.tar.gz && \
+    tar -xf wabt-*-ubuntu-20.04.tar.gz && \
     rm *.tar.gz && \
     mv wabt-* wabt
 

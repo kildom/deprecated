@@ -194,7 +194,7 @@ __sandbox__.imports = imports;
 function createImportWrapper(number: number): Function {
     return function(...args: any[]): any {
         __sandbox__.createHostValue?.(...args);
-        if (!__sandbox__.callToHost(number)) {
+        if (!__sandbox__.call(number)) {
             if (valueStack[0] instanceof Error) {
                 throw valueStack[0];
             } else {
@@ -252,7 +252,7 @@ function registerExportsInner(callbacks: RegisterCallbacks): RegisterCallbacksId
 
 function call(command: SandboxSpecialCommand, ...args: any[]): any {
     __sandbox__.createHostValue?.(...args);
-    if (!__sandbox__.callToHost(command)) {
+    if (!__sandbox__.call(command)) {
         if (valueStack[0] instanceof Error) {
             throw valueStack[0];
         } else {

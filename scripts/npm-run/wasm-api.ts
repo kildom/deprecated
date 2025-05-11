@@ -179,7 +179,7 @@ function trimQuotes(text: string) {
     return text.replace(/^\s*"?\s*|\s*"?\s*$/g, '');
 }
 
-type FuncType = { params: WasmType[], result: WasmType };
+type FuncType = { params: WasmType[], result: WasmType, paramNames?: { prefix: string, name: string, suffix: string }[], returnType?: string };
 
 type Dict<T> = {[key:string]: T}
 
@@ -269,9 +269,93 @@ function parseInterface(file: string, mode: string) {
     }
 }
 
-function formatParams(params: WasmType[]) {
-    const names = 'abcdefghijklmnopqrstuvwxyz';
-    return params.map((x, i) => `${names[i]}: ${typeMapping[x]}`).join(', ');
+const cppFunctionRegExp = cre.global`
+    // WASM_EXPORT(init)
+    // bool init(uint32_t aggressiveGCThreshold, uint32_t hardGCThreshold, uint32_t memoryLimit, LogLevel::T logLevel);
+    "WASM_"
+    type: ("EXPORT" or "IMPORT")
+    "("
+    name: lazy-repeat any
+    ")"
+    returnType: lazy-repeat any
+    repeat [a-zA-Z0-9_]
+    "("
+    params: lazy-repeat any
+    ")"
+`;
+
+function parseHeader(file: string) {
+    let text = fs.readFileSync(file, 'utf-8');
+    for (let m of text.matchAll(cppFunctionRegExp)) {
+        let groups = m.groups as {
+            type: 'EXPORT' | 'IMPORT';
+            name: string;
+            params: string;
+            returnType: string;
+        };
+        let returnType = groups.returnType.trim();
+        let name = groups.name.trim();
+        let params = groups.params.split(',')
+            .map(x => {
+                let arr = x.trim().split(/([_a-z0-9]+)/i);
+                if (arr.length == 1) return undefined;
+                let suffix = arr.pop()!.trim();
+                let name = arr.pop()!;
+                let prefix = arr.join('').trim();
+                return { prefix, name, suffix };
+            })
+            .filter(x => x)
+            .map(x => x!);
+        if (groups.type === 'EXPORT') {
+            let func = funcExports[name];
+            if (!func) {
+                console.error('Missing export', name);
+                continue;
+            }
+            if (func.type.params.length !== params.length) {
+                console.error('Invalid count of parameters', name);
+                continue;
+            }
+            func.type = {
+                ...func.type,
+                paramNames: params,
+                returnType: returnType,
+            };
+        } else {
+            let fullName = `env.${name}`;
+            let func = imports[fullName];
+            if (!func) {
+                console.error('Missing import', fullName);
+                continue;
+            }
+            if (func.params.length !== params.length) {
+                console.error('Invalid count of parameters', fullName);
+                continue;
+            }
+            imports[fullName] = {
+                ...func,
+                paramNames: params,
+                returnType: returnType,
+            };
+        }
+        //console.log(returnType, name, params);
+    }
+}
+
+function formatParams(params: FuncType) {
+    if (!params.paramNames) {
+        const names = 'abcdefghijklmnopqrstuvwxyz';
+        return params.params.map((x, i) => `${names[i]}: ${typeMapping[x]}`).join(', ');
+    } else {
+        return params.params.map((x, i) => {
+            let paramName = params.paramNames![i];
+            if (paramName.suffix) {
+                return `/* ${paramName.prefix} */ ${paramName.name} /* ${paramName.suffix} */: ${typeMapping[x]}`;
+            } else {
+                return `/* ${paramName.prefix} */ ${paramName.name}: ${typeMapping[x]}`;
+            }
+        }).join(', ');
+    }
 }
 
 
@@ -286,11 +370,18 @@ function generateInterface() {
         result.push(`    ${exp}: any;`);
     }
     for (let exp of Object.values(funcExports)) {
+        let line = `    ${exp.name}`;
         if (exp.counter !== variantCounter) {
-            result.push(`    ${exp.name}?: (${formatParams(exp.type.params)}) => ${typeMapping[exp.type.result]};`);
+            line += `?: (${formatParams(exp.type)}) =>`;
         } else {
-            result.push(`    ${exp.name}(${formatParams(exp.type.params)}): ${typeMapping[exp.type.result]};`);
+            line += `(${formatParams(exp.type)}):`;
         }
+        if (exp.type.returnType && exp.type.result !== 'nil') {
+            line += ` /* ${exp.type.returnType} */`;
+        }
+        line += ` ${typeMapping[exp.type.result]}`
+        line += ';';
+        result.push(line);
     }
     result.push(`};\n`);
     let modules = new Set([
@@ -306,7 +397,7 @@ function generateInterface() {
         }
         for (let [name, type] of Object.entries(imports)) {
             if (!name.startsWith(mod + '.')) continue;
-            result.push(`        ${name.substring(mod.length + 1)}(${formatParams(type.params)}): ${typeMapping[type.result]};`);
+            result.push(`        ${name.substring(mod.length + 1)}(${formatParams(type)}): ${typeMapping[type.result]};`);
         }
         result.push(`    };`);
         importIface.push(`    ${mod}: SandboxWasmImportModule.${mod};`);
@@ -322,6 +413,8 @@ for (let path of inputs) {
     let m = path.match(/.*[/\\](.+)\.wasm$/);
     parseInterface(path, m![1]);
 }
+
+parseHeader('src-wasm/sandbox-api.h');
 
 let code = generateInterface();
 

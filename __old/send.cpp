@@ -13,6 +13,8 @@
 #include "wasm.h"
 #include "sandbox.h"
 
+#if 0
+
 
 WASM_IMPORT(createBoolean) void createBoolean(bool value);
 WASM_IMPORT(createArrayBuffer) void createArrayBuffer(const void* data, uint32_t size);
@@ -290,3 +292,4 @@ JSFunctionSpec sandboxSendFunctions[] = {
     JS_FN("keepValue", keepValueJs, 0, 0),
     JS_FS_END};
 
+#endif

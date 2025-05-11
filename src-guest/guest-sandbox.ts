@@ -23,7 +23,7 @@ export interface GuestSandboxObject {
     reuseValue(index: number): void;
     keepValue(): number;
 
-    callToHost(command: number): boolean;
+    call(command: number): boolean;
 
     createHostValue?: (...args: any[]) => void;
     callFromHost?: (command: number) => void;

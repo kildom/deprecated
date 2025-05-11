@@ -39,7 +39,7 @@ export namespace SandboxWasmImportModule {
     export interface sandbox {
         clearValues(): void;
         createEngineError(a: number, b: number, c: number): void;
-        callToHost(a: number): number;
+        call(a: number): number;
         log(a: number, b: number): void;
         getMemorySize(): number;
         getStackPointer(): number;
