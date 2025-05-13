@@ -1,4 +1,4 @@
-import { SandboxWasmImportModule } from './wasm-interface';
+import { SandboxWasmImportModule } from './wasm-interface-unprocessed';
 
 export class WasiSystemExit extends Error {
     constructor(code: number) {
@@ -10,7 +10,7 @@ export interface WasiImports extends SandboxWasmImportModule.wasi_snapshot_previ
     setMemory(memory: WebAssembly.Memory): void;
 };
 
-export function createWasiImports(): WasiImports {
+export function createWasiImports(): WasiImports { // TODO: Maybe create common implementation with src-host
 
     let memory: WebAssembly.Memory;
     let arrayBuffer: ArrayBuffer;

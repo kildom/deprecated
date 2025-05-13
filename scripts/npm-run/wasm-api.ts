@@ -16,7 +16,7 @@ if (process.argv[2] === 'unprocessed') {
         'build/release/sandbox.wasm',
         'build/size/sandbox.wasm',
     ];
-    output = 'scripts/postprocess-wasm/wasm-interface.ts';
+    output = 'scripts/postprocess-wasm/wasm-interface-unprocessed.ts';
     comment = '/*\n * Code was automatically generated. Do not edit manually.\n * Run "npm run wasm-api unprocessed" to regenerate it.\n */\n\n';
 } else {
     inputs = [
@@ -24,7 +24,7 @@ if (process.argv[2] === 'unprocessed') {
         'dist/release.wasm',
         'dist/size.wasm',
     ];
-    output = 'src-host/wasm-interface.ts';
+    output = 'src-wasm/wrapper/wasm-interface.ts';
     comment = '/*\n * Code was automatically generated. Do not edit manually.\n * Run "npm run wasm-api" to regenerate it.\n */\n\n';
 }
 
@@ -360,7 +360,12 @@ function formatParams(params: FuncType) {
 
 
 function generateInterface() {
-    let result: string[] = [];
+    let lic = ('\n' + fs.readFileSync('LICENSE.txt', 'utf-8').trim() + '\n')
+        .split('\n')
+        .map(x => (' * ' + x).trimEnd())
+        .join('\n')
+        .trim();
+    let result: string[] = [`/${lic}/\n\n\n${comment}`];
     let importIface: string[] = [];
     result.push(`export interface SandboxWasmExport {`);
     for (let exp of memExports) {
@@ -414,8 +419,8 @@ for (let path of inputs) {
     parseInterface(path, m![1]);
 }
 
-parseHeader('src-wasm/sandbox-api.h');
+parseHeader('src-wasm/api.h');
 
 let code = generateInterface();
 
-fs.writeFileSync(output, comment + code);
+fs.writeFileSync(output, code);

@@ -66,14 +66,12 @@ interface MemoryLimits {
 //#region ------- Output Writing -------
 
 
-function output(value: number | string | Uint8Array | number[] | null): number {
+function output(value: string | Uint8Array | number[] | null): number {
     let res = out.length;
-    if (typeof value === 'number') {
-        out.push(leb128Create(value));
-    } else if (typeof value === 'string') {
+    if (typeof value === 'string') {
         let b = encoder.encode(value);
         out.push(new Uint8Array([
-            ...leb128Create(b.length),
+            ...uLeb128Create(b.length),
             ...b,
         ]));
     } else if (value instanceof Uint8Array) {
@@ -88,14 +86,23 @@ function output(value: number | string | Uint8Array | number[] | null): number {
     return res;
 }
 
+function outputSigned(value: number): number {
+    let res = out.length;
+    out.push(sLeb128Create(value));
+    return res;
+}
 
-function replace(index: number, value: number | string | Uint8Array | number[] | null): void {
-    if (typeof value === 'number') {
-        out[index] = leb128Create(value);
-    } else if (typeof value === 'string') {
+function outputUnsigned(value: number): number {
+    let res = out.length;
+    out.push(uLeb128Create(value));
+    return res;
+}
+
+function replace(index: number, value: string | Uint8Array | number[] | null): void {
+    if (typeof value === 'string') {
         let b = encoder.encode(value);
         out[index] = new Uint8Array([
-            ...leb128Create(b.length),
+            ...uLeb128Create(b.length),
             ...b,
         ]);
     } else if (value instanceof Uint8Array) {
@@ -109,6 +116,17 @@ function replace(index: number, value: number | string | Uint8Array | number[] |
     }
 }
 
+
+function replaceSigned(index: number, value: number): void {
+    out[index] = sLeb128Create(value);
+}
+
+
+function replaceUnsigned(index: number, value: number): void {
+    out[index] = uLeb128Create(value);
+}
+
+
 function outputOffset(startBookmark: number, endBookmark: number = -1) {
     if (endBookmark < 0) {
         endBookmark = out.length;
@@ -116,9 +134,12 @@ function outputOffset(startBookmark: number, endBookmark: number = -1) {
     return out.slice(startBookmark, endBookmark).reduce((a, x) => a + x!.length, 0);
 }
 
-function leb128Create(x: number, exactBytes: number = -1000) {
+function leb128CreateCommon(x: number, exactBytes: number, funcSize: any) {
     assert(x >= 0);
-    assert(leb128Size(x) <= Math.abs(exactBytes));
+    assert(funcSize(x) <= Math.abs(exactBytes));
+    if (exactBytes < 0) {
+        exactBytes = funcSize(x);
+    }
     let res = new Uint8Array(10);
     let index = 0;
     do {
@@ -131,12 +152,31 @@ function leb128Create(x: number, exactBytes: number = -1000) {
     return res.subarray(0, index);
 }
 
-function leb128Size(x: number) {
+function uLeb128Create(x: number, exactBytes: number = -1000) {
+    return leb128CreateCommon(x, exactBytes, uLeb128Size);
+}
+
+function sLeb128Create(x: number, exactBytes: number = -1000) {
+    return leb128CreateCommon(x, exactBytes, sLeb128Size);
+}
+
+function uLeb128Size(x: number) {
+    assert(x >= 0);
     if (x < 128) return 1;
     if (x < 128 * 128) return 2;
     if (x < 128 * 128 * 128) return 3;
     if (x < 128 * 128 * 128 * 128) return 4;
     if (x < 128 * 128 * 128 * 128 * 128) return 5;
+    return 6;
+}
+
+function sLeb128Size(x: number) {
+    assert(x >= 0);
+    if (x < 64) return 1;
+    if (x < 64 * 128) return 2;
+    if (x < 64 * 128 * 128) return 3;
+    if (x < 64 * 128 * 128 * 128) return 4;
+    if (x < 64 * 128 * 128 * 128 * 128) return 5;
     return 6;
 }
 
@@ -254,7 +294,7 @@ function getOutput(): Uint8Array {
         let s = section.output.reduce((a, x) => a + x.length, 0);
         let sectionHeader = new Uint8Array([
             section.id,
-            ...leb128Create(s),
+            ...uLeb128Create(s),
         ]);
         headers.push(sectionHeader);
         size += sectionHeader.length + s;
@@ -320,10 +360,10 @@ function addSpHandlersToFunctionSection({ getSpTypeIndex, setSpTypeIndex }: { ge
     setActive(SectionType.functionSection, true);
 
     let count = leb128();
-    output(count + 2); // count
+    outputUnsigned(count + 2); // count
     output(bin.subarray(offset, currentSection.end)); // old functions
-    output(getSpTypeIndex);
-    output(setSpTypeIndex);
+    outputUnsigned(getSpTypeIndex);
+    outputUnsigned(setSpTypeIndex);
     let getSpFuncIndex = count;
     let setSpFuncIndex = count + 1;
     return { getSpFuncIndex, setSpFuncIndex };
@@ -335,7 +375,7 @@ function addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex,
     let stackPointerIndex = -1;
 
     let count = leb128();
-    output(count + 1); // count
+    outputUnsigned(count + 1); // count
     let actual_count = 0;
     for (let i = 0; i < count; i++) {
         let start = offset;
@@ -354,16 +394,16 @@ function addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex,
         }
     }
     output('getStackPointer');
-    output(0x00);
-    output(funcIndexStart + getSpFuncIndex);
+    outputUnsigned(0x00);
+    outputUnsigned(funcIndexStart + getSpFuncIndex);
     actual_count++;
     output('setStackPointer');
-    output(0x00);
-    output(funcIndexStart + setSpFuncIndex);
+    outputUnsigned(0x00);
+    outputUnsigned(funcIndexStart + setSpFuncIndex);
     actual_count++;
     output(exportInfoPrefix + Math.ceil(memorySize / PAGE_SIZE).toString(16));
-    output(0x00);
-    output(funcIndexStart + getSpFuncIndex);
+    outputUnsigned(0x00);
+    outputUnsigned(funcIndexStart + getSpFuncIndex);
     actual_count++;
     assert(stackPointerIndex >= 0);
     assert.equal(actual_count, count + 1);
@@ -378,37 +418,37 @@ function getIndexStartsAndMemoryFromImports({ memorySize }: { memorySize: number
     let globalIndexStart = 0;
     let memoryLimits = { initialPages: -1, maximumPages: -1, begin: -1, end: -1 };
     let count = leb128();
-    output(count);
+    outputUnsigned(count);
     for (let i = 0; i < count; i++) {
         let len = leb128();
-        output(len);
+        outputUnsigned(len);
         output(bin.subarray(offset, offset + len));
         offset += len;
         len = leb128();
-        output(len);
+        outputUnsigned(len);
         output(bin.subarray(offset, offset + len));
         offset += len;
         let kind = byte();
-        output(kind);
+        outputUnsigned(kind);
         if (kind === 0x00) { // func
-            output(leb128()); // index
+            outputUnsigned(leb128()); // index
             funcIndexStart++;
         }
         else if (kind === 0x03) { // global
-            output(byte()); // type
-            output(byte()); // mut
+            outputUnsigned(byte()); // type
+            outputUnsigned(byte()); // mut
             globalIndexStart++;
         } else if (kind === 0x02) { // memory
             let maxPresent = byte();
-            output(maxPresent);
+            outputUnsigned(maxPresent);
             memoryLimits.begin = outputOffset(0);
             let moduleInitial = leb128();
             memoryLimits.initialPages = Math.max(moduleInitial, Math.ceil(memorySize / PAGE_SIZE));
-            output(leb128Create(memoryLimits.initialPages, 3));
+            output(uLeb128Create(memoryLimits.initialPages, 3));
             memoryLimits.end = outputOffset(0);
             if (maxPresent) {
                 memoryLimits.maximumPages = leb128();
-                output(memoryLimits.maximumPages);
+                outputUnsigned(memoryLimits.maximumPages);
             } else {
                 memoryLimits.maximumPages = Infinity;
             }
@@ -428,10 +468,10 @@ function getIndexStartsAndMemoryFromImports({ memorySize }: { memorySize: number
 
 function createCode(bytecode: number[]) {
     let funcSizeOutBookmark = output(null); // function size
-    output(0); // no locals
+    outputUnsigned(0); // no locals
     output(bytecode); // code
     output([0x0B]); // END
-    replace(funcSizeOutBookmark, outputOffset(funcSizeOutBookmark + 1));
+    replaceUnsigned(funcSizeOutBookmark, outputOffset(funcSizeOutBookmark + 1));
 }
 
 
@@ -439,14 +479,14 @@ function addStackHandlersCode({ stackPointerIndex }: { stackPointerIndex: number
     setActive(SectionType.codeSection, true);
 
     let count = leb128();
-    output(count + 2); // count
+    outputUnsigned(count + 2); // count
     output(bin.subarray(offset, currentSection.end)); // old functions
     createCode([
-        0x23, ...leb128Create(stackPointerIndex), // global.get
+        0x23, ...uLeb128Create(stackPointerIndex), // global.get
     ]);
     createCode([
-        0x20, ...leb128Create(0), // local.get 0
-        0x24, ...leb128Create(stackPointerIndex), // global.set
+        0x20, ...uLeb128Create(0), // local.get 0
+        0x24, ...uLeb128Create(stackPointerIndex), // global.set
     ]);
 }
 
@@ -488,7 +528,7 @@ function prepareDataBlocksForThreshold(blocks: DataBlock[], memory: Uint8Array, 
 
     let size = 0;
     for (let block of blocks) {
-        size += 3 + leb128Size(block.offset) + leb128Size(block.length) + block.length;
+        size += 3 + sLeb128Size(block.offset) + uLeb128Size(block.length) + block.length;
     }
     return size;
 }
@@ -540,13 +580,13 @@ function generateNewDataSection(memory: Uint8Array, stackPointer: number, sizeOp
 
     let blocks = prepareDataBlocks(memory, stackPointer, sizeOptimize);
 
-    output(blocks.length);
+    outputUnsigned(blocks.length);
     for (let block of blocks) {
         output([
             0x00, // kind: active, memory 0
-            0x41, ...leb128Create(block.offset), // i32.const block.offset
+            0x41, ...sLeb128Create(block.offset), // i32.const block.offset
             0x0B, // end
-            ...leb128Create(block.length), // size
+            ...uLeb128Create(block.length), // size
         ]);
         output(memory.subarray(block.offset, block.offset + block.length));
     }
@@ -556,7 +596,7 @@ function generateNewDataSection(memory: Uint8Array, stackPointer: number, sizeOp
 function generateDataCountSection(dataBlockCount: number) {
     if (sectionsById[SectionType.dataCountSection]) {
         setActive(SectionType.dataCountSection, true);
-        output(dataBlockCount);
+        outputUnsigned(dataBlockCount);
     }
 }
 
@@ -613,5 +653,5 @@ function getStackPointerLocation({ stackPointerIndex, globalIndexStart }: { stac
 function replaceStackPointer({ stackPointerBegin, stackPointerSize, stackPointer }: { stackPointerBegin: number, stackPointerSize: number, stackPointer: number }) {
     setActive(SectionType.globalSection);
     commitSectionOutput();
-    currentSection.input.subarray(stackPointerBegin, stackPointerBegin + stackPointerSize).set(leb128Create(stackPointer, stackPointerSize));
+    currentSection.input.subarray(stackPointerBegin, stackPointerBegin + stackPointerSize).set(sLeb128Create(stackPointer, stackPointerSize));
 }

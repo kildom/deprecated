@@ -10,14 +10,16 @@
     "wasm-build": "scripts/npm-run/wasm-build.sh",
     "wasm-download": "scripts/npm-run/wasm-download.sh",
     "wasm-api": "npx tsx scripts/npm-run/wasm-api.ts",
+    "wasm-test": "npx vitest -r src-wasm",
     "guest-build": "npx tsx scripts/npm-run/guest-build.ts",
     "host-build": "npx tsx scripts/npm-run/host-build.ts",
+    "test": "npx vitest",
     "perf": "npx tsx tools/gen-perf.ts && npx esbuild --target=firefox125 --platform=node --bundle --outfile=perf/src/run.js perf/src/run.ts && npx tsx perf/src/compile-bundle.ts && node perf/src/run.js",
     "tools-build-postprocess-wasm": "npx esbuild --sourcemap=inline --platform=node --bundle --outfile=tmp/postprocess-wasm.js tools/postprocess-wasm/main.ts",
     "compile-web-test": "npx esbuild --sourcemap=inline --target=firefox125 --bundle --outfile=tools/testpage/main.js tools/testpage/main.ts"
   },
   "author": "",
-  "license": "ISC",
+  "license": "BSD-2-Clause",
   "dependencies": {
     "con-reg-exp": "^0.2.4",
     "tsx": "^4.11.2",
@@ -25,6 +27,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
-    "esbuild": "^0.21.5"
+    "esbuild": "^0.21.5",
+    "vitest": "^3.1.3"
   }
 }
