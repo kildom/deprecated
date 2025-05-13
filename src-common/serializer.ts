@@ -283,4 +283,4 @@ function test1() {
     console.log(typedArr.subarray(2, 5).buffer === typedArr.buffer);
 }
 
-test1();
+//test1();

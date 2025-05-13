@@ -136,10 +136,11 @@ struct ExceptionResult: public SandboxAny
 /**
  * Code compilation result.
  *
- * Content of this object is used internally by the engine and host should not access it.
+ * All fields except `flags` are used internally by the engine and host should not access it.
  */
 struct CompileResult: public SandboxAny
 {
+    /** Flags that were used during compilation. */
     ExecuteFlags::T flags;
     uint8_t _reserved8;
     JS::PersistentRooted<JSScript*> script;

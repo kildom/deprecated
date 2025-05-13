@@ -105,6 +105,7 @@ export class IncomingRegistry {
         }
 
         let functionInfo = this.groups[groupId].functionById[functionId];
+        globalThis.debug?.push({n:'execute', groupId, functionId, args, all:this.groups, functionInfo, typ: typeof functionInfo.funcObject, app: typeof functionInfo.funcObject.apply});
         return functionInfo.funcObject.apply(functionInfo.thisObject, args);
     }
 

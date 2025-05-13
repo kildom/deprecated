@@ -1,15 +1,15 @@
+import bootSource from "../build/guest/boot";
 import { exportInfoPrefix } from "../src-common/common";
-import { createWasiImports } from "./wasi-stubs";
-import { SandboxWasmExport, SandboxWasmImport, SandboxWasmImportModule } from "./wasm-interface";
+import { deserialize } from "../src-common/deserializer";
+import { IncomingRegistry } from "../src-common/incoming-registry";
+import { OutgoingRegistry } from "../src-common/outgoing-registry";
+import { serialize } from "../src-common/serializer";
+import * as wr from "../src-wasm/wrapper/wrapper";
 
-export class GuestError extends Error {
-    constructor(message: string, public guestName?: string, public guestStack?: string) {
-        super(message);
-    }
-}
-
-
-export class EngineError extends Error { }
+export const GuestError = wr.GuestError;
+export const EngineError = wr.EngineError;
+export const HostError = wr.HostError;
+export const LogLevel = wr.LogLevel;
 
 
 export interface InstantiateOptions {
@@ -23,6 +23,7 @@ export interface InstantiateOptions {
     module?: ModuleSourceType;
 };
 
+
 interface ValidatedInstantiateOptions extends InstantiateOptions {
     maxHeapSize: number;
     maxWasmSize: number;
@@ -35,8 +36,8 @@ interface ValidatedInstantiateOptions extends InstantiateOptions {
 export interface ExecuteOptions {
     fileName?: string;
     asModule?: boolean;
-    args?: any;
     returnValue?: boolean;
+    args?: any;
 };
 
 export type Storage = Record<symbol, any>;
@@ -50,10 +51,7 @@ export interface SnapshotCallbacks {
     instantiateSnapshot?: (sandbox: Sandbox, snapshot: Snapshot) => void;
 };
 
-enum Encodings {
-    Utf8 = 0,
-    Latin1 = 1,
-};
+export type Bytecode = wr.CompileResult;
 
 /**
  * Represents an isolated environment for executing JavaScript code.
@@ -66,7 +64,10 @@ export interface Sandbox {
      * @param options - Optional execution options.
      * @returns The result of the code execution if `options.returnValue` is true, `undefined` otherwise.
      */
+    execute(code: Bytecode): any;
     execute(code: string, options?: ExecuteOptions): any;
+
+    compile(code: string, options?: ExecuteOptions): Bytecode;
 
     /**
      * Registers callbacks that are available in the guest as imports.
@@ -229,14 +230,187 @@ async function getModule(moduleSource?: ModuleSourceType): Promise<WebAssembly.M
 }
 
 
+function prepareSandboxObject(
+    wrapper: wr.Wrapper,
+    snapshotCallbacks: SnapshotCallbacks[],
+    outgoing: OutgoingRegistry,
+    incoming: IncomingRegistry,
+    exports: any,
+    imports: any,
+    storage: Storage,
+): Sandbox {
+
+    return {
+
+        exports,
+        imports,
+        storage,
+
+        execute(code: string | Bytecode, options?: ExecuteOptions): any {
+
+            let compiled: Bytecode | undefined = undefined;
+
+            try {
+                if (typeof code === 'string') {
+                    let flags = wr.ExecuteFlags.Once;
+                    if (options?.asModule) flags |= wr.ExecuteFlags.Module;
+                    if (options?.returnValue) flags |= wr.ExecuteFlags.ReturnValue;
+                    compiled = wrapper.compile(code, options?.fileName, flags);
+                    code = compiled;
+                }
+                let argsSerialized = serialize(options?.args);
+                let resultSerialized = wrapper.execute(code, argsSerialized);
+                let result: any = undefined;
+                if ((options?.returnValue || (code.getFlags() & wr.ExecuteFlags.ReturnValue)) && resultSerialized) {
+                    result = deserialize(resultSerialized);
+                }
+                return result;
+            } finally {
+                if (compiled) compiled.dispose();
+            }
+        },
+
+        compile(code: string, options?: ExecuteOptions): Bytecode {
+            let flags = 0;
+            if (options?.asModule) flags |= wr.ExecuteFlags.Module;
+            if (options?.returnValue) flags |= wr.ExecuteFlags.ReturnValue;
+            return wrapper.compile(code, options?.fileName, flags);
+        },
+
+        addSnapshotCallbacks(callbacks: SnapshotCallbacks): void {
+            snapshotCallbacks.push(callbacks);
+        },
+
+        takeSnapshot(): Snapshot {
+            for (let callbacks of snapshotCallbacks) {
+                callbacks.beforeTakeSnapshot?.(this);
+            }
+            let wrapperSnapshot = wrapper.takeSnapshot();
+            let outgoingSnapshot = outgoing.store();
+            let incomingSnapshot = incoming.clone();
+            let storageSnapshot = { ...storage };
+            let snapshotCallbacksSnapshot = [...snapshotCallbacks];
+            let snapshot: Snapshot = {
+                storage: storageSnapshot,
+                instantiate(): Promise<Sandbox> {
+                    return instantiateSnapshot(
+                        snapshot,
+                        wrapperSnapshot,
+                        outgoingSnapshot,
+                        incomingSnapshot,
+                        storageSnapshot,
+                        snapshotCallbacksSnapshot);
+                },
+            };
+            for (let callbacks of snapshotCallbacksSnapshot) {
+                callbacks.afterTakeSnapshot?.(this, snapshot);
+            }
+            return snapshot;
+        }
+    };
+}
+
+
 export async function instantiate(options?: InstantiateOptions): Promise<Sandbox> {
 
     let module = await getModule(options?.module);
+    let opt = validateOptions(options);
 
-    WebAssembly.instantiate(module, {});
+    let wrapper = new wr.Wrapper(module);
+    await wrapper.init(opt.minHeapThreshold, opt.maxHeapSize, opt.maxWasmSize, LogLevel.Info); // TODO: log level
 
+    let snapshotCallbacks: SnapshotCallbacks[] = [];
+    let storage: Storage = {};
 
+    {
+        using code = wrapper.compile(bootSource, '__sandbox__internal/boot.js', wr.ExecuteFlags.Module | wr.ExecuteFlags.Once);
+        wrapper.execute(code);
+    }
+
+    // Imports (outgoing calls) setup
+    let outgoing = new OutgoingRegistry(true);
+    let exports = ((groupId: number) => {
+        return outgoing.get(groupId);
+    }) as any;
+    outgoing.set(0, exports);
+    outgoing.onCall = (groupId, functionId, args) => {
+        console.log('outgoing.onCall', groupId, functionId, args);
+        return deserialize(wrapper.call(groupId, functionId, serialize(args)));
+    };
+
+    // Exports (incoming calls) setup
+    let incoming = new IncomingRegistry();
+    let imports = function(obj: any, groupId?: number) {
+        let msg = incoming.register(obj, groupId);
+        wrapper.call(0x7FFFFFFF, 0, serialize(msg));
+        return msg.groupId;
+    }
+
+    wrapper.onCall = (groupId, functionId, arg) => {
+        if (!arg) return serialize(undefined);
+        let argObj = deserialize(arg);
+        console.log('wrapper.onCall', groupId, functionId, argObj);
+        if (groupId === 0x7FFFFFFF) {
+            outgoing.register(argObj);
+            return serialize(undefined);
+        }
+        return serialize(incoming.execute(groupId, functionId, argObj));
+    };
+
+    return prepareSandboxObject(wrapper, snapshotCallbacks, outgoing, incoming, exports, imports, storage);
 }
+
+async function instantiateSnapshot(
+    snapshot: Snapshot,
+    wrapperSnapshot: wr.Snapshot,
+    outgoingSnapshot: any,
+    incomingSnapshot: IncomingRegistry,
+    storageSnapshot: Storage,
+    snapshotCallbacksSnapshot: SnapshotCallbacks[],
+): Promise<Sandbox> {
+
+    let wrapper = await wr.Wrapper.fromSnapshot(wrapperSnapshot);
+    let snapshotCallbacks: SnapshotCallbacks[] = [...snapshotCallbacksSnapshot];
+    let storage: Storage = { ...storageSnapshot };
+
+    // Imports (outgoing calls) setup
+    let outgoing = new OutgoingRegistry(true);
+    outgoing.load(outgoingSnapshot);
+    let exports = ((groupId: number) => {
+        return outgoing.get(groupId);
+    }) as any;
+    outgoing.set(0, exports);
+    outgoing.onCall = (groupId, functionId, args) => {
+        return deserialize(wrapper.call(groupId, functionId, serialize(args)));
+    };
+
+    // Exports (incoming calls) setup
+    let incoming = incomingSnapshot.clone();
+    let imports = function(obj: any, groupId?: number) {
+        let msg = incoming.register(obj, groupId);
+        wrapper.call(0x7FFFFFFF, 0, serialize(msg));
+        return msg.groupId;
+    }
+
+    wrapper.onCall = (groupId, functionId, arg) => {
+        if (!arg) return serialize(undefined);
+        let argObj = deserialize(arg);
+        if (groupId === 0x7FFFFFFF) {
+            outgoing.register(argObj);
+            return serialize(undefined);
+        }
+        return serialize(incoming.execute(groupId, functionId, argObj));
+    };
+
+    let newSandbox = prepareSandboxObject(wrapper, snapshotCallbacks, outgoing, incoming, exports, imports, storage);
+
+    for (let callbacks of snapshotCallbacks) {
+        callbacks.instantiateSnapshot?.(newSandbox, snapshot);
+    }
+
+    return newSandbox;
+}
+
 
 
 const FRAGMENTATION_COEFFICIENT = 1.3;
@@ -290,55 +464,3 @@ function validateOptions(invalidOptions?: InstantiateOptions): ValidatedInstanti
 
     return options as ValidatedInstantiateOptions;
 }
-
-async function createSandbox(options?: InstantiateOptions, module: WebAssembly.Module): Promise<Sandbox> {
-
-    let validatedOptions = validateOptions(options);
-
-    let memory = new WebAssembly.Memory({
-        initial: initialPages,
-        maximum: (validatedOptions.maxWasmSize + 65535) >> 16,
-    });
-
-    let buffer = memory.buffer;
-    let view = new DataView(memory.buffer);
-
-    function updateView() {
-        if (buffer !== memory.buffer) {
-            buffer = memory.buffer;
-            view = new DataView(buffer);
-        }
-    }
-
-    let wasmExports: SandboxWasmExport;
-
-    let env: SandboxWasmImportModule.env = {
-        memory,
-        ...(null as any), // TODO: 
-    };
-
-    let wasi_snapshot_preview1 = createWasiImports(memory);
-
-    let instance: WebAssembly.Instance;
-
-    let wasmImports: SandboxWasmImport = { env, wasi_snapshot_preview1 };
-
-    instance = await WebAssembly.instantiate(module, wasmImports as any);
-
-    wasmExports = instance.exports as any;
-
-    wasmExports.init(validatedOptions.minHeapThreshold, validatedOptions.maxHeapSize, validatedOptions.maxWasmSize);
-
-    let exports: ExportsCallbacks & ((handle: number) => ExportsCallbacks);
-
-    exports = function (handle: number): ExportsCallbacks {
-    } as any;
-
-    return {
-        imports,
-        execute(code, options) {
-            
-        },
-    };
-}
-

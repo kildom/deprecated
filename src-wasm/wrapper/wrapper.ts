@@ -233,6 +233,7 @@ class ExceptionResult {
                 if (!this.ptr) {
                     throw new EngineError('Out of memory.');
                 }
+                // TODO: Avoid "using" because it is not supported in Firefox yet and compilers have problems with it.
                 using name = cancelableUsing(new SandboxString(this.wrapper, '' + value.name));
                 using message = cancelableUsing(new SandboxString(this.wrapper, '' + value.message));
                 using stack = cancelableUsing(new SandboxString(this.wrapper, value.stack ? '' + value.stack : undefined));
@@ -307,6 +308,12 @@ export class CompileResult {
         }
     }
 
+    public getFlags(): ExecuteFlags {
+        if (this.ptr === 0) return 0;
+        let arr = this.wrapper._getArray(this.ptr + 2, 1);
+        return arr[0] as ExecuteFlags;
+    }
+
     [Symbol.dispose]() {
         this.dispose();
     }
@@ -356,6 +363,7 @@ export class Wrapper {
     }
 
     public async init(aggressiveGCThreshold: number, hardGCThreshold: number, memoryLimit: number, logLevel: LogLevel): Promise<void> {
+        // TODO: Add option to set string length limit incoming from the host
         await Wrapper.initWrapper(this, this.module, memoryLimit);
         let ok = this._exports.init(aggressiveGCThreshold, hardGCThreshold, memoryLimit, logLevel);
         if (!ok) {
