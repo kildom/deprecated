@@ -164,12 +164,6 @@ let setModulePromise: Promise<void> | undefined = undefined;
 
 export function setModule(moduleSource?: ModuleSourceType): Promise<void> {
 
-    if (currentModule || setModulePromise) {
-        return Promise.reject(new Error('Module already set.'));
-    } else if (setModulePromise) {
-        return setModulePromise;
-    }
-
     setModulePromise = setModuleInternal(moduleSource);
 
     return setModulePromise

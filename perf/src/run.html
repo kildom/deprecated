@@ -38,7 +38,7 @@
             background-color: #f9f9f9;
         }
 
-        #info {
+        #info-container div {
             font-size: larger;
             padding: 10px;
             text-align: center;
@@ -51,30 +51,56 @@
             font-size: small;
             padding: 40px 10px;
         }
+
+        button {
+            float: right;
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #4c93af;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
 
-    <div id="info">Loading sources...</div>
+    <button onclick="runInParallel()">Run in parallel</button>
+
+    <div id="info-container">
+        <div id="info-native">Loading sources...</div>
+    </div>
 
     <div id="results" style="display: none;">
         <table>
             <thead>
                 <tr>
-                    <th>Test name</th>
-                    <th>Score<br>host</th>
-                    <th>Score<br>sandbox</th>
+                    <th rowspan="2">Test name</th>
+                    <th rowspan="2">Score<br>host</th>
+                    <th colspan="2">Sandbox (release)</th>
+                    <th colspan="2">Sandbox (size)</th>
+                </tr>
+                <tr>
+                    <th>Score</th>
+                    <th>Relative</th>
+                    <th>Score</th>
                     <th>Relative</th>
                 </tr>
             </thead>
             <tbody id="rows"></tbody>
         </table>
-        <div id="note">* It may take 20 minutes or more to complete.</div>
+        <div id="note">
+            * It may take 20 minutes or more to complete.<br><br>
+            Tests are based on the <a href="https://chromium.github.io/octane/" target="_blank">Octane 2.0</a> benchmark suite.
+            </div>
     </div>
 
     <script>
-        globalThis.registerMainFunction = function(main) {
+        globalThis.registerMainFunction = function (main) {
             globalThis.testMainFunction = main;
         }
     </script>
@@ -86,59 +112,105 @@
         function getRow(name) {
             if (rows[name]) return rows[name];
             let element = document.createElement('tr');
-            element.innerHTML = `<td>${name}</td><td class="score-0"></td><td class="score-1"></td><td class="score-times"></td>`;
+            element.innerHTML = `
+                <td>${name}</td>
+                <td class="score-native"></td>
+                <td class="score-release"></td>
+                <td class="score-release-times"></td>
+                <td class="score-size"></td>
+                <td class="score-size-times"></td>
+                `;
             document.getElementById('rows').appendChild(element);
-            let score = [undefined, undefined];
+            let score = {};
             rows[name] = {
                 element,
                 score,
                 update() {
                     document.querySelector('#results').style.display = '';
-                    for (let i = 0; i < 2; i++) {
-                        let cell = element.querySelector('.score-' + i);
-                        cell.innerText = score[i] === undefined ? '...' : score[i];
-                    }
-                    let cell = element.querySelector('.score-times');
-                    if (typeof score[0] === 'number' && typeof score[1] === 'number') {
-                        cell.innerText = (score[1] / score[0] * 100).toFixed(2) + '%';
-                    } else {
-                        cell.innerText = '...';
+                    for (let envType of ['native', 'release', 'size']) {
+                        let cell = element.querySelector(`.score-${envType}`);
+                        cell.innerText = score[envType] === undefined ? '...' : score[envType];
+                        cell = element.querySelector(`.score-${envType}-times`);
+                        if (cell) {
+                            cell.innerText = score[envType] === undefined ? '...' : (score[envType] / score.native * 100).toFixed(2) + '%';
+                        }
                     }
                 },
             };
             return rows[name];
         }
-        if (globalThis.testMainFunction) {
-            var blob = new Blob(['(', globalThis.testMainFunction.toString(), ')();'], { type: 'application/javascript; charset=utf-8' });
-            var blobUrl = URL.createObjectURL(blob);
-            var worker = new Worker(blobUrl);
-            URL.revokeObjectURL(blobUrl);
-            worker.onmessage = function (e) {
-                let data = e.data;
-                switch (data.type) {
-                    case 'info':
-                        document.getElementById('info').innerText = data.value;
-                        break;
-                    case 'error': {
-                        let row = getRow(data.name);
-                        row.score[data.sandboxed ? 1 : 0] = 'Error: ' + data.value.toString();
-                        row.update();
-                        break;
+
+        let envTypeTested = new Set();
+
+        function runEnvironment(envType) {
+            envTypeTested.add(envType);
+            return new Promise(resolve => {
+                var blob = new Blob(['globalThis.filterEnvType="', envType, '";(', globalThis.testMainFunction.toString(), ')();'], { type: 'application/javascript; charset=utf-8' });
+                var blobUrl = URL.createObjectURL(blob);
+                var worker = new Worker(blobUrl);
+                URL.revokeObjectURL(blobUrl);
+                worker.onmessage = function (e) {
+                    let data = e.data;
+                    switch (data.type) {
+                        case 'info': {
+                            let e = document.querySelector(`#info-${envType}`);
+                            if (!e) {
+                                e = document.createElement('div');
+                                e.id = `info-${envType}`;
+                                e.innerText = data.value;
+                                document.getElementById('info-container').appendChild(e);
+                            } else {
+                                e.innerText = data.value;
+                            }
+                            break;
+                        }
+                        case 'error': {
+                            let row = getRow(data.name);
+                            row.score[data.envType] = 'Error: ' + data.value.toString();
+                            row.update();
+                            break;
+                        }
+                        case 'result': {
+                            let row = getRow(data.name);
+                            row.score[data.envType] = parseFloat(data.value);
+                            row.update();
+                            break;
+                        }
+                        case 'done': {
+                            resolve();
+                            worker.terminate();
+                            let e = document.querySelector(`#info-${envType}`);
+                            if (e) e.style.display = 'none';
+                            break;
+                        }
+                        default:
+                            console.log(data);
+                            break;
                     }
-                    case 'result': {
-                        let row = getRow(data.name);
-                        row.score[data.sandboxed ? 1 : 0] = parseFloat(data.value);
-                        row.update();
-                        break;
-                    }
-                    default:
-                        console.log(data);
-                        break;
-                }
-            };
-        } else {
-            document.getElementById('info').innerText = 'No source code available. Build it with "npm run perf-build" script.';
+                };
+            });
         }
+
+        async function runInOrder() {
+            if (!envTypeTested.has('native')) await runEnvironment('native');
+            if (!envTypeTested.has('release')) await runEnvironment('release');
+            if (!envTypeTested.has('size')) await runEnvironment('size');
+            document.querySelector('button').style.display = 'none';
+        }
+
+        function runInParallel() {
+            document.querySelector('button').style.display = 'none';
+            if (!envTypeTested.has('native')) runEnvironment('native');
+            if (!envTypeTested.has('release')) runEnvironment('release');
+            if (!envTypeTested.has('size')) runEnvironment('size');
+        }
+
+        if (globalThis.testMainFunction) {
+            runInOrder();
+        } else {
+            document.getElementById('info-native').innerHTML = 'No source code available or loading problem.<br> Try to build it with "npm run perf-build" script.';
+        }
+
     </script>
 </body>
 

@@ -1,6 +1,9 @@
 
 globalThis.RunAllSuites = function (NotifyResult, NotifyError, NotifyScore) {
 
+    // The following comment will be replaced by the 'npm run pref-build' command.
+    // It will contain Octane 2.0 performance tests.
+
     /***TESTS-GO-HERE***/
 
     if (typeof globalThis.read === 'undefined') {
