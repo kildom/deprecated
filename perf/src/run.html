@@ -1,6 +1,145 @@
+<!doctype html>
 <html>
-    <body>
-        Testing performance. It may take 20 minutes or more to complete.
-        <script src="../../build/perf/web.js"></script>
-    </body>
+
+<head>
+    <style>
+        body,
+        table {
+            font-family: sans-serif;
+            font-size: 14px;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: #d4d8da;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        td,
+        th {
+            padding: 5px;
+            border: 1px solid #b3b3b3;
+            min-width: 100px;
+        }
+
+        td {
+            text-align: right;
+        }
+
+        td:first-child {
+            text-align: left;
+        }
+
+        tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        #info {
+            font-size: larger;
+            padding: 10px;
+            text-align: center;
+            margin: 10px 0px;
+            background-color: #abd8ee;
+            color: #434b6e;
+        }
+
+        #note {
+            font-size: small;
+            padding: 40px 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="info">Loading sources...</div>
+
+    <div id="results" style="display: none;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Test name</th>
+                    <th>Score<br>host</th>
+                    <th>Score<br>sandbox</th>
+                    <th>Relative</th>
+                </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+        </table>
+        <div id="note">* It may take 20 minutes or more to complete.</div>
+    </div>
+
+    <script>
+        globalThis.registerMainFunction = function(main) {
+            globalThis.testMainFunction = main;
+        }
+    </script>
+    <script src="../../build/perf/test.js"></script>
+    <!-- Alternate location: -->
+    <script src="test.js"></script>
+    <script>
+        let rows = {};
+        function getRow(name) {
+            if (rows[name]) return rows[name];
+            let element = document.createElement('tr');
+            element.innerHTML = `<td>${name}</td><td class="score-0"></td><td class="score-1"></td><td class="score-times"></td>`;
+            document.getElementById('rows').appendChild(element);
+            let score = [undefined, undefined];
+            rows[name] = {
+                element,
+                score,
+                update() {
+                    document.querySelector('#results').style.display = '';
+                    for (let i = 0; i < 2; i++) {
+                        let cell = element.querySelector('.score-' + i);
+                        cell.innerText = score[i] === undefined ? '...' : score[i];
+                    }
+                    let cell = element.querySelector('.score-times');
+                    if (typeof score[0] === 'number' && typeof score[1] === 'number') {
+                        cell.innerText = (score[1] / score[0] * 100).toFixed(2) + '%';
+                    } else {
+                        cell.innerText = '...';
+                    }
+                },
+            };
+            return rows[name];
+        }
+        if (globalThis.testMainFunction) {
+            var blob = new Blob(['(', globalThis.testMainFunction.toString(), ')();'], { type: 'application/javascript; charset=utf-8' });
+            var blobUrl = URL.createObjectURL(blob);
+            var worker = new Worker(blobUrl);
+            URL.revokeObjectURL(blobUrl);
+            worker.onmessage = function (e) {
+                let data = e.data;
+                switch (data.type) {
+                    case 'info':
+                        document.getElementById('info').innerText = data.value;
+                        break;
+                    case 'error': {
+                        let row = getRow(data.name);
+                        row.score[data.sandboxed ? 1 : 0] = 'Error: ' + data.value.toString();
+                        row.update();
+                        break;
+                    }
+                    case 'result': {
+                        let row = getRow(data.name);
+                        row.score[data.sandboxed ? 1 : 0] = parseFloat(data.value);
+                        row.update();
+                        break;
+                    }
+                    default:
+                        console.log(data);
+                        break;
+                }
+            };
+        } else {
+            document.getElementById('info').innerText = 'No source code available. Build it with "npm run perf-build" script.';
+        }
+    </script>
+</body>
+
 </html>

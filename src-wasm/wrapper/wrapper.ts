@@ -138,6 +138,13 @@ export class HostError extends Error {
 const SandboxStringHeaderSize = 8;
 const ExceptionResultSize = 16;
 
+function makeDisposable<T>(obj: T): T {
+    if (typeof Symbol.dispose === 'symbol' && typeof (obj as any).dispose === 'function') {
+        obj[Symbol.dispose] = (obj as any).dispose;
+    }
+    return obj;
+}
+
 class SandboxString {
 
     public ptr: number;
@@ -148,6 +155,7 @@ class SandboxString {
         value: string | number | undefined | null,
         private owner: boolean = true,
     ) {
+        makeDisposable(this);
         try {
             this.ptr = 0;
             this.size = 0;
@@ -180,10 +188,6 @@ class SandboxString {
         return decoder.decode(arr);
     }
 
-    [Symbol.dispose]() {
-        this.dispose();
-    }
-
     dispose() {
         if (this.owner && this.ptr) {
             this.wrapper._exports.dispose(this.ptr);
@@ -193,25 +197,26 @@ class SandboxString {
 }
 
 
-function cancelableUsing<T>(a: T) {
-    let canceled = false;
-    return {
-        get(): T {
-            return a;
-        },
-        move(): T {
-            canceled = true;
-            return a;
-        },
-        cancel(): void {
-            canceled = true;
-        },
-        [Symbol.dispose]() {
-            if (!canceled) (a as any)[Symbol.dispose]();
-        }
-    }
+/**
+ * The `using` keyword alterative since it is not widely supported yet.
+ */
+class UsingAlt<T> {
+    private canceled = false;
+    constructor(
+        public obj: T
+    ) { }
+    set(o: T): T { this.obj = o; return o; }
+    get(): T { return this.obj; }
+    move(): T { let old = this.obj; this.canceled = true; return old; }
+    cancel(): void { this.canceled = true; }
+    dispose(): void { if (!this.canceled) (this.obj as any)?.dispose?.(); }
 }
 
+function usingAtl<T>(): UsingAlt<T | undefined>;
+function usingAtl<T>(obj: T): UsingAlt<T>;
+function usingAtl<T>(obj?: T): UsingAlt<T> | UsingAlt<T | undefined> {
+    return new UsingAlt<T>(obj as any) as any;
+}
 
 class ExceptionResult {
 
@@ -221,6 +226,7 @@ class ExceptionResult {
         private wrapper: Wrapper,
         value: Error | number | undefined | null,
     ) {
+        makeDisposable(this);
         this.ptr = 0;
         try {
             if (value === undefined || value === null || value === 0) {
@@ -233,20 +239,28 @@ class ExceptionResult {
                 if (!this.ptr) {
                     throw new EngineError('Out of memory.');
                 }
-                // TODO: Avoid "using" because it is not supported in Firefox yet and compilers have problems with it.
-                using name = cancelableUsing(new SandboxString(this.wrapper, '' + value.name));
-                using message = cancelableUsing(new SandboxString(this.wrapper, '' + value.message));
-                using stack = cancelableUsing(new SandboxString(this.wrapper, value.stack ? '' + value.stack : undefined));
-                let view = this.wrapper._getView(this.ptr, ExceptionResultSize);
-                view.setUint32(4, name.move().ptr, true);
-                view.setUint32(8, message.move().ptr, true);
-                view.setUint32(12, stack.move().ptr, true);
-                if (value instanceof EngineError) {
-                    view.setUint8(2, ErrorType.EngineError);
-                } else if (value instanceof GuestError) {
-                    view.setUint8(2, ErrorType.GuestError);
-                } else {
-                    view.setUint8(2, ErrorType.HostError);
+                let name = usingAtl<SandboxString>();
+                let message = usingAtl<SandboxString>();
+                let stack = usingAtl<SandboxString>();
+                try {
+                    name.obj = new SandboxString(this.wrapper, '' + value.name);
+                    message.obj = new SandboxString(this.wrapper, '' + value.message);
+                    stack.obj = new SandboxString(this.wrapper, value.stack ? '' + value.stack : undefined);
+                    let view = this.wrapper._getView(this.ptr, ExceptionResultSize);
+                    view.setUint32(4, name.move()!.ptr, true);
+                    view.setUint32(8, message.move()!.ptr, true);
+                    view.setUint32(12, stack.move()!.ptr, true);
+                    if (value instanceof EngineError) {
+                        view.setUint8(2, ErrorType.EngineError);
+                    } else if (value instanceof GuestError) {
+                        view.setUint8(2, ErrorType.GuestError);
+                    } else {
+                        view.setUint8(2, ErrorType.HostError);
+                    }
+                } finally {
+                    name.dispose();
+                    message.dispose();
+                    stack.dispose();
                 }
             }
         } catch (e) {
@@ -280,10 +294,6 @@ class ExceptionResult {
         return error;
     }
 
-    [Symbol.dispose]() {
-        this.dispose();
-    }
-
     dispose() {
         if (this.ptr) {
             this.wrapper._exports.dispose(this.ptr);
@@ -301,6 +311,7 @@ export class CompileResult {
         private wrapper: Wrapper,
         value: number | undefined | null,
     ) {
+        makeDisposable(this);
         if (value === undefined || value === null || value === 0) {
             this.ptr = 0;
         } else {
@@ -312,10 +323,6 @@ export class CompileResult {
         if (this.ptr === 0) return 0;
         let arr = this.wrapper._getArray(this.ptr + 2, 1);
         return arr[0] as ExecuteFlags;
-    }
-
-    [Symbol.dispose]() {
-        this.dispose();
     }
 
     dispose() {
@@ -383,10 +390,15 @@ export class Wrapper {
 
     public compile(source: string, fileName: string | undefined | null, flags: ExecuteFlags): CompileResult {
         let resultPtr: number;
-        {
-            using sourceStr = new SandboxString(this, source);
-            using fileNameStr = new SandboxString(this, fileName);
-            resultPtr = this._exports.compile!(sourceStr.ptr, fileNameStr.ptr, flags);
+        let sourceStr = usingAtl<SandboxString>();
+        let fileNameStr = usingAtl<SandboxString>();
+        try {
+            sourceStr.obj = new SandboxString(this, source);
+            fileNameStr.obj = new SandboxString(this, fileName);
+            resultPtr = this._exports.compile!(sourceStr.obj.ptr, fileNameStr.obj.ptr, flags);
+        } finally {
+            sourceStr.dispose();
+            fileNameStr.dispose();
         }
         if (resultPtr == 0) {
             throw new EngineError('Unknown error during compilation.');
@@ -408,36 +420,48 @@ export class Wrapper {
 
     public execute(bytecode: CompileResult, arg?: string | null): string | undefined {
         let resultPtr: number;
-        {
-            using argStr = new SandboxString(this, arg);
+        let argStr = new SandboxString(this, arg);
+        try {
             resultPtr = this._exports.execute!(bytecode.ptr, argStr.ptr);
+        } finally {
+            argStr.dispose();
         }
         if (resultPtr == 0) {
             return undefined;
         }
-        using result = fromPtr(this, resultPtr);
-        if (result instanceof SandboxString) {
-            return result.get();
-        } else if (result instanceof ExceptionResult) {
-            throw result.get();
-        } else {
-            throw new EngineError('Unexpected result of execution.');
+        let result = fromPtr(this, resultPtr);
+        try {
+            if (result instanceof SandboxString) {
+                return result.get();
+            } else if (result instanceof ExceptionResult) {
+                throw result.get();
+            } else {
+                throw new EngineError('Unexpected result of execution.');
+            }
+        } finally {
+            result?.dispose();
         }
     }
 
     public call(groupId: number, functionId: number, arg?: string): string {
         let resultPtr: number;
-        {
-            using argStr = new SandboxString(this, arg);
+        let argStr = new SandboxString(this, arg);
+        try {
             resultPtr = this._exports.call!(groupId, functionId, argStr.ptr);
+        } finally {
+            argStr.dispose();
         }
-        using result = fromPtr(this, resultPtr);
-        if (result instanceof SandboxString) {
-            return result.get() ?? '';
-        } else if (result instanceof ExceptionResult) {
-            throw result.get();
-        } else {
-            throw new EngineError('Unexpected result of guest call.');
+        let result = fromPtr(this, resultPtr);
+        try {
+            if (result instanceof SandboxString) {
+                return result.get() ?? '';
+            } else if (result instanceof ExceptionResult) {
+                throw result.get();
+            } else {
+                throw new EngineError('Unexpected result of guest call.');
+            }
+        } finally {
+            result?.dispose();
         }
     }
 

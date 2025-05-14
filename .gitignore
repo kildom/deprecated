@@ -5,7 +5,5 @@ package-lock.json
 /quickbuild/
 /src-host/src-guest-*.ts
 /src-guest/*.js
-/perf/*.js
-/perf/src/*.js
 /tmp/
 /dist/

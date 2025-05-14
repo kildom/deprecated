@@ -322,9 +322,11 @@ export async function instantiate(options?: InstantiateOptions): Promise<Sandbox
     let snapshotCallbacks: SnapshotCallbacks[] = [];
     let storage: Storage = {};
 
-    {
-        using code = wrapper.compile(bootSource, '__sandbox__internal/boot.js', wr.ExecuteFlags.Module | wr.ExecuteFlags.Once);
+    let code = wrapper.compile(bootSource, '__sandbox__internal/boot.js', wr.ExecuteFlags.Module | wr.ExecuteFlags.Once);
+    try {
         wrapper.execute(code);
+    } finally {
+        code.dispose();
     }
 
     // Imports (outgoing calls) setup

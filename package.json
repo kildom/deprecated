@@ -15,6 +15,8 @@
     "host-build": "npx tsx scripts/npm-run/host-build.ts",
     "test": "npx vitest --isolate",
     "perf-build": "npx tsx scripts/npm-run/perf-build.ts",
+    "perf-run": "node build/perf/test.js",
+    "perf-web": "echo Open the following file in a browser: perf/src/run.html",
     "tools-build-postprocess-wasm": "npx esbuild --sourcemap=inline --platform=node --bundle --outfile=tmp/postprocess-wasm.js tools/postprocess-wasm/main.ts",
     "compile-web-test": "npx esbuild --sourcemap=inline --target=firefox125 --bundle --outfile=tools/testpage/main.js tools/testpage/main.ts"
   },
