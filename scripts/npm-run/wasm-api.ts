@@ -271,7 +271,6 @@ function parseInterface(file: string, mode: string) {
 
 const cppFunctionRegExp = cre.global`
     // WASM_EXPORT(init)
-    // bool init(uint32_t aggressiveGCThreshold, uint32_t hardGCThreshold, uint32_t memoryLimit, LogLevel::T logLevel);
     "WASM_"
     type: ("EXPORT" or "IMPORT")
     "("

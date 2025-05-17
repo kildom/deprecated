@@ -18,7 +18,9 @@ function notify(type: NotificationType, envType: EnvType, name: string, value: a
 async function runSandboxedBenchmark(envType: EnvType) {
     await sandbox.setModule(envType === 'release' ? bundleRelease : bundleSize);
     let sb = await sandbox.instantiate({
-        maxWasmSize: 1024 * 1024 * 1024,
+        maxWasmSize: 200 * 1024 * 1024,
+        minHeapThreshold: 70 * 1024 * 1024,
+        maxHeapSize: 100 * 1024 * 1024,
     });
     sb.imports({
         NotifyResult: function (name, result) {
@@ -29,6 +31,11 @@ async function runSandboxedBenchmark(envType: EnvType) {
             let t = Date.now();
             console.log(name + ': ' + result, '         ', t - time);
             time = t;
+            let mem = sb.execute('__sandbox__.memory', { returnValue: true });
+            for (let name in mem) {
+                mem[name] = (mem[name] / 1024 / 1024).toFixed(3) + ' MB';
+            }
+            console.log("MEM:", JSON.stringify(mem, null, 2));
         },
         NotifyError: function (name, error) {
             notify('error', envType, name, error);
@@ -49,14 +56,20 @@ async function runSandboxedBenchmark(envType: EnvType) {
         __sandbox__.exports({
             start: function() {
                 globalThis.RunAllSuites(
-                    __sandbox__.imports.NotifyResult,
-                    __sandbox__.imports.NotifyError,
-                    __sandbox__.imports.NotifyScore
+                    (...a) => { __sandbox__.memory.gc(); return __sandbox__.imports.NotifyResult(...a); },
+                    (...a) => { __sandbox__.memory.gc(); return __sandbox__.imports.NotifyError(...a); },
+                    (...a) => { __sandbox__.memory.gc(); return __sandbox__.imports.NotifyScore(...a); },
                 );
             }
         }, 0);
         `, { fileName: 'loader.js' });
     sb.execute('globalThis.RunAllSuites = (' + globalThis.RunAllSuites.toString() + ');', { fileName: 'build/perf/main.js' });
+    sb.execute('__sandbox__.memory.gc()');
+    let mem = sb.execute('__sandbox__.memory', { returnValue: true });
+    for (let name in mem) {
+        mem[name] = (mem[name] / 1024 / 1024).toFixed(3) + ' MB';
+    }
+    console.log("MEM on start:", JSON.stringify(mem, null, 2));
     sb.exports.start(0);
 }
 

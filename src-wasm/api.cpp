@@ -38,6 +38,12 @@
 #include "sandbox.h"
 
 
+namespace js {
+    namespace gc {
+        extern uint32_t trackedZoneBytes;
+    }
+}
+
 /**
  * Helper structure to create a string object from static data.
  * 
@@ -95,19 +101,36 @@ static_assert(sizeof(CompileResult) > 4, "CompileResult");
 
 void* engineMalloc(uint32_t size)
 {
-    return JS_malloc(cx, size);
+    void* ptr = malloc(size);
+    if (ptr) {
+        js::gc::trackedZoneBytes += size;
+        if (js::gc::trackedZoneBytes > heapUsedPeak) {
+            heapUsedPeak = js::gc::trackedZoneBytes;
+            logInfo("heapUsedPeak: %d", heapUsedPeak);
+        }
+    }
+    return ptr;
 }
-
 
 void* engineRealloc(void* ptr, uint32_t oldSize, uint32_t newSize)
 {
-    return JS_realloc(cx, ptr, oldSize, newSize);
+    ptr = realloc(ptr, newSize);
+    if (ptr) {
+        js::gc::trackedZoneBytes += newSize - oldSize;
+        if (js::gc::trackedZoneBytes > heapUsedPeak) {
+            heapUsedPeak = js::gc::trackedZoneBytes;
+            logInfo("heapUsedPeak: %d", heapUsedPeak);
+        }
+    }
+    return ptr;
 }
 
-
-void engineFree(void* ptr)
+void engineFree(void* ptr, uint32_t oldSize)
 {
-    JS_free(cx, ptr);
+    if (ptr) {
+        js::gc::trackedZoneBytes -= oldSize;
+    }
+    free(ptr);
 }
 
 template<typename T, typename... Args>
@@ -128,10 +151,20 @@ T* objectNewWithBuffer(uint32_t bufferSize, Args&&... args) {
     return new (memory) T(std::forward<Args>(args)...);
 }
 
-template<typename T>
-void objectDelete(T* obj) {
-    obj->~T();
-    engineFree(static_cast<void*>(obj));
+void objectDelete(SandboxString* obj) {
+    auto size = sizeof(SandboxString) + obj->size + 1;
+    obj->~SandboxString();
+    engineFree(static_cast<void*>(obj), size);
+}
+
+void objectDelete(ExceptionResult* obj) {
+    obj->~ExceptionResult();
+    engineFree(static_cast<void*>(obj), sizeof(ExceptionResult));
+}
+
+void objectDelete(CompileResult* obj) {
+    obj->~CompileResult();
+    engineFree(static_cast<void*>(obj), sizeof(ExceptionResult));
 }
 
 ExceptionResult::~ExceptionResult()
@@ -166,11 +199,6 @@ SandboxAny* objectCreate(uint32_t type, uint32_t size)
     }
 }
 
-template<typename T>
-T* objectCreate(uint32_t size = 0)
-{
-    return (T*)objectCreate(T::Id, size);
-}
 
 WASM_EXPORT(dispose)
 void objectDispose(SandboxAny* object)
@@ -229,7 +257,7 @@ static char* valueToString(JS::HandleValue value, uint32_t headSize, uint32_t &s
     // Convert string to UTF-8
     auto stat = JS_EncodeStringToUTF8BufferPartial(cx, str, mozilla::Span(buffer + headSize, size));
     if (stat.isNothing()) {
-        engineFree(buffer);
+        engineFree(buffer, headSize + size);
         logError("Cannot convert string to UTF-8.");
         return nullptr;
     }
@@ -239,7 +267,7 @@ static char* valueToString(JS::HandleValue value, uint32_t headSize, uint32_t &s
     // Check if string fits into buffer
     if (read != length) {
         // This should not happen since buffer is big enough
-        engineFree(buffer);
+        engineFree(buffer, headSize + size);
         logError("This should not happen: Buffer was to small.");
         return nullptr;
     }

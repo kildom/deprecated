@@ -38,7 +38,7 @@ const modules = Object.fromEntries(fileVariants.map(file => [file, WebAssembly.c
 async function prepareWrapper(moduleFile: string) {
     let module = await modules[moduleFile];
     let wrapper = new Wrapper(module);
-    await wrapper.init(16 * 1024 * 1024, 24 * 1024 * 1024, 32 * 1024 * 1024, LogLevel.Info);
+    await wrapper.init(64 * 1024 * 1024, 96 * 1024 * 1024, 128 * 1024 * 1024, LogLevel.Info);
     return wrapper;
 }
 
@@ -205,4 +205,31 @@ test.for(fileVariants)(`snapshot [%s]`, async (moduleFile) => {
         let res = wrapper3.execute(bytecode);
         expect(res).toBe(testString);
     }
+});
+
+test.for(fileVariants)(`memory tracking Uint8Array [%s]`, async (moduleFile) => {
+    let wrapper = await prepareWrapper(moduleFile);
+    let memText = wrapper.execute(wrapper.compile(`JSON.stringify(__sandbox__.memory)`, "testFile2.js", ExecuteFlags.Once | ExecuteFlags.ReturnValue));
+    let mem = JSON.parse(memText!);
+    expect(mem.heapReserved).toBeLessThan(32 * 1024 * 1024);
+    expect(mem.heapUsed).toBeLessThan(32 * 1024 * 1024);
+    wrapper.execute(wrapper.compile(`globalThis.arr = new Uint8Array(32 * 1024 * 1024)`, "testFile1.js", ExecuteFlags.Once));
+    memText = wrapper.execute(wrapper.compile(`JSON.stringify(__sandbox__.memory)`, "testFile2.js", ExecuteFlags.Once | ExecuteFlags.ReturnValue));
+    mem = JSON.parse(memText!);
+    expect(mem.heapReserved).toBeGreaterThan(32 * 1024 * 1024);
+    expect(mem.heapUsed).toBeGreaterThan(32 * 1024 * 1024);
+});
+
+test.for(fileVariants)(`memory tracking API [%s]`, async (moduleFile) => {
+    let wrapper = await prepareWrapper(moduleFile);
+    let memText = wrapper.execute(wrapper.compile(`JSON.stringify(__sandbox__.memory)`, "testFile2.js", ExecuteFlags.Once | ExecuteFlags.ReturnValue));
+    let mem = JSON.parse(memText!);
+    expect(mem.heapReserved).toBeLessThan(32 * 1024 * 1024);
+    expect(mem.heapUsed).toBeLessThan(32 * 1024 * 1024);
+    let ptr = wrapper._exports.create(0, 32 * 1024 * 1024);
+    expect(ptr).toBeGreaterThan(0);
+    memText = wrapper.execute(wrapper.compile(`JSON.stringify(__sandbox__.memory)`, "testFile2.js", ExecuteFlags.Once | ExecuteFlags.ReturnValue));
+    mem = JSON.parse(memText!);
+    expect(mem.heapReserved).toBeGreaterThan(32 * 1024 * 1024);
+    expect(mem.heapUsed).toBeGreaterThan(32 * 1024 * 1024);
 });

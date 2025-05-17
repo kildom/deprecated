@@ -50,6 +50,8 @@ struct LogLevel {
         Warning = 2,
         /** Info level logging */
         Info = 3,
+        /** Debug level logging */
+        Debug = 4,
     };
     LogLevel() = delete;
 };

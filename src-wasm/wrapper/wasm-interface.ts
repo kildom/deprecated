@@ -30,7 +30,7 @@ export interface SandboxWasmExport {
     compile(/* SandboxString* */ source: number, /* SandboxString* */ fileName: number, /* ExecuteFlags::T */ flags: number): /* SandboxAny* */ number;
     execute(/* CompileResult* */ code: number, /* SandboxString* */ arg: number): /* SandboxAny* */ number;
     call(/* uint32_t */ groupId: number, /* uint32_t */ functionId: number, /* SandboxString* */ arg: number): /* SandboxAny* */ number;
-    init(/* uint32_t */ aggressiveGCThreshold: number, /* uint32_t */ hardGCThreshold: number, /* uint32_t */ memoryLimit: number, /* LogLevel::T */ logLevel: number): /* bool */ number;
+    init(/* uint32_t */ gcThresholdMin: number, /* uint32_t */ heapUsedLimit: number, /* uint32_t */ memoryLimit: number, /* LogLevel::T */ logLevel: number): /* bool */ number;
     getStackPointer(): /* uint32_t */ number;
     setStackPointer(/* uint32_t */ value: number): void;
 };

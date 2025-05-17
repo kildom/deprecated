@@ -1,0 +1,69 @@
+<html>
+
+<body>
+    <button onclick="run()">RUN</button>
+
+    <script>
+
+
+        async function run() {
+            let mod = await WebAssembly.compileStreaming(fetch('/dist/debug.wasm'));
+            //console.log(WebAssembly.Module.imports(mod));
+            //console.log(WebAssembly.Module.exports(mod));
+            let memory = new WebAssembly.Memory({ initial: 43, maximum: 1024 * 1024 * 1024 / 65536 });
+            let inst = await WebAssembly.instantiate(mod, {
+                env: {
+                    memory,
+                    call() { throw new Error('Not Implemented.'); },
+                    log() { console.log('log'); },
+                    getMemorySize() { return memory.buffer.byteLength; },
+                    getStackPointer() { return inst.exports.getStackPointer(); },
+                    entry() { throw new Error('Not Implemented.'); },
+                },
+                wasi_snapshot_preview1: {
+                    fd_write() { throw new Error('Not Implemented.'); },
+                    args_get() { throw new Error('Not Implemented.'); },
+                    args_sizes_get() { throw new Error('Not Implemented.'); },
+                    environ_get() { throw new Error('Not Implemented.'); },
+                    environ_sizes_get() { throw new Error('Not Implemented.'); },
+                    clock_res_get(clock_id, resolution) {
+                        new DataView(memory.buffer).setUint32(resolution, 1000000, true);
+                        return 0;
+                    },
+                    clock_time_get(clock_id, precision, time) {
+                        let now = Date.now();
+                        new DataView(memory.buffer).setBigUint64(time, BigInt(now) * 1000000n, true);
+                        return 0;
+                    },
+                    fd_close() { throw new Error('Not Implemented.'); },
+                    fd_fdstat_get() { throw new Error('Not Implemented.'); },
+                    fd_fdstat_set_flags() { throw new Error('Not Implemented.'); },
+                    fd_prestat_get() { throw new Error('Not Implemented.'); },
+                    fd_prestat_dir_name() { throw new Error('Not Implemented.'); },
+                    fd_read() { throw new Error('Not Implemented.'); },
+                    fd_seek() { throw new Error('Not Implemented.'); },
+                    path_open() { throw new Error('Not Implemented.'); },
+                    path_remove_directory() { throw new Error('Not Implemented.'); },
+                    path_unlink_file() { throw new Error('Not Implemented.'); },
+                    proc_exit() { throw new Error('Not Implemented.'); },
+                    random_get(buf, buf_len) {
+                        let byteArray = new Uint8Array(memory.buffer);
+                        for (let offset = buf; offset < buf + buf_len; offset++) {
+                            byteArray[offset] = Math.ceil(256 * Math.random());
+                        }
+                        return 0;
+                    },
+
+                },
+            });
+            let ok = inst.exports.init(32 * 1024 * 1024, 64 * 1024 * 1024, 1024 * 1024 * 1024, 3);
+            console.log('ok', ok);
+            let ptr = inst.exports.create(0, 1024 * 1024);
+            console.log('ptr', ptr);
+        }
+
+    </script>
+
+</body>
+
+</html>

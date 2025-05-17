@@ -32,13 +32,13 @@
  * 
  * This function must be called before any other function.
  * 
- * @param aggressiveGCThreshold - heap size threshold when the GC goes into aggressive mode.
- * @param hardGCThreshold - heap size threshold after full garbage collecting when fatal error indicating memory exhaustion.
+ * @param gcThresholdMin - heap size threshold when the GC goes into greedy mode.
+ * @param heapUsedLimit - heap size threshold after full garbage collecting when fatal error indicating memory exhaustion.
  * @param memoryLimit - limit for the total memory used by WASM module. Must be the same as limit when creating the memory.
  * @param logLevel - level of logging.
  */
 WASM_EXPORT(init)
-bool init(uint32_t aggressiveGCThreshold, uint32_t hardGCThreshold, uint32_t memoryLimit, LogLevel::T logLevel);
+bool init(uint32_t gcThresholdMin, uint32_t heapUsedLimit, uint32_t memoryLimit, LogLevel::T logLevel);
 
 
 /**

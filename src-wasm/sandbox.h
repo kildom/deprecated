@@ -47,10 +47,24 @@ struct DynamicContext {
 extern JSContext* cx;
 extern DynamicContext* dx;
 
-#define logError(format, ...) _log(LogLevel::Error, format, ##__VA_ARGS__)
-#define logWarning(format, ...) _log(LogLevel::Warning, format, ##__VA_ARGS__)
-#define logInfo(format, ...) _log(LogLevel::Info, format, ##__VA_ARGS__)
-void _log(LogLevel::T level, const char* format, ...);
+extern uint32_t heapUsedPeak;
+
+#define _LOG_GET_MACRO1(_1,  _2,  _3,  _4,  _5,  _6,  _7,  _8,  _9, _10, _11, _12, _13, _14, \
+    _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, \
+    _32, _33, N, ...) N
+#define _LOG_GET_MACRO(...) _LOG_GET_MACRO1(__VA_ARGS__)
+#define _LOG_NAMES4 _logFormat, _logFormat, _logFormat, _logFormat
+#define _LOG_NAMES16 _LOG_NAMES4, _LOG_NAMES4, _LOG_NAMES4, _LOG_NAMES4
+#define _LOG_NAMES32 _LOG_NAMES16, _LOG_NAMES16
+#define _LOG_FUNC1(level, ...) _LOG_GET_MACRO(__VA_ARGS__, _LOG_NAMES32, _logStatic)(level, __VA_ARGS__)
+#define _LOG_FUNC(...) _LOG_FUNC1(__VA_ARGS__)
+#define logError(format, ...) _LOG_FUNC(LogLevel::Error, format, ##__VA_ARGS__)
+#define logWarning(format, ...) _LOG_FUNC(LogLevel::Warning, format, ##__VA_ARGS__)
+#define logInfo(format, ...) _LOG_FUNC(LogLevel::Info, format, ##__VA_ARGS__)
+#define logDebug(format, ...) _LOG_FUNC(LogLevel::Debug, format, ##__VA_ARGS__)
+
+void _logStatic(LogLevel::T level, const char* text);
+void _logFormat(LogLevel::T level, const char* format, ...);
 
 bool callJs(JSContext* cx, unsigned argc, JS::Value* vp);
 

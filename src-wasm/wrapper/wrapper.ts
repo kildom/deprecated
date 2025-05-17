@@ -43,6 +43,7 @@ export enum LogLevel {
     Error = 1,
     Warning = 2,
     Info = 3,
+    Debug = 4,
 };
 
 enum ErrorType {
@@ -102,12 +103,15 @@ function createImports(module: WebAssembly.Module, maxMemorySize?: number): Impo
             log(level, str, len) {
                 let arr = new Uint8Array(memory.buffer, str, len);
                 let text = decoder.decode(arr);
-                if (level === 1) {
-                    console.error(text);
-                } else if (level === 2) {
-                    console.warn(text);
+                // TODO: Different way of logging
+                if (level === LogLevel.Error) {
+                    console.error('GUEST:', text);
+                } else if (level === LogLevel.Warning) {
+                    console.warn('GUEST:', text);
+                } else if (level === LogLevel.Info) {
+                    console.info('GUEST:', text);
                 } else {
-                    console.info(text);
+                    console.debug('GUEST:', text);
                 }
             },
             call(groupId, functionId, arg) {
@@ -369,10 +373,10 @@ export class Wrapper {
     ) {
     }
 
-    public async init(aggressiveGCThreshold: number, hardGCThreshold: number, memoryLimit: number, logLevel: LogLevel): Promise<void> {
+    public async init(gcThresholdMin: number, heapUsedLimit: number, memoryLimit: number, logLevel: LogLevel): Promise<void> {
         // TODO: Add option to set string length limit incoming from the host
         await Wrapper.initWrapper(this, this.module, memoryLimit);
-        let ok = this._exports.init(aggressiveGCThreshold, hardGCThreshold, memoryLimit, logLevel);
+        let ok = this._exports.init(gcThresholdMin, heapUsedLimit, memoryLimit, logLevel);
         if (!ok) {
             throw new EngineError('Initialization failed.');
         }
