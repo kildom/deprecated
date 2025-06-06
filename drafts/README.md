@@ -1,7 +1,7 @@
 
 
 Elementy:
-
+```
 [  ]  Panele "Dąb Hamilton" (120x31.4cm)
           - Wymiary
           - Minimalne wymiary po wycięciu
@@ -23,7 +23,7 @@ Elementy:
           - wymiary (każda ścianka może być skośna)
 [  ]  Wnęka "balkon"
 [  ]  Narożnik "komin"
-
+```
 
 Dodatki
 - Wnęka (np. drzwi)
