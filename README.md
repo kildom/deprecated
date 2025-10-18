@@ -1,30 +1,70 @@
-# Deprecated and discontinued
 
-This repository is a place where some of my old deprated and discotinued projects goes. Each branch contains different project.
 
-List of projects added so far:
- - [USBaspX](https://github.com/kildom/deprecated/tree/USBaspX) - Improved version of a programmer for AVR's [USBasp](http://www.fischl.de/usbasp/).
- - [dollarClass](https://github.com/kildom/deprecated/tree/dollarClass) - a JavaScript library that allows creating classes that behaves more like C#, Java and C++.
- - [tcplimit](https://github.com/kildom/deprecated/tree/tcplimit) - a simple tunneling application that limits the speed and divides it equally for each connection.
- - [Clicker](https://github.com/kildom/deprecated/tree/Clicker) - an application that allows creating and executing a sequence of movements and clicks of the mouse.
- - [Gesty](https://github.com/kildom/deprecated/tree/gesty) - an application that adds mouse gestures in places where they are not available by default.
- - [libusb-Mouse](https://github.com/kildom/deprecated/tree/libusb-Mouse) - a Windows service that communicates with the USB mouse and controls current UI session.
- - [StartShellExecute](https://github.com/kildom/deprecated/tree/StartShellExecute) - simple command line utility that calls StartShellExecute Windows API function.
- - [penProtect](https://github.com/kildom/deprecated/tree/penProtect) - tool that breaks FAT32 filesystem structure to prevent some viruses to install on removeble media.
- - [Shader-Preparser](https://github.com/kildom/deprecated/tree/Shader-Preparser) - tool for simplyfied embeding shaders scource codes into C++ code.k
- - [myES](https://github.com/kildom/deprecated/tree/myes) - JavaScript engine, small (for embedded devices), up to date with newest ES, AoT compiler to bytecode.
- - [PanelSim](https://github.com/kildom/deprecated/tree/PanelSim) - Find the best layout of wooden floor panels in a room of specified dimensions.
- - [RemoteLight](https://github.com/kildom/deprecated/tree/RemoteLight) - Wireless light switch.
- - [Violentmonkey-Scripts](https://github.com/kildom/deprecated/tree/Violentmonkey-Scripts) - My scripts for Violentmonkey Chrome plugin.
- - [boiler-water-return-controller](https://github.com/kildom/deprecated/tree/boiler-water-return-controller) - Early drafts of boiler water return controller.
- - [md5-js](https://github.com/kildom/deprecated/tree/md5-js) - MD5 in JavaScript.
- - [ml-experiments](https://github.com/kildom/deprecated/tree/ml-experiments) - Some my machine learning experiments.
- - [mmdl](https://github.com/kildom/deprecated/tree/mmdl) - Simple models description to C++ code that simulates that model.
- - [predict-0-or-1-nn](https://github.com/kildom/deprecated/tree/predict-0-or-1-nn) - Neural network that predicts if a user will select 0 or 1.
- - [secure-remote](https://github.com/kildom/deprecated/tree/secure-remote) - Drafts of radio remote with a secure connection.
- - [simuster](https://github.com/kildom/deprecated/tree/simuster) - Simulator of a heating controller.
- - [spidermonkey-wasi](https://github.com/kildom/deprecated/tree/spidermonkey-wasi) - Spidermonkey JavaScript engine compiled to WebAssembly. It allows sandboxing of untrusted JavaScript code.
- - [text-compression](https://github.com/kildom/deprecated/tree/text-compression) - Different approaches to text compression that can reduce HTML file size.
- - [uvm-compiler](https://github.com/kildom/deprecated/tree/uvm-compiler) - Compiler for a very simple language designed for scripting in embedded systems.
- - [wasm2python](https://github.com/kildom/deprecated/tree/wasm2python) - translate WebAssembly module into Python source code. Allows running WebAssembly in pure Python.
- - and more...
+Etapy tworzenia plotu:
+
+* Podziel plot na niepołączone czarne obszary i wykonuj
+  kolejne czynności na każdym obszarze oddzielnie.
+* Wyznaczenie odległości każdego czarnego pixela od najbliższego białego (metryka kartezjańska).
+  Może być wykonane w sposób zoptymalizowany:
+  * Obliczyć odległość w metryce taksówkowej (pixel ma o jeden większą od najmniejszej z 4 sąsiadujących pixeli)
+  * Wyznaczyć odległość w metryce kartezjańskiej
+    * Każdej odległości w metryce taksówkowej odpowiada kilka
+      odległości w metryce kartezjańskiej.
+    * Dla każdego pixela czarnego sprawdź wszystkie pixele
+      w odległości w metryce taksówkowej posortowane od
+      najmniejszej odległości kartezjańskiej. Lista powinna
+      być przygotowana wcześniej ze względymi współrzędnymi.
+    * Pierwszy napotkany biały pixel to odległość kartezjańska.
+* Utwórz listę czarnych pixeli
+* Przemieszaj losowo listę
+* Posortuj listę od namniejsze odległości
+* Idź po liście i usuwaj kolejne pixele z obrazka jeżeli usunięcie
+  nie spowoduje przerwania ciągłości czarnego obszaru.
+  Wystarczy przeanalizować 8 sąsiadujących pixeli, żeby to
+  stwierdzić.
+  Dodatkowo trzeba też sprawdzić, żeby nie usuwać krańcowego
+  pixela, który kończy już maksymalnie cienką linię.
+  Chyba analiza 8 sąsiadów wystarczy.
+* Usuwanie trwa aż usuniemy wszystkie pixele z odległością
+  mniejszą niż promień frezowania.
+* Teraz idziemy od tyłu listy (od największej odległości)
+  i oznaczamy pixele jako "czerwone" czyli obszar do frezowania
+  dużych powierzchni. Kończymy gdy dojdziemy do odległości
+  `2R - d`, gdzie `d` to margines bezpieczeństwa.
+  Przy oznaczaniu nadal sprawdzamy ciągłość obszaru czarnego.
+* Idziemy nadal od tyłu listy i oznaczamy pixele jako "białe"
+  aż dojdziemy gdzie skończyliśmy na w pierwszym etapie przetwarzania list, czyli w kolejności rosnącej.
+* Teraz:
+  * białe pixele to nadal tło,
+  * czarne pixele wyznaczają linie do frezowania,
+  * czerwone pixele wyznaczają powierzchnie do frezowania.
+    Czerwone pixele muszą być pokryte w 100% przez frezowanie.
+* W pierwszej wersji można pominąć czerwone pixele
+  (np. ostrzeżenie jeżeli istnieją). Docelowo, czerwone pixele
+  powinny się zamienić w jedeń ciąg czarnych pixeli, takich, że
+  frezowanie po czarnych pokrywa czerwone w 100%.
+* Wyznaczyć wszystkie:
+  * krańce - pixel, który po usunięciu pozostawia nadal czarny obszar w jednej części.
+  * rozwidlenia - pixel, który po usunięciu pozostawia trzy lub więcej części czarnego obszaru.
+  * prawdopodobnie wystarczy analiza 8 sąsiadujących pixeli.
+* Wyznaczyć ścieżki między krańcami i rozwidleniami wzdłuż
+  czarnych pixeli.
+  * Wszystkie czarne pixele muszą zostać wykorzystane.
+  * Ścieżka składa się z linii (lub łuków jeżeli jest wspierane).
+    Linia zaczyna z pierwszego punktu i idąc po kolejnych
+    pixelach linia się wydłuża aż odsunie się zbytnio od poprzednich pixeli, wtedy linia się kończy na poprzednim i zaczyna się nowa linia.
+  * Jeżeli ostatnia linia ścieżki jest zbyt krótka, można ją
+    wydłużyć zmniejszając przedostatnią linię (na ile na to pozwalają odległości od pixeli).
+* Wybrać dowolny kraniec (rozwidlenie jeżeli nie ma krańców)
+  i iść po kolejnych ścieżkach aż nie da się iść dalej.
+  * Powtarzaj aż wszystkie ścieżki zostaną pokryte.
+  * Późniejsza optymalizacja może szukać optymalnych krańców
+    żeby zminimalizować ruchy bez frezowania.
+* Wygenerować G-code na podstawie ścieżek.
+  * Późniejsza optymalizacja może wykorzystać algorytmy
+    komiwojażera żeby zminimalizować ruchy bez frezowania.
+* Wygenerować podgląd ścieżek w SVG.
+
+Inne:
+* Dobra czcionka do frezowania: Nunito (z Google Fonts)
+* Też inne z Google Fonts z kategorii sans-serif rounded
