@@ -49,7 +49,10 @@ OUTDIR=../build/$(MODE)
 MOZ_BUILD_DIR=../../moz$(MODE)
 CPP=$(HOME)/.mozbuild/clang/bin/clang++
 OPT=wasm-opt $(OPT_PARAM) --strip-debug
-CXXFLAGS+=-target wasm32-wasi --sysroot $(HOME)/.mozbuild/sysroot-wasm32-wasi -I $(MOZ_BUILD_DIR)/dist/include -D_WASI_EMULATED_SIGNAL
+CXXFLAGS+=-target wasm32-wasi --sysroot $(HOME)/.mozbuild/sysroot-wasm32-wasi \
+  -I $(MOZ_BUILD_DIR)/dist/include -D_WASI_EMULATED_SIGNAL \
+  --include $(MOZ_BUILD_DIR)/js/src/js-confdefs.h \
+  -Wno-unknown-warning-option
 CPPFLAGS=-Wno-invalid-offsetof
 
 
@@ -59,13 +62,11 @@ LDFLAGS=\
     -Wl,--import-memory \
     -lwasi-emulated-signal \
     $(MOZ_BUILD_DIR)/js/src/build/libjs_static.a \
-    $(MOZ_BUILD_DIR)/wasm32-wasi/$(MODE_MOZ)/libjsrust.a \
+    $(MOZ_BUILD_DIR)/wasm32-wasip1/$(MODE_MOZ)/libjsrust.a \
     $(MOZ_BUILD_DIR)/mozglue/misc/AutoProfilerLabel.o \
     $(MOZ_BUILD_DIR)/mozglue/misc/ConditionVariable_noop.o \
     $(MOZ_BUILD_DIR)/mozglue/misc/Decimal.o \
-    $(MOZ_BUILD_DIR)/mfbt/lz4frame.o \
-    $(MOZ_BUILD_DIR)/mfbt/lz4hc.o \
-    $(MOZ_BUILD_DIR)/mfbt/lz4.o \
+    $(MOZ_BUILD_DIR)/mozglue/static/lz4frame.o \
     $(MOZ_BUILD_DIR)/mozglue/misc/MmapFaultHandler.o \
     $(MOZ_BUILD_DIR)/mozglue/misc/Mutex_noop.o \
     $(MOZ_BUILD_DIR)/mozglue/misc/Printf.o \
@@ -73,13 +74,14 @@ LDFLAGS=\
     $(MOZ_BUILD_DIR)/mozglue/misc/TimeStamp.o \
     $(MOZ_BUILD_DIR)/mozglue/misc/TimeStamp_posix.o \
     $(MOZ_BUILD_DIR)/mozglue/misc/Debug.o \
+    $(MOZ_BUILD_DIR)/mozglue/misc/Now.o \
     $(MOZ_BUILD_DIR)/memory/build/Unified_cpp_memory_build0.o \
     $(MOZ_BUILD_DIR)/memory/mozalloc/Unified_cpp_memory_mozalloc0.o \
     $(MOZ_BUILD_DIR)/mfbt/Unified_cpp_mfbt0.o \
     $(MOZ_BUILD_DIR)/mfbt/Unified_cpp_mfbt1.o \
     $(MOZ_BUILD_DIR)/mozglue/misc/Uptime.o \
-    $(MOZ_BUILD_DIR)/mfbt/xxhash.o \
-    $(MOZ_BUILD_DIR)/mozglue/misc/SIMD.o
+    $(MOZ_BUILD_DIR)/mozglue/misc/SIMD.o \
+    $(MOZ_BUILD_DIR)/third_party/fmt/Unified_cpp_third_party_fmt0.o
 
 
 OBJ := $(patsubst ./%.cpp,$(OUTDIR)/obj/%.o,$(wildcard ./*.cpp))

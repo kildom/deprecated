@@ -108,6 +108,25 @@ const forbiddenInstr = cre.ignoreCase`
     }
 `;
 
+function checkForbidden(watPath: string) {
+    let fd = fs.openSync(watPath, 'r');
+    try {
+        let dec = new TextDecoder();
+        let buffer = new Uint8Array(2 * 1024 * 1024);
+        buffer.fill(32);
+        do {
+            let bytes = fs.readSync(fd, buffer, 0, 1024 * 1024, null);
+            if (bytes === 0) break;
+            if (bytes < 0) throw new Error('Read error');
+            let text = dec.decode(buffer.subarray(0, bytes));
+            assert.doesNotMatch(text, forbiddenInstr);
+            buffer.copyWithin(0, 1024 * 1024, 2 * 1024 * 1024);
+        } while (true);
+    } finally {
+        fs.closeSync(fd);
+    }
+}
+
 enum OptimizeMode {
     None = 0,
     Optimize = 1,
@@ -138,10 +157,7 @@ async function main() {
         '-o', args.output + '.wat',
         args.input,
     );
-    let text = fs.readFileSync(args.output + '.wat', 'utf8');
-    for (let line of text.split('\n')) {
-        assert.doesNotMatch(line, forbiddenInstr);
-    }
+    checkForbidden(args.output + '.wat')
 
     // Read input
     let moduleBin = fs.readFileSync(args.input) as Uint8Array;

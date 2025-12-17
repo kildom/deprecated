@@ -1,4 +1,4 @@
-FROM rust:1.78.0-bookworm
+FROM rust:1.92-bookworm
 
 ENV SHELL=/bin/bash
 
@@ -7,9 +7,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt update && \
     DEBIAN_FRONTEND=noninteractive apt install -y -qq sudo python3 python3-pip python-is-python3 \
-        wget curl findutils gzip libxml2 m4 make perl tar unzip watchman
+        wget curl findutils gzip libxml2 m4 make perl tar unzip watchman zstd
 
-RUN rustup target add wasm32-wasi
+RUN rustup target add wasm32-wasip1
 
 RUN mkdir -p /usr/local/nvm
 ENV NVM_DIR=/usr/local/nvm
