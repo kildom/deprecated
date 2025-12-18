@@ -26,14 +26,12 @@ const decoder = new TextDecoder();
 enum ObjectType {
     SandboxString = 0,
     ExceptionResult = 1,
-    CompileResult = 2,
 };
 
 export enum ExecuteFlags {
     Script = 0,
     Module = 1,
     ReturnValue = 2,
-    Once = 4,
 };
 
 export enum LogLevel {
@@ -147,6 +145,7 @@ class UsingAlt<T> {
     constructor(
         public obj: T
     ) { }
+    // TODO: This should be better implemented
     set(o: T): T { this.obj = o; return o; }
     get(): T { return this.obj; }
     move(): T { let old = this.obj; this.canceled = true; return old; }
@@ -245,45 +244,13 @@ class ExceptionResult {
 }
 
 
-export class CompileResult {
-
-    public ptr: number;
-
-    public constructor(
-        private wrapper: Wrapper,
-        value: number | undefined | null,
-    ) {
-        makeDisposable(this);
-        if (value === undefined || value === null || value === 0) {
-            this.ptr = 0;
-        } else {
-            this.ptr = value;
-        }
-    }
-
-    public getFlags(): ExecuteFlags {
-        if (this.ptr === 0) return 0;
-        let arr = this.wrapper._getArray(this.ptr + 2, 1);
-        return arr[0] as ExecuteFlags;
-    }
-
-    dispose() {
-        if (this.ptr) {
-            this.wrapper._exports.dispose(this.ptr);
-        }
-        this.ptr = 0;
-    }
-}
-
-function fromPtr(wrapper: Wrapper, ptr: number): undefined | SandboxString | CompileResult | ExceptionResult {
+function fromPtr(wrapper: Wrapper, ptr: number): undefined | SandboxString | ExceptionResult {
     if (ptr === 0) return undefined;
     let view = wrapper._getView(ptr, 1);
     let type = view.getUint8(0) as ObjectType;
     switch (type) {
         case ObjectType.SandboxString:
             return new SandboxString(wrapper, ptr);
-        case ObjectType.CompileResult:
-            return new CompileResult(wrapper, ptr);
         case ObjectType.ExceptionResult:
             return new ExceptionResult(wrapper, ptr);
         default:
@@ -433,42 +400,19 @@ export class Wrapper {
         wrapper._memory = imports.env.memory;
     }
 
-    public compile(source: string, fileName: string | undefined | null, flags: ExecuteFlags): CompileResult {
+    public execute(source: string, fileName: string | undefined | null, flags: ExecuteFlags, arg?: string | null): string | undefined {
         let resultPtr: number;
         let sourceStr = usingAtl<SandboxString>();
         let fileNameStr = usingAtl<SandboxString>();
+        let argStr = usingAtl<SandboxString>();
         try {
             sourceStr.obj = new SandboxString(this, source);
             fileNameStr.obj = new SandboxString(this, fileName);
-            resultPtr = this._exports.compile(sourceStr.obj.ptr, fileNameStr.obj.ptr, flags);
+            argStr.obj = new SandboxString(this, arg);
+            resultPtr = this._exports.execute(sourceStr.move()!.ptr, fileNameStr.move()!.ptr, flags, argStr.move()!.ptr);
         } finally {
             sourceStr.dispose();
             fileNameStr.dispose();
-        }
-        if (resultPtr == 0) {
-            throw new EngineError('Unknown error during compilation.');
-        }
-        let result = fromPtr(this, resultPtr);
-        if (result instanceof CompileResult) {
-            return result;
-        }
-        try {
-            if (result instanceof ExceptionResult) {
-                throw result.get();
-            } else {
-                throw new EngineError('Unexpected result of compilation.');
-            }
-        } finally {
-            result?.dispose();
-        }
-    }
-
-    public execute(bytecode: CompileResult, arg?: string | null): string | undefined {
-        let resultPtr: number;
-        let argStr = new SandboxString(this, arg);
-        try {
-            resultPtr = this._exports.execute(bytecode.ptr, argStr.ptr);
-        } finally {
             argStr.dispose();
         }
         if (resultPtr == 0) {
@@ -558,15 +502,6 @@ export class Wrapper {
     }
 
     public takeSnapshot(): Snapshot {
-        // TODO: CompileResult is not preserved by snapshots.
-        /*
-        Solution: don't use compile-execute model. WASM module should export only execute function
-        that takes source code as argument (internally it will take ownership of source and file name, compile and execute once).
-        For re-usable code, suggest to user to use imports/exports. Once code is no longer needed, user can
-        override it with undefined (or null) to allow GC to reclaim the memory.
-        Benefits: simpler code, API, testing, memory savings.
-        Cons: None?
-        */
         let stackPointer = this._exports.getStackPointer();
         let [data, dataOffset] = this.createSnapshotData();
         return {

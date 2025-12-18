@@ -42,18 +42,6 @@ bool init(uint32_t gcThresholdMin, uint32_t heapUsedLimit, uint32_t memoryLimit,
 
 
 /**
- * Compile source code.
- *
- * @param source - source code, ownership is NOT transferred to the engine.
- * @param fileName - name of the file, ownership is NOT transferred to the engine. May be NULL.
- * @param flags - flags to control the execution.
- * @return - CompileResult if success, ExceptionResult otherwise. Ownership is transferred to the caller.
- */
-WASM_EXPORT(compile)
-SandboxAny* compile(SandboxString* source, SandboxString* fileName, ExecuteFlags::T flags);
-
-
-/**
  * Execute code in the Javascript engine. The code must be compiled first with the `exports.compile` function.
  *
  * The `arg` argument is assigned to `__sandbox__.arg` property.
@@ -63,13 +51,15 @@ SandboxAny* compile(SandboxString* source, SandboxString* fileName, ExecuteFlags
  * and returned by this function. If `__sandbox__._onDataToHost` function is defined, the result will
  * be filtered by it before conversion to string.
  *
- * @param code - pointer to the compiled code, ownership is NOT transferred to the engine.
- * @param arg - argument to pass to the code. Ownership is NOT transferred to the engine. May be NULL.
+ * @param source - source code, ownership is transferred to the engine.
+ * @param fileName - name of the file, ownership is transferred to the engine. May be NULL.
+ * @param flags - flags to control the execution.
+ * @param arg - argument to pass to the code. Ownership is transferred to the engine. May be NULL.
  * @return - result of the execution. SandboxString if success, ExceptionResult otherwise.
  *           Ownership is transferred to the caller. Can be NULL if `ExecuteFlags::ReturnValue` is not set.
  */
 WASM_EXPORT(execute)
-SandboxAny* execute(CompileResult* code, SandboxString* arg);
+SandboxAny* execute(SandboxString* source, SandboxString* fileName, ExecuteFlags::T flags, SandboxString* arg);
 
 
 /**

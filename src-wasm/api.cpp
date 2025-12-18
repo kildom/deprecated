@@ -97,7 +97,6 @@ static_assert(sizeof(SandboxString) == 8, "SandboxString");
 static_assert(sizeof(SandboxStringConst<4>) == 12, "SandboxStringConst");
 static_assert(sizeof(ExceptionResult) == 16, "ExceptionResult");
 static_assert(sizeof(ExceptionResultConst) == 16, "ExceptionResultConst");
-static_assert(sizeof(CompileResult) > 4, "CompileResult");
 
 void* engineMalloc(uint32_t size)
 {
@@ -162,21 +161,11 @@ void objectDelete(ExceptionResult* obj) {
     engineFree(static_cast<void*>(obj), sizeof(ExceptionResult));
 }
 
-void objectDelete(CompileResult* obj) {
-    obj->~CompileResult();
-    engineFree(static_cast<void*>(obj), sizeof(ExceptionResult));
-}
-
 ExceptionResult::~ExceptionResult()
 {
     if (name) objectDelete(name);
     if (message) objectDelete(message);
     if (stack) objectDelete(stack);
-}
-
-
-CompileResult::CompileResult(ExecuteFlags::T flags): SandboxAny(Id), flags(flags), script(cx)
-{
 }
 
 
@@ -211,9 +200,6 @@ void objectDispose(SandboxAny* object)
             break;
         case ExceptionResult::Id:
             objectDelete((ExceptionResult*)object);
-            break;
-        case CompileResult::Id:
-            objectDelete((CompileResult*)object);
             break;
         default:
             logError("Invalid object type %d.", object->type);
@@ -413,60 +399,46 @@ static ExceptionResult* throwPendingError(SandboxString* fallbackMessage = nullp
     return result;
 }
 
-WASM_EXPORT(compile)
-SandboxAny* compile(SandboxString* source, SandboxString* fileName, ExecuteFlags::T flags)
+/**
+ * Compile source code to 'script' output parameter.
+ * Returns ExceptionResult in case of error, nullptr otherwise.
+ */
+ExceptionResult* compile(SandboxString* source, SandboxString* fileName, ExecuteFlags::T flags, JS::MutableHandle<JSScript*> script)
 {
-    // Prepare options
-    JSAutoRealm ar(cx, dx->globalObject); // TODO: Is is needed here?
-    JS::CompileOptions options(cx);
-    options
-        .setNoScriptRval(!(flags & ExecuteFlags::ReturnValue))
-        .setIsRunOnce(!!(flags & ExecuteFlags::Once));
-    if (fileName) {
-        options.setFileAndLine(fileName->data(), 1);
-    }
-    if (flags & ExecuteFlags::Module) {
-        options.setModule();
-    }
-
-    // Prepare source code text buffer
-    JS::SourceText<mozilla::Utf8Unit> sourceText;
-    if (!sourceText.init(cx, source->data(), source->size, JS::SourceOwnership::Borrowed)) {
-        static SANDBOX_STRING_CONST("Cannot initialize source code.") errorString;
-        return throwEngineError(errorString);
-    }
-
-    // Allocate memory for the result
-    auto result = objectNew<CompileResult>(flags);
-    if (!result) {
-        static SANDBOX_STRING_CONST("Cannot allocate memory for compiled code.") errorString;
-        return throwEngineError(errorString);
-    }
-
-    // Compile the source code
-    auto x = JS::Compile(cx, options, sourceText);
-
-    if (!x) {
-        logInfo("Compilation failed");
-        JS::RootedValue exception(cx);
-        if (!JS_GetPendingException(cx, &exception)) {
-            logInfo("No pending error");
-        } else {
-            logInfo("Pending error exists");
+    {
+        JS::CompileOptions options(cx);
+        options
+            .setNoScriptRval(!(flags & ExecuteFlags::ReturnValue))
+            .setIsRunOnce(true);
+        if (fileName) {
+            options.setFileAndLine(fileName->data(), 1);
         }
+        if (flags & ExecuteFlags::Module) {
+            options.setModule();
+        }
+
+        // Prepare source code text buffer
+        JS::SourceText<mozilla::Utf8Unit> sourceText;
+        if (!sourceText.init(cx, source->data(), source->size, JS::SourceOwnership::Borrowed)) {
+            objectDelete(source);
+            objectDelete(fileName);
+            static SANDBOX_STRING_CONST("Cannot initialize source code.") errorString;
+            return throwEngineError(errorString);
+        }
+
+        // Compile the source code
+        script.set(JS::Compile(cx, options, sourceText));
     }
 
-    result->script.set(x);
+    objectDelete(source);
+    objectDelete(fileName);
 
     // Check for errors
-    if (!result->script) {
-        objectDelete(result);
+    if (!script) {
         return throwPendingError();
     }
 
-    // Update allowed code pointers and return the result
-    logInfo("Compiled code %d, type %d", (uintptr_t)result, *(char*)result);
-    return result;
+    return nullptr;
 }
 
 static SandboxAny* stringFromHostToValue(SandboxString* input, JS::MutableHandleValue value)
@@ -529,13 +501,24 @@ static SandboxAny* convertToHostData(JS::MutableHandleValue value)
 }
 
 WASM_EXPORT(execute)
-SandboxAny* execute(CompileResult* code, SandboxString* arg)
+SandboxAny* execute(SandboxString* source, SandboxString* fileName, ExecuteFlags::T flags, SandboxString* arg)
 {
     JSAutoRealm ar(cx, dx->globalObject);
 
+    SandboxAny* exception;
+    JS::RootedScript script(cx);
+
+    // Compile source code
+    exception = compile(source, fileName, flags, &script);
+    if (exception) {
+        objectDelete(arg);
+        return exception;
+    }
+
     // Get argument from static data
     JS::RootedValue argValue(cx);
-    SandboxAny* exception = stringFromHostToValue(arg, &argValue);
+    exception = stringFromHostToValue(arg, &argValue);
+    objectDelete(arg);
     if (exception) {
         return exception;
     }
@@ -550,9 +533,9 @@ SandboxAny* execute(CompileResult* code, SandboxString* arg)
     SandboxString* result;
 
     // Execute and return result
-    if (code->flags & ExecuteFlags::ReturnValue) {
+    if (flags & ExecuteFlags::ReturnValue) {
         JS::RootedValue rval(cx);
-        if (!JS_ExecuteScript(cx, code->script, &rval)) {
+        if (!JS_ExecuteScript(cx, script, &rval)) {
             return throwPendingError(execErrorString);
         }
         exception = convertToHostData(&rval);
@@ -565,7 +548,7 @@ SandboxAny* execute(CompileResult* code, SandboxString* arg)
             return throwPendingError(errorString);
         }
     } else {
-        if (!JS_ExecuteScript(cx, code->script)) {
+        if (!JS_ExecuteScript(cx, script)) {
             return throwPendingError(execErrorString);
         }
         result = nullptr;

@@ -20,7 +20,7 @@
 
 import fs from 'node:fs';
 import { expect, test, vi } from 'vitest';
-import { ExecuteFlags, LogLevel, Wrapper, CompileResult, GuestError } from '../wrapper/wrapper';
+import { ExecuteFlags, LogLevel, Wrapper, GuestError } from '../wrapper/wrapper';
 
 
 const fileVariants = [
@@ -42,42 +42,27 @@ async function prepareWrapper(moduleFile: string) {
     return wrapper;
 }
 
-test.for(fileVariants)(`compile [%s]`, async (moduleFile) => {
-    let wrapper = await prepareWrapper(moduleFile);
-    using res = wrapper.compile("'OK'", "some_file.js", ExecuteFlags.ReturnValue);
-    expect(res).instanceOf(CompileResult);
-    expect(res.ptr).toBeGreaterThan(0);
-    expect(() => {
-        using res = wrapper.compile("'not OK'-", "some_file.js", ExecuteFlags.ReturnValue);
-    }).toThrow();
-});
-
 test.for(fileVariants)(`execute [%s]`, async (moduleFile) => {
     let wrapper = await prepareWrapper(moduleFile);
     {
-        using bytecode = wrapper.compile(escapedTextString, "testFile1.js", ExecuteFlags.ReturnValue);
-        let res = wrapper.execute(bytecode, null);
+        let res = wrapper.execute(escapedTextString, "testFile1.js", ExecuteFlags.ReturnValue, null);
         expect(res).toBe(testString);
     }
     {
-        using bytecode = wrapper.compile(`tmp = ${escapedTextString}`, "testFile2.js", 0);
-        let res = wrapper.execute(bytecode, null);
+        let res = wrapper.execute(`tmp = ${escapedTextString}`, "testFile2.js", 0, null);
         expect(res).toBeUndefined();
     }
     {
-        using bytecode = wrapper.compile('tmp', "testFile3.js", ExecuteFlags.ReturnValue);
-        let res = wrapper.execute(bytecode, null);
+        let res = wrapper.execute('tmp', "testFile3.js", ExecuteFlags.ReturnValue, null);
         expect(res).toBe(testString);
     }
     {
-        using bytecode = wrapper.compile('({ text: "abc", number: 42 })', "testFile4.js", ExecuteFlags.ReturnValue);
-        let res = wrapper.execute(bytecode, null);
+        let res = wrapper.execute('({ text: "abc", number: 42 })', "testFile4.js", ExecuteFlags.ReturnValue, null);
         expect(res).toBe('[object Object]');
     }
     {
-        using bytecode = wrapper.compile('throw new Error("Test error");', "testFile5.js", ExecuteFlags.ReturnValue);
         try {
-            wrapper.execute(bytecode, null);
+            wrapper.execute('throw new Error("Test error");', "testFile5.js", ExecuteFlags.ReturnValue, null);
             throw new Error("Should not reach here");
         } catch (e) {
             expect(e).toBeInstanceOf(GuestError);
@@ -85,9 +70,8 @@ test.for(fileVariants)(`execute [%s]`, async (moduleFile) => {
         }
     }
     {
-        using bytecode = wrapper.compile('Object.create(null)', "testFile6.js", ExecuteFlags.ReturnValue);
         try {
-            wrapper.execute(bytecode, null);
+            wrapper.execute('Object.create(null)', "testFile6.js", ExecuteFlags.ReturnValue, null);
             throw new Error("Should not reach here");
         } catch (e) {
             expect(e).toBeInstanceOf(GuestError);
@@ -99,18 +83,15 @@ test.for(fileVariants)(`execute [%s]`, async (moduleFile) => {
 test.for(fileVariants)(`execute with arg [%s]`, async (moduleFile) => {
     let wrapper = await prepareWrapper(moduleFile);
     {
-        using bytecode = wrapper.compile('__sandbox__.arg', "testFile1.js", ExecuteFlags.ReturnValue);
-        let res = wrapper.execute(bytecode, testString);
+        let res = wrapper.execute('__sandbox__.arg', "testFile1.js", ExecuteFlags.ReturnValue, testString);
         expect(res).toBe(testString);
     }
     {
-        using bytecode = wrapper.compile('__sandbox__._onDataFromHost = JSON.parse;', "testFile2.js", 0);
-        wrapper.execute(bytecode, testString);
+        wrapper.execute('__sandbox__._onDataFromHost = JSON.parse;', "testFile2.js", 0, testString);
     }
     {
-        using bytecode = wrapper.compile('__sandbox__.arg.text + __sandbox__.arg.number', "testFile3.js", ExecuteFlags.ReturnValue);
         let testObj = { text: testString, number: 42 };
-        let res = wrapper.execute(bytecode, JSON.stringify(testObj));
+        let res = wrapper.execute('__sandbox__.arg.text + __sandbox__.arg.number', "testFile3.js", ExecuteFlags.ReturnValue, JSON.stringify(testObj));
         expect(res).toBe(testObj.text + testObj.number);
     }
 });
@@ -118,13 +99,11 @@ test.for(fileVariants)(`execute with arg [%s]`, async (moduleFile) => {
 test.for(fileVariants)(`execute with result [%s]`, async (moduleFile) => {
     let wrapper = await prepareWrapper(moduleFile);
     {
-        using bytecode = wrapper.compile('__sandbox__._onDataToHost = JSON.stringify;__sandbox__._onDataFromHost = JSON.parse;', "testFile1.js", 0);
-        wrapper.execute(bytecode);
+        wrapper.execute('__sandbox__._onDataToHost = JSON.stringify;__sandbox__._onDataFromHost = JSON.parse;', "testFile1.js", 0);
     }
     {
-        using bytecode = wrapper.compile('__sandbox__.arg', "testFile1.js", ExecuteFlags.ReturnValue);
         let testObj = { text: testString, number: 42 };
-        let res = wrapper.execute(bytecode, JSON.stringify(testObj));
+        let res = wrapper.execute('__sandbox__.arg', "testFile1.js", ExecuteFlags.ReturnValue, JSON.stringify(testObj));
         expect(JSON.parse(res!)).toStrictEqual(testObj);
     }
 });
@@ -132,14 +111,13 @@ test.for(fileVariants)(`execute with result [%s]`, async (moduleFile) => {
 test.for(fileVariants)(`call from host [%s]`, async (moduleFile) => {
     let wrapper = await prepareWrapper(moduleFile);
     {
-        using bytecode = wrapper.compile(`
+        wrapper.execute(`
             __sandbox__._onDataToHost = JSON.stringify;
             __sandbox__._onDataFromHost = JSON.parse;
             __sandbox__._call = function (groupId, functionId, arg) {
                 return { groupId: groupId, functionId: functionId, ...arg };
             };
-            `, "testFile1.js", ExecuteFlags.Once);
-        wrapper.execute(bytecode);
+            `, "testFile1.js", 0);
     }
     let testObj = { text: testString, number: 42 };
     let res = wrapper.call(22, 33, JSON.stringify(testObj));
@@ -153,10 +131,9 @@ test.for(fileVariants)(`call from guest [%s]`, async (moduleFile) => {
         return (arg ?? '') + groupId + functionId;
     };
     {
-        using bytecode = wrapper.compile(`
+        let res = wrapper.execute(`
             __sandbox__.call(44, 66, ${escapedTextString})
-            `, "testFile1.js", ExecuteFlags.ReturnValue | ExecuteFlags.Once);
-        let res = wrapper.execute(bytecode, testString);
+            `, "testFile1.js", ExecuteFlags.ReturnValue, testString);
         expect(res).toBe(testString + '4466');
     }
 });
@@ -168,12 +145,11 @@ test.for(fileVariants)(`call from guest with filter [%s]`, async (moduleFile) =>
         return JSON.stringify({ groupId, functionId, ...JSON.parse(arg ?? 'null') });
     };
     {
-        using bytecode = wrapper.compile(`
+        let res = wrapper.execute(`
             __sandbox__._onDataToHost = JSON.stringify;
             __sandbox__._onDataFromHost = JSON.parse;
             __sandbox__.call(44, 66, { text: ${escapedTextString}, number: 42 })
-            `, "testFile1.js", ExecuteFlags.ReturnValue | ExecuteFlags.Once);
-        let res = wrapper.execute(bytecode, testString);
+            `, "testFile1.js", ExecuteFlags.ReturnValue, testString);
         expect(JSON.parse(res!)).toStrictEqual({
             groupId: 44,
             functionId: 66,
@@ -186,35 +162,32 @@ test.for(fileVariants)(`call from guest with filter [%s]`, async (moduleFile) =>
 test.for(fileVariants)(`snapshot [%s]`, async (moduleFile) => {
     let wrapper = await prepareWrapper(moduleFile);
     {
-        using bytecode = wrapper.compile(`x = ${escapedTextString};`, "testFile1.js", ExecuteFlags.Once);
-        wrapper.execute(bytecode);
+        wrapper.execute(`x = ${escapedTextString};`, "testFile1.js", 0);
     }
 
     let snapshot = wrapper.takeSnapshot();
 
     let wrapper2 = await Wrapper.fromSnapshot(snapshot);
     {
-        using bytecode = wrapper2.compile('old = x; x = "changed"; old', "testFile1.js", ExecuteFlags.Once | ExecuteFlags.ReturnValue);
-        let res = wrapper2.execute(bytecode);
+        let res = wrapper2.execute('old = x; x = "changed"; old', "testFile1.js", ExecuteFlags.ReturnValue);
         expect(res).toBe(testString);
     }
 
     let wrapper3 = await Wrapper.fromSnapshot(snapshot);
     {
-        using bytecode = wrapper3.compile('x', "testFile1.js", ExecuteFlags.Once | ExecuteFlags.ReturnValue);
-        let res = wrapper3.execute(bytecode);
+        let res = wrapper3.execute('x', "testFile1.js", ExecuteFlags.ReturnValue);
         expect(res).toBe(testString);
     }
 });
 
 test.for(fileVariants)(`memory tracking Uint8Array [%s]`, async (moduleFile) => {
     let wrapper = await prepareWrapper(moduleFile);
-    let memText = wrapper.execute(wrapper.compile(`JSON.stringify(__sandbox__.memory)`, "testFile2.js", ExecuteFlags.Once | ExecuteFlags.ReturnValue));
+    let memText = wrapper.execute(`JSON.stringify(__sandbox__.memory)`, "testFile2.js", ExecuteFlags.ReturnValue);
     let mem = JSON.parse(memText!);
     expect(mem.heapReserved).toBeLessThan(32 * 1024 * 1024);
     expect(mem.heapUsed).toBeLessThan(32 * 1024 * 1024);
-    wrapper.execute(wrapper.compile(`globalThis.arr = new Uint8Array(32 * 1024 * 1024)`, "testFile1.js", ExecuteFlags.Once));
-    memText = wrapper.execute(wrapper.compile(`JSON.stringify(__sandbox__.memory)`, "testFile2.js", ExecuteFlags.Once | ExecuteFlags.ReturnValue));
+    wrapper.execute(`globalThis.arr = new Uint8Array(32 * 1024 * 1024)`, "testFile1.js", 0);
+    memText = wrapper.execute(`JSON.stringify(__sandbox__.memory)`, "testFile2.js", ExecuteFlags.ReturnValue);
     mem = JSON.parse(memText!);
     expect(mem.heapReserved).toBeGreaterThan(32 * 1024 * 1024);
     expect(mem.heapUsed).toBeGreaterThan(32 * 1024 * 1024);
@@ -222,13 +195,13 @@ test.for(fileVariants)(`memory tracking Uint8Array [%s]`, async (moduleFile) => 
 
 test.for(fileVariants)(`memory tracking API [%s]`, async (moduleFile) => {
     let wrapper = await prepareWrapper(moduleFile);
-    let memText = wrapper.execute(wrapper.compile(`JSON.stringify(__sandbox__.memory)`, "testFile2.js", ExecuteFlags.Once | ExecuteFlags.ReturnValue));
+    let memText = wrapper.execute(`JSON.stringify(__sandbox__.memory)`, "testFile2.js", ExecuteFlags.ReturnValue);
     let mem = JSON.parse(memText!);
     expect(mem.heapReserved).toBeLessThan(32 * 1024 * 1024);
     expect(mem.heapUsed).toBeLessThan(32 * 1024 * 1024);
     let ptr = wrapper._exports.create(0, 32 * 1024 * 1024);
     expect(ptr).toBeGreaterThan(0);
-    memText = wrapper.execute(wrapper.compile(`JSON.stringify(__sandbox__.memory)`, "testFile2.js", ExecuteFlags.Once | ExecuteFlags.ReturnValue));
+    memText = wrapper.execute(`JSON.stringify(__sandbox__.memory)`, "testFile2.js", ExecuteFlags.ReturnValue);
     mem = JSON.parse(memText!);
     expect(mem.heapReserved).toBeGreaterThan(32 * 1024 * 1024);
     expect(mem.heapUsed).toBeGreaterThan(32 * 1024 * 1024);

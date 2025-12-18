@@ -27,8 +27,7 @@
 export interface SandboxWasmExport {
     create(/* uint32_t */ type: number, /* uint32_t */ size: number): /* SandboxAny* */ number;
     dispose(/* SandboxAny* */ object: number): void;
-    compile(/* SandboxString* */ source: number, /* SandboxString* */ fileName: number, /* ExecuteFlags::T */ flags: number): /* SandboxAny* */ number;
-    execute(/* CompileResult* */ code: number, /* SandboxString* */ arg: number): /* SandboxAny* */ number;
+    execute(/* SandboxString* */ source: number, /* SandboxString* */ fileName: number, /* ExecuteFlags::T */ flags: number, /* SandboxString* */ arg: number): /* SandboxAny* */ number;
     call(/* uint32_t */ groupId: number, /* uint32_t */ functionId: number, /* SandboxString* */ arg: number): /* SandboxAny* */ number;
     init(/* uint32_t */ gcThresholdMin: number, /* uint32_t */ heapUsedLimit: number, /* uint32_t */ memoryLimit: number, /* LogLevel::T */ logLevel: number): /* bool */ number;
     getStackPointer(): /* uint32_t */ number;

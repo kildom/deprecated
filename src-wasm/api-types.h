@@ -33,8 +33,6 @@ struct ExecuteFlags {
         Module = 1,
         /** Return the result of the last statement */
         ReturnValue = 2,
-        /** Execute the code only once */
-        Once = 4,
     };
     ExecuteFlags() = delete;
 };
@@ -132,26 +130,6 @@ struct ExceptionResult: public SandboxAny
 
     ExceptionResult(): SandboxAny(Id), errorType(ErrorType::EngineError), name(nullptr), message(nullptr), stack(nullptr) {}
     ~ExceptionResult();
-};
-
-
-/**
- * Code compilation result.
- *
- * All fields except `flags` are used internally by the engine and host should not access it.
- */
-struct CompileResult: public SandboxAny
-{
-    /** Flags that were used during compilation. */
-    ExecuteFlags::T flags;
-    uint8_t _reserved8;
-    JS::PersistentRooted<JSScript*> script;
-
-    CompileResult(ExecuteFlags::T flags);
-    ~CompileResult() {}
-
-    /** Object type for CompileResult is 2. */
-    static constexpr uint8_t Id = 2;
 };
 
 
