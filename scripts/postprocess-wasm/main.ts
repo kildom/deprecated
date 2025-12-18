@@ -184,6 +184,8 @@ async function main() {
         let wasiNames = new Set(WebAssembly.Module.exports(await WebAssembly.compile(fs.readFileSync(args.wasiStubs))).map(exp => exp.name));
         wasiNames.add('stdoutWrite');
         wasiNames.add('memory');
+        wasiNames.add('_start');
+        wasiNames.add('__stack_pointer');
         let sandboxNames = new Set(WebAssembly.Module.exports(await WebAssembly.compile(moduleBin)).map(exp => exp.name));
         let remainingNames = [...sandboxNames].filter(name => !wasiNames.has(name));
         let graph: any = [{ 
@@ -219,7 +221,7 @@ async function main() {
     fs.writeFileSync(args.output, moduleBin);
 
     // Remove temporary files
-    //fs.unlinkSync(args.output + '.wat');
+    fs.unlinkSync(args.output + '.wat');
     try {
         fs.unlinkSync(args.output + '.opt.wasm');
         fs.unlinkSync(args.output + '.proc.wasm');

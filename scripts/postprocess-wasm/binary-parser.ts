@@ -249,19 +249,11 @@ export function rewriteModule(binary: Uint8Array, memory: Uint8Array, stackPoint
         delete sectionsById[SectionType.startSection];
     }
 
-    let { getSpTypeIndex, setSpTypeIndex } =
-        parseTypeSection();
-
-    let { getSpFuncIndex, setSpFuncIndex } =
-        addSpHandlersToFunctionSection({ getSpTypeIndex, setSpTypeIndex });
-
     let { funcIndexStart, globalIndexStart } =
         getIndexStartsAndMemoryFromImports({ memorySize: memory.length });
 
     let { stackPointerIndex } =
-        addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex, setSpFuncIndex, memorySize: memory.length });
-
-    addStackHandlersCode({ stackPointerIndex });
+        getSpIndex();
 
     let { dataBlockCount } =
         generateNewDataSection(memory, stackPointer, sizeOptimize);
@@ -327,56 +319,12 @@ function commitSectionOutput() {
     currentSection.output = [currentSection.input];
 }
 
-function parseTypeSection() {
-    setActive(SectionType.typeSection);
-
-    let getSpTypeIndex = -1;
-    let setSpTypeIndex = -1;
-
-    let count = leb128();
-
-    for (let i = 0; i < count; i++) {
-        assert.equal(byte(), 0x60, 'Function type prefix');
-        let parametersCount = leb128();
-        let param = bin[offset];
-        offset += parametersCount;
-        let resultsCount = leb128();
-        let result = bin[offset];
-        offset += resultsCount;
-        if (parametersCount === 1 && resultsCount === 0 && param === DataType.typeI32) {
-            setSpTypeIndex = i;
-        }
-        if (parametersCount === 0 && resultsCount === 1 && result === DataType.typeI32) {
-            getSpTypeIndex = i;
-        }
-    }
-
-    assert(getSpTypeIndex >= 0 && setSpTypeIndex >= 0);
-
-    return { getSpTypeIndex, setSpTypeIndex };
-}
-
-function addSpHandlersToFunctionSection({ getSpTypeIndex, setSpTypeIndex }: { getSpTypeIndex: number, setSpTypeIndex: number }) {
-    setActive(SectionType.functionSection, true);
-
-    let count = leb128();
-    outputUnsigned(count + 2); // count
-    output(bin.subarray(offset, currentSection.end)); // old functions
-    outputUnsigned(getSpTypeIndex);
-    outputUnsigned(setSpTypeIndex);
-    let getSpFuncIndex = count;
-    let setSpFuncIndex = count + 1;
-    return { getSpFuncIndex, setSpFuncIndex };
-}
-
-function addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex, setSpFuncIndex, memorySize }: { funcIndexStart: number, getSpFuncIndex: number, setSpFuncIndex: number, memorySize: number }) {
-    setActive(SectionType.exportSection, true);
+function getSpIndex() {
+    setActive(SectionType.exportSection);
 
     let stackPointerIndex = -1;
 
     let count = leb128();
-    outputUnsigned(count + 1); // count
-    let actual_count = 0;
     for (let i = 0; i < count; i++) {
         let start = offset;
         let strLen = leb128();
@@ -386,27 +334,9 @@ function addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex,
         let index = leb128();
         if (name === '__stack_pointer') {
             stackPointerIndex = index;
-        } else if (name === '_start') {
-            // The "_start" function is not needed any more. It was already executed.
-        } else {
-            output(bin.subarray(start, offset));
-            actual_count++;
         }
     }
-    output('getStackPointer_old');
-    outputUnsigned(0x00);
-    outputUnsigned(funcIndexStart + getSpFuncIndex);
-    actual_count++;
-    output('setStackPointer_old');
-    outputUnsigned(0x00);
-    outputUnsigned(funcIndexStart + setSpFuncIndex);
-    actual_count++;
-    output(exportInfoPrefix + Math.ceil(memorySize / PAGE_SIZE).toString(16));
-    outputUnsigned(0x00);
-    outputUnsigned(funcIndexStart + getSpFuncIndex);
-    actual_count++;
     assert(stackPointerIndex >= 0);
-    assert.equal(actual_count, count + 1);
 
     return { stackPointerIndex };
 }
@@ -472,22 +402,6 @@ function createCode(bytecode: number[]) {
     output(bytecode); // code
     output([0x0B]); // END
     replaceUnsigned(funcSizeOutBookmark, outputOffset(funcSizeOutBookmark + 1));
-}
-
-
-function addStackHandlersCode({ stackPointerIndex }: { stackPointerIndex: number }): void {
-    setActive(SectionType.codeSection, true);
-
-    let count = leb128();
-    outputUnsigned(count + 2); // count
-    output(bin.subarray(offset, currentSection.end)); // old functions
-    createCode([
-        0x23, ...uLeb128Create(stackPointerIndex), // global.get
-    ]);
-    createCode([
-        0x20, ...uLeb128Create(0), // local.get 0
-        0x24, ...uLeb128Create(stackPointerIndex), // global.set
-    ]);
 }
 
 
