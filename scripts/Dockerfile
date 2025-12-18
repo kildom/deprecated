@@ -18,14 +18,14 @@ RUN bash --login -c 'nvm install 20'
 
 RUN mkdir -p /usr/local/tools && \
     cd /usr/local/tools && \
-    wget https://github.com/WebAssembly/binaryen/releases/download/version_123/binaryen-version_123-x86_64-linux.tar.gz && \
+    wget https://github.com/WebAssembly/binaryen/releases/download/version_125/binaryen-version_125-x86_64-linux.tar.gz && \
     tar -xf binaryen-version_*-x86_64-linux.tar.gz && \
     rm *.tar.gz && \
     mv binaryen-* binaryen
 
 RUN cd /usr/local/tools && \
-    wget https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-ubuntu-20.04.tar.gz && \
-    tar -xf wabt-*-ubuntu-20.04.tar.gz && \
+    wget https://github.com/WebAssembly/wabt/releases/download/1.0.39/wabt-1.0.39-linux-x64.tar.gz && \
+    tar -xf wabt-*-linux-x64.tar.gz && \
     rm *.tar.gz && \
     mv wabt-* wabt
 

@@ -393,11 +393,11 @@ function addStackHandlersToExportAndGetSpIndex({ funcIndexStart, getSpFuncIndex,
             actual_count++;
         }
     }
-    output('getStackPointer');
+    output('getStackPointer_old');
     outputUnsigned(0x00);
     outputUnsigned(funcIndexStart + getSpFuncIndex);
     actual_count++;
-    output('setStackPointer');
+    output('setStackPointer_old');
     outputUnsigned(0x00);
     outputUnsigned(funcIndexStart + setSpFuncIndex);
     actual_count++;

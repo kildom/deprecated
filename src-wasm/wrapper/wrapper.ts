@@ -94,12 +94,6 @@ function createImports(module: WebAssembly.Module, maxMemorySize?: number): Impo
             entry() {
                 throw new Error('This should never happen.');
             },
-            getMemorySize() {
-                return memory.buffer.byteLength;
-            },
-            getStackPointer() {
-                return exports.getStackPointer();
-            },
             log(level, str, len) {
                 let arr = new Uint8Array(memory.buffer, str, len);
                 let text = decoder.decode(arr);

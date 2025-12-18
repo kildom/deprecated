@@ -112,33 +112,6 @@ void objectDispose(SandboxAny* object);
 
 
 /**
- * Get the current C/C++ stack pointer value.
- * 
- * Needed for snapshot functionality.
- * 
- * This is just a declaration, it is not implemented in the source code.
- * This function is added later by the WASM post-processing tool.
- * 
- * @return - total memory size in bytes.
- */
-WASM_EXPORT(getStackPointer)
-uint32_t _getStackPointerDecl();
-
-/**
- * Set the C/C++ stack pointer value.
- * 
- * Needed for snapshot functionality.
- * 
- * This is just a declaration, it is not implemented in the source code.
- * This function is added later by the WASM post-processing tool.
- * 
- * @param value - new stack pointer value.
- */
-WASM_EXPORT(setStackPointer)
-void _setStackPointerDecl(uint32_t value);
-
-
-/**
  * Call a host function with the given group ID, function ID and argument.
  *
  * If `__sandbox__._onDataToHost` function if defined, `arg` argument was filtered by it.
@@ -176,26 +149,6 @@ void hostLog(LogLevel::T level, const void* str, uint32_t len);
  */
 WASM_IMPORT(entry)
 int hostEntry();
-
-
-/**
- * Host retuns total memory size allocated by this WASM module.
- * 
- * @return - total memory size in bytes.
- */
-WASM_IMPORT(getMemorySize)
-uint32_t getMemorySize();
-
-/**
- * Host returns current stack pointer value.
- * 
- * This function is just passing the value from `getStackPointer` function exported
- * by the WASM post-processing tool.
- * 
- * @return - current stack pointer value.
- */
-WASM_IMPORT(getStackPointer)
-uint32_t getStackPointer();
 
 
 #endif

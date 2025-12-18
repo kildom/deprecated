@@ -40,8 +40,6 @@ export namespace SandboxWasmImportModule {
         memory: WebAssembly.Memory;
         call(/* uint32_t */ groupId: number, /* uint32_t */ functionId: number, /* SandboxString* */ arg: number): number;
         log(/* LogLevel::T */ level: number, /* const void* */ str: number, /* uint32_t */ len: number): void;
-        getMemorySize(): number;
-        getStackPointer(): number;
         entry(): number;
     };
     export interface wasi_snapshot_preview1 {

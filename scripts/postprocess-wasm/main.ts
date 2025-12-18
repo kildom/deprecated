@@ -1,5 +1,4 @@
 import assert from 'assert';
-import { createWasiImports } from "./wasi-stubs";
 import fs from 'node:fs';
 import cre from 'con-reg-exp';
 import * as parser from './binary-parser';
@@ -48,16 +47,16 @@ const sandboxImports = {
         throw new Error('OK');
     },
 
-    getMemorySize: () => {
-        let res = 65536 * initialMemoryPages;
-        console.log(`Get memory size: ${res}`);
-        return res;
+    getTime: (realTime: number) => {
+        return realTime !== 0 ? 1718795365619n : 1000n;
     },
 
-    getStackPointer: () => {
-        let res = exports?.__stack_pointer?.value ? exports.__stack_pointer.value : exports.getStackPointer();
-        console.log(`Stack pointer: ${res}`);
-        return res;
+    getRandom(ptr: number, len: number) {
+        console.log(`Get random: ${ptr}, ${len}`);
+    },
+
+    exit(code: number) {
+        throw new Error(`Unexpected exit with code: ${code}`);
     },
 };
 
@@ -70,17 +69,26 @@ interface ExecutionState {
 async function executeStartup(bin: Uint8Array, pages: number): Promise<ExecutionState> {
     initialMemoryPages = pages;
     let mod = await WebAssembly.compile(bin);
-    let wasi = createWasiImports();
     // WASI-SDK libc requires initial memory exactly as declared in module. Giving more causes memory leaks.
     let memory = new WebAssembly.Memory({ initial: initialMemoryPages });
     console.log(`Starting module with ${memory.buffer.byteLength / 65536} pages`);
-    let imports = {
-        wasi_snapshot_preview1: wasi,
+    let imports: Record<string, any> = {
         env: { memory, ...sandboxImports },
     };
+    for (let exp of WebAssembly.Module.exports(mod)) {
+        if (exp.name.startsWith('__dependency_module_hex:')) {
+            let [_tag, name, hex] = exp.name.split(':');
+            const modBytes = new Uint8Array(hex.length / 2);
+            for (let i = 0; i < modBytes.length; i++) {
+                const byte = hex.substring(i * 2, i * 2 + 2);
+                modBytes[i] = parseInt(byte, 16);
+            }
+            const dep = (await WebAssembly.instantiate(modBytes, imports)).instance;
+            imports[name] = dep.exports;
+        }
+    }
     let inst = await WebAssembly.instantiate(mod, imports as any);
     exports = inst.exports as unknown as UnprocessedSandboxWasmExports;
-    wasi.setMemory(memory);
     try {
         exports._start();
         throw new Error('Module startup failed');
@@ -138,14 +146,16 @@ async function main() {
     // Process parameters
     let wasmOpt = process.env['WASM_OPT_PATH'] || 'wasm-opt';
     let wasm2wat = process.env['WASM2WAT_PATH'] || 'wasm2wat';
-    if (process.argv.length !== 5) {
-        console.error(`Usage: ${process.argv[1]} -O[0123sz] input.wasm output.wasm`);
+    let wasmMetadce = process.env['WASM_METADCE_PATH'] || 'wasm-metadce';
+    if (process.argv.length !== 6) {
+        console.error(`Usage: ${process.argv[1]} -O[0123sz] input.wasm output.wasm wasi-stubs.wasm`);
         process.exit(99);
     }
     let args = {
         opt: process.argv[2],
         input: process.argv[3],
         output: process.argv[4],
+        wasiStubs: process.argv[5],
     };
     let optimize = args.opt.endsWith('0') ? OptimizeMode.None :
         args.opt.endsWith('z') || args.opt.endsWith('s') ? OptimizeMode.Size :
@@ -169,14 +179,38 @@ async function main() {
     // Rewrite module, so it contains current state now
     moduleBin = parser.rewriteModule(moduleBin, state.memory, state.stackPointer, optimize == OptimizeMode.Size);
 
-    // Optimize again since the startup functions can be discarded now
+    // Optimize again since the startup and WASI functions can be discarded now
     if (optimize !== OptimizeMode.None) {
+        let wasiNames = new Set(WebAssembly.Module.exports(await WebAssembly.compile(fs.readFileSync(args.wasiStubs))).map(exp => exp.name));
+        wasiNames.add('stdoutWrite');
+        wasiNames.add('memory');
+        let sandboxNames = new Set(WebAssembly.Module.exports(await WebAssembly.compile(moduleBin)).map(exp => exp.name));
+        let remainingNames = [...sandboxNames].filter(name => !wasiNames.has(name));
+        let graph: any = [{ 
+            "name": "outside",
+            "reaches": [],
+            "root": true,
+        }];
+        for (let name of remainingNames) {
+            graph[0].reaches.push(`export-${name}`);
+            graph.push({
+                "name": `export-${name}`, 
+                "export": name,
+            });
+        }
+        fs.writeFileSync(args.output + '.graph.json', JSON.stringify(graph, null, 2));
         fs.writeFileSync(args.output + '.proc.wasm', moduleBin);
+        run(
+            wasmMetadce,
+            args.output + '.proc.wasm',
+            '--graph-file', args.output + '.graph.json',
+            '-o', args.output + '.no-wasi.wasm',
+        );
         run(
             wasmOpt,
             args.opt,
             '-o', args.output + '.opt.wasm',
-            args.output + '.proc.wasm'
+            args.output + '.no-wasi.wasm'
         );
         moduleBin = fs.readFileSync(args.output + '.opt.wasm');
     }
@@ -185,10 +219,12 @@ async function main() {
     fs.writeFileSync(args.output, moduleBin);
 
     // Remove temporary files
-    fs.unlinkSync(args.output + '.wat');
+    //fs.unlinkSync(args.output + '.wat');
     try {
         fs.unlinkSync(args.output + '.opt.wasm');
         fs.unlinkSync(args.output + '.proc.wasm');
+        fs.unlinkSync(args.output + '.no-wasi.wasm');
+        fs.unlinkSync(args.output + '.graph.json');
     } catch (e) { }
 }
 

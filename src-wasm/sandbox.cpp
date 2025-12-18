@@ -254,6 +254,25 @@ bool init(uint32_t gcThresholdMin, uint32_t heapUsedLimit, uint32_t memoryLimit,
 }
 
 
+static inline uint32_t getMemorySize()
+{
+    return __builtin_wasm_memory_size(0) * 65536;
+}
+
+
+WASM_EXPORT(setStackPointer)
+__attribute__((naked))
+void setStackPointer(uint32_t sp) {
+    __asm__ volatile ("local.get 0\nglobal.set __stack_pointer\nreturn");
+}
+
+
+WASM_EXPORT(getStackPointer)
+__attribute__((naked))
+uint32_t getStackPointer() {
+    __asm__ volatile ("global.get __stack_pointer\nreturn");
+}
+
 int main(int argc, const char* argv[]) {
     initialMemorySize = getMemorySize();
     initialStackPointer = getStackPointer();
@@ -386,3 +405,16 @@ static bool defineSandboxObject()
 
 
 #pragma endregion
+
+#ifdef DEBUG
+__attribute__((used)) __attribute__((export_name("__dependency_module_hex:wasi_snapshot_preview1:"
+    #include "wasi-stubs.wasm.hex.inc"
+))) void __dependency_module_hex_wasi_snapshot_preview1() {}
+#else
+WASM_EXPORT(stdoutWrite) void stdoutWrite(const char* text, uint32_t len) {
+    if (logLevel < LogLevel::Debug) {
+        return;
+    }
+    hostLog(LogLevel::Debug, text, strlen(text));
+}
+#endif
