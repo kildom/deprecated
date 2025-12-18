@@ -260,18 +260,19 @@ static inline uint32_t getMemorySize()
 }
 
 
-WASM_EXPORT(setStackPointer)
-__attribute__((naked))
-void setStackPointer(uint32_t sp) {
-    __asm__ volatile ("local.get 0\nglobal.set __stack_pointer\nreturn");
-}
-
-
 WASM_EXPORT(getStackPointer)
 __attribute__((naked))
 uint32_t getStackPointer() {
     __asm__ volatile ("global.get __stack_pointer\nreturn");
 }
+
+
+WASM_EXPORT(setStackPointer)
+__attribute__((naked))
+void setStackPointer(uint32_t value) {
+    __asm__ volatile ("local.get 0\nglobal.set __stack_pointer\nreturn");
+}
+
 
 int main(int argc, const char* argv[]) {
     initialMemorySize = getMemorySize();

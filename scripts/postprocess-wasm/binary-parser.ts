@@ -1,6 +1,5 @@
 
 import assert from 'assert';
-import { exportInfoPrefix } from '../../src-common/common';
 
 enum SectionType {
     customSection = 0,
@@ -253,7 +252,7 @@ export function rewriteModule(binary: Uint8Array, memory: Uint8Array, stackPoint
         getIndexStartsAndMemoryFromImports({ memorySize: memory.length });
 
     let { stackPointerIndex } =
-        getSpIndex();
+        addMemSizeToExportAndGetSpIndex({ memorySize: memory.length });
 
     let { dataBlockCount } =
         generateNewDataSection(memory, stackPointer, sizeOptimize);
@@ -319,12 +318,15 @@ function commitSectionOutput() {
     currentSection.output = [currentSection.input];
 }
 
-function getSpIndex() {
-    setActive(SectionType.exportSection);
+function addMemSizeToExportAndGetSpIndex({ memorySize }: { memorySize: number }) {
+    setActive(SectionType.exportSection, true);
 
     let stackPointerIndex = -1;
 
     let count = leb128();
+    outputUnsigned(count - 1); // count
+    let actual_count = 0;
+    let lastKnownFuncIndex = 0;
     for (let i = 0; i < count; i++) {
         let start = offset;
         let strLen = leb128();
@@ -334,9 +336,22 @@ function getSpIndex() {
         let index = leb128();
         if (name === '__stack_pointer') {
             stackPointerIndex = index;
+        } else if (name === '_start') {
+            // The "_start" function is not needed any more. It was already executed.
+        } else {
+            output(bin.subarray(start, offset));
+            actual_count++;
+            if (kind === 0x00) {
+                lastKnownFuncIndex = index;
+            }
         }
     }
+    output('__xTa0gM2eh3_' + Math.ceil(memorySize / PAGE_SIZE).toString(16));
+    outputUnsigned(0x00);
+    outputUnsigned(lastKnownFuncIndex);
+    actual_count++;
     assert(stackPointerIndex >= 0);
+    assert.equal(actual_count, count - 1);
 
     return { stackPointerIndex };
 }
@@ -536,10 +551,13 @@ function getStackPointerLocation({ stackPointerIndex, globalIndexStart }: { stac
     let stackPointerSize = -1;
 
     let count = leb128();
+    let mutableCount = 0;
 
     for (let i = 0; i < count; i++) {
         byte(); // Type
-        assert(byte() <= 0x01, 'Global mutable or not');
+        let mut = byte();
+        assert(mut <= 0x01, 'Global mutable or not');
+        if (mut === 0x01) mutableCount++;
         let instr = byte();
         let start = offset;
         if (instr === 0x41 || instr === 0x42) {
@@ -560,6 +578,7 @@ function getStackPointerLocation({ stackPointerIndex, globalIndexStart }: { stac
     }
 
     assert(stackPointerBegin > 0 && stackPointerSize > 0);
+    assert.equal(mutableCount, 1, 'Only one mutable global supported by freeze functionality.');
 
     return { stackPointerBegin, stackPointerSize };
 }

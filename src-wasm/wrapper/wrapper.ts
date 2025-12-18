@@ -18,8 +18,6 @@
  */
 
 
-import { exportInfoPrefix } from '../../src-common/common';
-import { createWasiImports } from './wasi-stubs';
 import * as wasm from './wasm-interface';
 
 const encoder = new TextEncoder();
@@ -66,60 +64,6 @@ interface Imports extends wasm.SandboxWasmImport {
     setInstance(instance: WebAssembly.Instance): void;
 };
 
-function createImports(module: WebAssembly.Module, maxMemorySize?: number): Imports {
-
-    let initialPages = 0;
-    for (let exp of WebAssembly.Module.exports(module)) {
-        if (exp.name.startsWith(exportInfoPrefix)) {
-            initialPages = parseInt(exp.name.substring(exportInfoPrefix.length), 16);
-            break;
-        }
-    }
-    if (initialPages <= 0) {
-        throw new Error('Invalid WebAssembly sandbox module.');
-    }
-
-    let memOptions: WebAssembly.MemoryDescriptor = { initial: initialPages };
-    if (maxMemorySize) {
-        memOptions.maximum = Math.ceil(maxMemorySize / 65536);
-    }
-
-    let memory = new WebAssembly.Memory(memOptions);
-    let instance: WebAssembly.Instance;
-    let exports: wasm.SandboxWasmExport;
-
-    return {
-        env: {
-            memory,
-            entry() {
-                throw new Error('This should never happen.');
-            },
-            log(level, str, len) {
-                let arr = new Uint8Array(memory.buffer, str, len);
-                let text = decoder.decode(arr);
-                // TODO: Different way of logging
-                if (level === LogLevel.Error) {
-                    console.error('GUEST:', text);
-                } else if (level === LogLevel.Warning) {
-                    console.warn('GUEST:', text);
-                } else if (level === LogLevel.Info) {
-                    console.info('GUEST:', text);
-                } else {
-                    console.debug('GUEST:', text);
-                }
-            },
-            call(groupId, functionId, arg) {
-                throw new Error('Need to be implemented in wrapper.');
-            },
-        },
-        wasi_snapshot_preview1: createWasiImports(memory),
-        setInstance(newInstance: WebAssembly.Instance) {
-            instance = newInstance;
-            exports = instance.exports as any;
-        }
-    };
-}
-
 
 export class EngineError extends Error {
     public guestStack?: string;
@@ -138,7 +82,7 @@ const ExceptionResultSize = 16;
 
 function makeDisposable<T>(obj: T): T {
     if (typeof Symbol.dispose === 'symbol' && typeof (obj as any).dispose === 'function') {
-        obj[Symbol.dispose] = (obj as any).dispose;
+        (obj as any)[Symbol.dispose] = (obj as any).dispose;
     }
     return obj;
 }
@@ -348,6 +292,8 @@ function fromPtr(wrapper: Wrapper, ptr: number): undefined | SandboxString | Com
 }
 
 
+let cachedModules = new WeakMap<WebAssembly.Module, Record<string, WebAssembly.Module>>();
+
 export class Wrapper {
 
     public onCall?: (groupId: number, functionId: number, arg?: string) => string;
@@ -376,10 +322,111 @@ export class Wrapper {
         }
     }
 
+    private static createImports(wrapper: Wrapper): Imports {
+
+        let initialPages = 0;
+        for (let exp of WebAssembly.Module.exports(wrapper.module)) {
+            if (exp.name.startsWith('__xTa0gM2eh3_')) {
+                initialPages = parseInt(exp.name.substring(13), 16);
+                break;
+            }
+        }
+        if (initialPages <= 0) {
+            throw new Error('Invalid WebAssembly sandbox module.');
+        }
+
+        let memOptions: WebAssembly.MemoryDescriptor = { initial: initialPages };
+        if (wrapper.memoryLimit) {
+            memOptions.maximum = Math.ceil(wrapper.memoryLimit / 65536);
+        }
+
+        let startTime = Date.now();
+        let lastTime = 0;
+        let memory = new WebAssembly.Memory(memOptions);
+        // TODO: Those may be unnecessary
+        let instance: WebAssembly.Instance;
+        let exports: wasm.SandboxWasmExport;
+
+        return {
+            env: {
+                memory,
+                log(level, str, len) {
+                    let arr = new Uint8Array(memory.buffer, str, len);
+                    let text = decoder.decode(arr);
+                    wrapper.onLog?.(level, text);
+                },
+                entry() {
+                    throw new Error('This should never happen.');
+                },
+                getRandom(buf, size) {
+                    let arr = new Uint8Array(memory.buffer, buf, size);
+                    if (globalThis.crypto) {
+                        globalThis.crypto.getRandomValues(arr);
+                    } else {
+                        for (let i = 0; i < arr.length; i++) {
+                            arr[i] = Math.floor(Math.random() * 256);
+                        }
+                    }
+                },
+                getTime(realTime) {
+                    if (realTime) {
+                        return BigInt(Date.now());
+                    } else if (globalThis.performance) {
+                        return BigInt(Math.floor(globalThis.performance.now()));
+                    } else {
+                        let now = Date.now() - startTime;
+                        if (now < lastTime) {
+                            startTime = Date.now() - lastTime;
+                            now = lastTime;
+                        }
+                        lastTime = now;
+                        return BigInt(now);
+                    }
+                },
+                call: wrapper._callFromGuest.bind(wrapper),
+            },
+            // TODO: This may be unnecessary
+            setInstance(newInstance: WebAssembly.Instance) {
+                instance = newInstance;
+                exports = instance.exports as any;
+            }
+        };
+    }
+
+    private static async loadEmbeddedModules(imports: Record<string, any>, module: WebAssembly.Module) {
+        for (let exp of WebAssembly.Module.exports(module)) {
+            if (exp.name.startsWith('__dependency_module_hex:')) {
+                let [_tag, name, hex] = exp.name.split(':');
+                let depModule: WebAssembly.Module;
+                if (cachedModules.has(module) && cachedModules.get(module)![name]) {
+                    depModule = cachedModules.get(module)![name];
+                } else {
+                    const modBytes = new Uint8Array(hex.length / 2);
+                    for (let i = 0; i < modBytes.length; i++) {
+                        const byte = hex.substring(i * 2, i * 2 + 2);
+                        modBytes[i] = parseInt(byte, 16);
+                    }
+                    depModule = await WebAssembly.compile(modBytes);
+                    if (cachedModules.has(module)) {
+                        cachedModules.get(module)![name] = depModule;
+                    } else {
+                        cachedModules.set(module, { [name]: depModule });
+                    }
+                }
+                let depInstance = await WebAssembly.instantiate(depModule, imports as any);
+                if (imports[name]) {
+                    imports[name] = { ...imports[name], ... depInstance.exports}
+                } else {
+                    imports[name] = depInstance.exports;
+                }
+            }
+        }
+    }
+
     private static async initWrapper(wrapper: Wrapper, module: WebAssembly.Module, memoryLimit: number) {
         wrapper.memoryLimit = memoryLimit;
-        let imports = createImports(module, memoryLimit);
-        imports.env.call = (groupId, functionId, arg) => wrapper._callFromGuest(groupId, functionId, arg);
+        let imports = this.createImports(wrapper);
+        await Wrapper.loadEmbeddedModules(imports, module);
         wrapper._instance = await WebAssembly.instantiate(wrapper.module, imports as any);
         imports.setInstance(wrapper._instance);
         wrapper._exports = wrapper._instance.exports as any as wasm.SandboxWasmExport;
@@ -393,7 +440,7 @@ export class Wrapper {
         try {
             sourceStr.obj = new SandboxString(this, source);
             fileNameStr.obj = new SandboxString(this, fileName);
-            resultPtr = this._exports.compile!(sourceStr.obj.ptr, fileNameStr.obj.ptr, flags);
+            resultPtr = this._exports.compile(sourceStr.obj.ptr, fileNameStr.obj.ptr, flags);
         } finally {
             sourceStr.dispose();
             fileNameStr.dispose();
@@ -420,7 +467,7 @@ export class Wrapper {
         let resultPtr: number;
         let argStr = new SandboxString(this, arg);
         try {
-            resultPtr = this._exports.execute!(bytecode.ptr, argStr.ptr);
+            resultPtr = this._exports.execute(bytecode.ptr, argStr.ptr);
         } finally {
             argStr.dispose();
         }
@@ -445,7 +492,7 @@ export class Wrapper {
         let resultPtr: number;
         let argStr = new SandboxString(this, arg);
         try {
-            resultPtr = this._exports.call!(groupId, functionId, argStr.ptr);
+            resultPtr = this._exports.call(groupId, functionId, argStr.ptr);
         } finally {
             argStr.dispose();
         }
@@ -511,9 +558,17 @@ export class Wrapper {
     }
 
     public takeSnapshot(): Snapshot {
+        // TODO: CompileResult is not preserved by snapshots.
+        /*
+        Solution: don't use compile-execute model. WASM module should export only execute function
+        that takes source code as argument (internally it will take ownership of source and file name, compile and execute once).
+        For re-usable code, suggest to user to use imports/exports. Once code is no longer needed, user can
+        override it with undefined (or null) to allow GC to reclaim the memory.
+        Benefits: simpler code, API, testing, memory savings.
+        Cons: None?
+        */
         let stackPointer = this._exports.getStackPointer();
         let [data, dataOffset] = this.createSnapshotData();
-        console.log(`Snapshot data size ${data.length} / ${this._memory.buffer.byteLength}`);
         return {
             module: this.module,
             memorySize: this._memory.buffer.byteLength,

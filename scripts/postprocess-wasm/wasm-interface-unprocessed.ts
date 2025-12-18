@@ -25,6 +25,7 @@
 
 
 export interface SandboxWasmExport {
+    memory: WebAssembly.Memory;
     __stack_pointer: any;
     _start(): void;
     create(/* uint32_t */ type: number, /* uint32_t */ size: number): /* SandboxAny* */ number;
@@ -33,6 +34,28 @@ export interface SandboxWasmExport {
     execute(/* CompileResult* */ code: number, /* SandboxString* */ arg: number): /* SandboxAny* */ number;
     call(/* uint32_t */ groupId: number, /* uint32_t */ functionId: number, /* SandboxString* */ arg: number): /* SandboxAny* */ number;
     init(/* uint32_t */ gcThresholdMin: number, /* uint32_t */ heapUsedLimit: number, /* uint32_t */ memoryLimit: number, /* LogLevel::T */ logLevel: number): /* bool */ number;
+    getStackPointer(): /* uint32_t */ number;
+    setStackPointer(/* uint32_t */ value: number): void;
+    stdoutWrite?: (a: number, b: number) => void;
+    path_remove_directory?: (a: number, b: number, c: number) => number;
+    path_unlink_file?: (a: number, b: number, c: number) => number;
+    args_get?: (a: number, b: number) => number;
+    args_sizes_get?: (a: number, b: number) => number;
+    environ_get?: (a: number, b: number) => number;
+    environ_sizes_get?: (a: number, b: number) => number;
+    clock_res_get?: (a: number, b: number) => number;
+    clock_time_get?: (a: number, b: bigint, c: number) => number;
+    random_get?: (a: number, b: number) => number;
+    fd_read?: (a: number, b: number, c: number, d: number) => number;
+    fd_write?: (a: number, b: number, c: number, d: number) => number;
+    fd_seek?: (a: number, b: bigint, c: number, d: number) => number;
+    fd_close?: (a: number) => number;
+    fd_fdstat_get?: (a: number, b: number) => number;
+    proc_exit?: (a: number) => void;
+    fd_fdstat_set_flags?: (a: number, b: number) => number;
+    fd_prestat_get?: (a: number, b: number) => number;
+    fd_prestat_dir_name?: (a: number, b: number, c: number) => number;
+    path_open?: (a: number, b: number, c: number, d: number, e: number, f: bigint, g: bigint, h: number, i: number) => number;
 };
 
 export namespace SandboxWasmImportModule {
@@ -41,31 +64,11 @@ export namespace SandboxWasmImportModule {
         call(/* uint32_t */ groupId: number, /* uint32_t */ functionId: number, /* SandboxString* */ arg: number): number;
         log(/* LogLevel::T */ level: number, /* const void* */ str: number, /* uint32_t */ len: number): void;
         entry(): number;
-    };
-    export interface wasi_snapshot_preview1 {
-        fd_write(a: number, b: number, c: number, d: number): number;
-        args_get(a: number, b: number): number;
-        args_sizes_get(a: number, b: number): number;
-        environ_get(a: number, b: number): number;
-        environ_sizes_get(a: number, b: number): number;
-        clock_res_get(a: number, b: number): number;
-        clock_time_get(a: number, b: bigint, c: number): number;
-        fd_close(a: number): number;
-        fd_fdstat_get(a: number, b: number): number;
-        fd_fdstat_set_flags(a: number, b: number): number;
-        fd_prestat_get(a: number, b: number): number;
-        fd_prestat_dir_name(a: number, b: number, c: number): number;
-        fd_read(a: number, b: number, c: number, d: number): number;
-        fd_seek(a: number, b: bigint, c: number, d: number): number;
-        path_open(a: number, b: number, c: number, d: number, e: number, f: bigint, g: bigint, h: number, i: number): number;
-        path_remove_directory(a: number, b: number, c: number): number;
-        path_unlink_file(a: number, b: number, c: number): number;
-        proc_exit(a: number): void;
-        random_get(a: number, b: number): number;
+        getTime(/* uint32_t */ realTime: number): bigint;
+        getRandom(/* uint8_t* */ buf: number, /* uint32_t */ size: number): void;
     };
 };
 
 export interface SandboxWasmImport {
     env: SandboxWasmImportModule.env;
-    wasi_snapshot_preview1: SandboxWasmImportModule.wasi_snapshot_preview1;
 };

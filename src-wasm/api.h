@@ -112,6 +112,24 @@ void objectDispose(SandboxAny* object);
 
 
 /**
+ * Get the current stack pointer value.
+ *
+ * @return - current stack pointer value.
+ */
+WASM_EXPORT(getStackPointer)
+uint32_t getStackPointer();
+
+
+/**
+ * Set the stack pointer to the given value.
+ *
+ * @param sp - new stack pointer value.
+ */
+WASM_EXPORT(setStackPointer)
+void setStackPointer(uint32_t value);
+
+
+/**
  * Call a host function with the given group ID, function ID and argument.
  *
  * If `__sandbox__._onDataToHost` function if defined, `arg` argument was filtered by it.
@@ -149,6 +167,26 @@ void hostLog(LogLevel::T level, const void* str, uint32_t len);
  */
 WASM_IMPORT(entry)
 int hostEntry();
+
+
+/**
+ * Get current time in microseconds.
+ * 
+ * @param realTime - if non-zero, return real time, otherwise return monotonic time.
+ * @return - current time in microseconds.
+ */
+WASM_IMPORT(getTime)
+uint64_t getTime(uint32_t realTime);
+
+
+/**
+ * Fill the given buffer with random bytes.
+ * 
+ * @param buf - buffer to fill with random bytes.
+ * @param size - size of the buffer in bytes.
+ */
+WASM_IMPORT(getRandom)
+void getRandom(uint8_t* buf, uint32_t size);
 
 
 #endif

@@ -3,12 +3,12 @@ import * as fs from 'node:fs';
 import * as child_process from 'node:child_process';
 import cre from 'con-reg-exp';
 import assert from 'node:assert';
-import { exportInfoPrefix } from '../../src-common/common';
 
 
 let inputs: string[];
 let output: string;
 let comment: string;
+let isFinal: boolean;
 
 if (process.argv[2] === 'unprocessed') {
     inputs = [
@@ -18,6 +18,7 @@ if (process.argv[2] === 'unprocessed') {
     ];
     output = 'scripts/postprocess-wasm/wasm-interface-unprocessed.ts';
     comment = '/*\n * Code was automatically generated. Do not edit manually.\n * Run "npm run wasm-api unprocessed" to regenerate it.\n */\n\n';
+    isFinal = false;
 } else {
     inputs = [
         'dist/debug.wasm',
@@ -26,6 +27,7 @@ if (process.argv[2] === 'unprocessed') {
     ];
     output = 'src-wasm/wrapper/wasm-interface.ts';
     comment = '/*\n * Code was automatically generated. Do not edit manually.\n * Run "npm run wasm-api" to regenerate it.\n */\n\n';
+    isFinal = true;
 }
 
 
@@ -258,7 +260,8 @@ function parseInterface(file: string, mode: string) {
             if (!funcDecls[index]) fatal(`Cannot get type for export: ${groups.funcName}`);
             let type = funcDecls[index];
             let name = trimQuotes(groups.funcName);
-            if (name.startsWith(exportInfoPrefix)) continue;
+            if (name.startsWith('__xTa0gM2eh3_')) continue;
+            if (name.startsWith('__dependency_module_hex')) continue;
             if (name in funcExports) {
                 assertTypeEqual(type, funcExports[name].type);
                 funcExports[name].counter++;
@@ -368,14 +371,17 @@ function generateInterface() {
     let importIface: string[] = [];
     result.push(`export interface SandboxWasmExport {`);
     for (let exp of memExports) {
+        if (isFinal) continue;
         result.push(`    ${exp}: WebAssembly.Memory;`);
     }
     for (let exp of globalExports) {
+        if (isFinal) continue;
         result.push(`    ${exp}: any;`);
     }
     for (let exp of Object.values(funcExports)) {
         let line = `    ${exp.name}`;
         if (exp.counter !== variantCounter) {
+            if (isFinal) continue;
             line += `?: (${formatParams(exp.type)}) =>`;
         } else {
             line += `(${formatParams(exp.type)}):`;
@@ -394,6 +400,7 @@ function generateInterface() {
     ]);
     result.push(`export namespace SandboxWasmImportModule {`);
     for (let mod of modules) {
+        if (mod === 'wasi_snapshot_preview1') continue;
         result.push(`    export interface ${mod} {`);
         for (let mem of memImports) {
             if (!mem.startsWith(mod + '.')) continue;

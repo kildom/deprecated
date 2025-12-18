@@ -1,6 +1,4 @@
 
-export const exportInfoPrefix = '__xTa0gM2eh3_';
-
 export type RegisterCallbacks = { [key: string]: Function | RegisterCallbacks };
 
 

@@ -1,5 +1,4 @@
 import bootSource from "../build/guest/boot";
-import { exportInfoPrefix } from "../src-common/common";
 import { deserialize } from "../src-common/deserializer";
 import { IncomingRegistry } from "../src-common/incoming-registry";
 import { OutgoingRegistry } from "../src-common/outgoing-registry";
@@ -170,8 +169,8 @@ export function setModule(moduleSource?: ModuleSourceType): Promise<void> {
         .then(() => {
             initialPages = 0;
             for (let exp of WebAssembly.Module.exports(currentModule!)) {
-                if (exp.name.startsWith(exportInfoPrefix)) {
-                    initialPages = parseInt(exp.name.substring(exportInfoPrefix.length), 16);
+                if (exp.name.startsWith('__xTa0gM2eh3_')) {
+                    initialPages = parseInt(exp.name.substring('__xTa0gM2eh3_'.length), 16);
                     break;
                 }
             }
