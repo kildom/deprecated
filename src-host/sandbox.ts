@@ -1,14 +1,18 @@
 import bootSource from "../build/guest/boot";
+import { serialize } from "../src-common/serializer";
 import { deserialize } from "../src-common/deserializer";
 import { IncomingRegistry } from "../src-common/incoming-registry";
 import { OutgoingRegistry } from "../src-common/outgoing-registry";
-import { serialize } from "../src-common/serializer";
 import * as wr from "../src-wasm/wrapper/wrapper";
 
 export const GuestError = wr.GuestError;
+export type GuestError = wr.GuestError;
 export const EngineError = wr.EngineError;
+export type EngineError = wr.EngineError;
 export const HostError = wr.HostError;
+export type HostError = wr.HostError;
 export const LogLevel = wr.LogLevel;
+export type LogLevel = wr.LogLevel;
 
 
 export interface InstantiateOptions {
@@ -17,10 +21,12 @@ export interface InstantiateOptions {
     minHeapThreshold?: number; // default: maxHeapSize * 0.xx // TODO: minHeapThreshold
     maxMessageEstimatedSize?: number; // default: 1 * 1024 * 1024 // TODO: Estimated memory size allocated by the data flowing from guest to host.
     maxCallRecursion?: number; // default: 10 // TODO: maximum number of calls between host and guest in one call stack.
+    onLog?: (sandbox: Sandbox, level: LogLevel, message: string) => void; // default: redirect to console.log
+    logLevel?: LogLevel; // default: LogLevel.Error
     // Documentation should explain that recursion should be avoided, something like:
     // "Don't call guest from host function that might be called from guest."
     module?: ModuleSourceType;
-};
+}
 
 
 interface ValidatedInstantiateOptions extends InstantiateOptions {
@@ -29,6 +35,8 @@ interface ValidatedInstantiateOptions extends InstantiateOptions {
     minHeapThreshold: number;
     maxMessageEstimatedSize: number;
     maxCallRecursion: number;
+    onLog: (sandbox: Sandbox, level: LogLevel, message: string) => void;
+    logLevel: LogLevel;
 }
 
 
@@ -50,7 +58,6 @@ export interface SnapshotCallbacks {
     instantiateSnapshot?: (sandbox: Sandbox, snapshot: Snapshot) => void;
 };
 
-export type Bytecode = wr.CompileResult;
 
 /**
  * Represents an isolated environment for executing JavaScript code.
@@ -63,10 +70,7 @@ export interface Sandbox {
      * @param options - Optional execution options.
      * @returns The result of the code execution if `options.returnValue` is true, `undefined` otherwise.
      */
-    execute(code: Bytecode): any;
     execute(code: string, options?: ExecuteOptions): any;
-
-    compile(code: string, options?: ExecuteOptions): Bytecode;
 
     /**
      * Registers callbacks that are available in the guest as imports.
@@ -230,8 +234,10 @@ function prepareSandboxObject(
     incoming: IncomingRegistry,
     exports: any,
     imports: any,
-    storage: Storage,
 ): Sandbox {
+
+    let sourceCodeIndex = 0;
+    let storage = Object.create(null);
 
     return {
 
@@ -239,35 +245,18 @@ function prepareSandboxObject(
         imports,
         storage,
 
-        execute(code: string | Bytecode, options?: ExecuteOptions): any {
-
-            let compiled: Bytecode | undefined = undefined;
-
-            try {
-                if (typeof code === 'string') {
-                    let flags = wr.ExecuteFlags.Once;
-                    if (options?.asModule) flags |= wr.ExecuteFlags.Module;
-                    if (options?.returnValue) flags |= wr.ExecuteFlags.ReturnValue;
-                    compiled = wrapper.compile(code, options?.fileName, flags);
-                    code = compiled;
-                }
-                let argsSerialized = serialize(options?.args);
-                let resultSerialized = wrapper.execute(code, argsSerialized);
-                let result: any = undefined;
-                if ((options?.returnValue || (code.getFlags() & wr.ExecuteFlags.ReturnValue)) && resultSerialized) {
-                    result = deserialize(resultSerialized);
-                }
-                return result;
-            } finally {
-                if (compiled) compiled.dispose();
-            }
-        },
-
-        compile(code: string, options?: ExecuteOptions): Bytecode {
-            let flags = 0;
+        execute(code: string, options?: ExecuteOptions): any {
+            let flags: wr.ExecuteFlags = 0;
             if (options?.asModule) flags |= wr.ExecuteFlags.Module;
             if (options?.returnValue) flags |= wr.ExecuteFlags.ReturnValue;
-            return wrapper.compile(code, options?.fileName, flags);
+            let argsSerialized = serialize(options?.args);
+            let resultSerialized = wrapper.execute(code, '' + (options?.fileName ?? `__unnamed_script_${sourceCodeIndex}__.js`), flags, argsSerialized);
+            sourceCodeIndex++;
+            let result: any = undefined;
+            if (options?.returnValue && resultSerialized) {
+                result = deserialize(resultSerialized);
+            }
+            return result;
         },
 
         addSnapshotCallbacks(callbacks: SnapshotCallbacks): void {
@@ -308,51 +297,76 @@ export async function instantiate(options?: InstantiateOptions): Promise<Sandbox
 
     let module = await getModule(options?.module);
     let opt = validateOptions(options);
+    let sandbox: Sandbox | undefined = undefined;
+    let initLogs: [LogLevel, string][] | undefined = [];
 
-    let wrapper = new wr.Wrapper(module);
-    await wrapper.init(opt.minHeapThreshold, opt.maxHeapSize, opt.maxWasmSize, LogLevel.Info); // TODO: log level
-
-    let snapshotCallbacks: SnapshotCallbacks[] = [];
-    let storage: Storage = {};
-
-    let code = wrapper.compile(bootSource, '__sandbox__internal/boot.js', wr.ExecuteFlags.Module | wr.ExecuteFlags.Once);
     try {
-        wrapper.execute(code);
-    } finally {
-        code.dispose();
-    }
 
-    // Imports (outgoing calls) setup
-    let outgoing = new OutgoingRegistry(true);
-    let exports = ((groupId: number) => {
-        return outgoing.get(groupId);
-    }) as any;
-    outgoing.set(0, exports);
-    outgoing.onCall = (groupId, functionId, args) => {
-        console.log('outgoing.onCall', groupId, functionId, args);
-        return deserialize(wrapper.call(groupId, functionId, serialize(args)));
-    };
+        let wrapper = new wr.Wrapper(module);
+        wrapper.onLog = (level, message) => initLogs!.push([level, message]);
+        await wrapper.init(opt.minHeapThreshold, opt.maxHeapSize, opt.maxWasmSize, opt.logLevel);
 
-    // Exports (incoming calls) setup
-    let incoming = new IncomingRegistry();
-    let imports = function(obj: any, groupId?: number) {
-        let msg = incoming.register(obj, groupId);
-        wrapper.call(0x7FFFFFFF, 0, serialize(msg));
-        return msg.groupId;
-    }
+        let snapshotCallbacks: SnapshotCallbacks[] = [];
+        let storage: Storage = {};
 
-    wrapper.onCall = (groupId, functionId, arg) => {
-        if (!arg) return serialize(undefined);
-        let argObj = deserialize(arg);
-        console.log('wrapper.onCall', groupId, functionId, argObj);
-        if (groupId === 0x7FFFFFFF) {
-            outgoing.register(argObj);
-            return serialize(undefined);
+        wrapper.execute(bootSource, '__sandbox__internal/boot.js', wr.ExecuteFlags.Module);
+
+        // Imports (outgoing calls) setup
+        let outgoing = new OutgoingRegistry(true);
+        let exports = ((groupId: number) => {
+            return outgoing.get(groupId);
+        }) as any;
+        outgoing.set(0, exports);
+        outgoing.onCall = (groupId, functionId, args) => {
+            console.log('outgoing.onCall', groupId, functionId, args);
+            return deserialize(wrapper.call(groupId, functionId, serialize(args)));
+        };
+
+        // Exports (incoming calls) setup
+        let incoming = new IncomingRegistry();
+        let imports = function (obj: any, groupId?: number) {
+            let msg = incoming.register(obj, groupId);
+            wrapper.call(0x7FFFFFFF, 0, serialize(msg));
+            return msg.groupId;
         }
-        return serialize(incoming.execute(groupId, functionId, argObj));
-    };
 
-    return prepareSandboxObject(wrapper, snapshotCallbacks, outgoing, incoming, exports, imports, storage);
+        wrapper.onCall = (groupId, functionId, arg) => {
+            let argObj = arg ? deserialize(arg) : undefined;
+            if (groupId === 0x7FFFFFFF) {
+                outgoing.register(argObj);
+                return serialize(undefined);
+            }
+            return serialize(incoming.execute(groupId, functionId, argObj));
+        };
+
+        sandbox = prepareSandboxObject(wrapper, snapshotCallbacks, outgoing, incoming, exports, imports);
+
+        wrapper.onLog = (level, message) => opt.onLog(sandbox!, level, message);
+        let oldLogs = initLogs;
+        initLogs = undefined;
+        for (let [level, message] of oldLogs) {
+            opt.onLog(sandbox!, level, message);
+        }
+
+        return sandbox;
+
+    } finally {
+        if (initLogs && initLogs.length > 0) {
+            let dummySandbox: Sandbox = {
+                execute() { throw new HostError('Sandbox is not initialized.'); },
+                imports() { throw new HostError('Sandbox is not initialized.'); },
+                exports: (() => { throw new HostError('Sandbox is not initialized.'); }) as any,
+                addSnapshotCallbacks() { throw new HostError('Sandbox is not initialized.'); },
+                takeSnapshot() { throw new HostError('Sandbox is not initialized.'); },
+                storage: Object.create(null),
+            };
+            for (let [level, message] of initLogs) {
+                try {
+                    opt.onLog(dummySandbox, level, message);
+                } catch (e) { }
+            }
+        }
+    }
 }
 
 async function instantiateSnapshot(
@@ -381,7 +395,7 @@ async function instantiateSnapshot(
 
     // Exports (incoming calls) setup
     let incoming = incomingSnapshot.clone();
-    let imports = function(obj: any, groupId?: number) {
+    let imports = function (obj: any, groupId?: number) {
         let msg = incoming.register(obj, groupId);
         wrapper.call(0x7FFFFFFF, 0, serialize(msg));
         return msg.groupId;
@@ -397,7 +411,7 @@ async function instantiateSnapshot(
         return serialize(incoming.execute(groupId, functionId, argObj));
     };
 
-    let newSandbox = prepareSandboxObject(wrapper, snapshotCallbacks, outgoing, incoming, exports, imports, storage);
+    let newSandbox = prepareSandboxObject(wrapper, snapshotCallbacks, outgoing, incoming, exports, imports);
 
     for (let callbacks of snapshotCallbacks) {
         callbacks.instantiateSnapshot?.(newSandbox, snapshot);
@@ -457,5 +471,78 @@ function validateOptions(invalidOptions?: InstantiateOptions): ValidatedInstanti
         options.maxCallRecursion = 16;
     }
 
+    if (options.logLevel == null) {
+        options.logLevel = LogLevel.Error;
+    }
+
+    if (!options.onLog) {
+        options.onLog = defaultLogHandler;
+    }
+
     return options as ValidatedInstantiateOptions;
+}
+
+const defaultLogHandlerStateSymbol = Symbol('DefaultLogHandlerState');
+
+function defaultLogHandler(sandbox: Sandbox, level: LogLevel, message: string): void {
+
+    interface DefaultLogHandlerState {
+        prevLine?: string;
+        prevLevel: LogLevel;
+        prevTimeout?: any;
+    }
+
+    let state: DefaultLogHandlerState = sandbox.storage[defaultLogHandlerStateSymbol];
+
+    if (!state) {
+        state = { prevLevel: LogLevel.None, };
+        sandbox.storage[defaultLogHandlerStateSymbol] = state;
+    }
+
+    if (state.prevLine) {
+        if (state.prevLevel !== level) {
+            defaultLogHandlerImpl(state.prevLevel, state.prevLine);
+        } else {
+            message = state.prevLine + message;
+            state.prevLine = undefined;
+            if (state.prevTimeout !== undefined) {
+                clearTimeout(state.prevTimeout);
+                state.prevTimeout = undefined;
+            }
+        }
+    }
+
+    if (!message.endsWith('\n')) {
+        state.prevTimeout = setTimeout(() => defaultLogHandler(sandbox, LogLevel.None, ''), 100);
+        state.prevLevel = level;
+        let pos = message.lastIndexOf('\n');
+        if (pos >= 0) {
+            state.prevLine = message.substring(pos + 1);
+            message = message.substring(0, pos + 1);
+        } else {
+            state.prevLine = message;
+            return;
+        }
+    }
+
+    defaultLogHandlerImpl(level, message);
+}
+
+
+function defaultLogHandlerImpl(level: LogLevel, message: string): void {
+    message = message.trimEnd();
+    switch (level) {
+        case LogLevel.Error:
+            console.error(message);
+            break;
+        case LogLevel.Warning:
+            console.warn(message);
+            break;
+        case LogLevel.Info:
+            console.info(message);
+            break;
+        case LogLevel.Debug:
+            console.debug(message);
+            break;
+    }
 }

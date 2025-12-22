@@ -55,11 +55,10 @@ test.for(fileVariants)(`compile [%s]`, async (wasmFile) => {
     let mod = await getModule(wasmFile);
     let sandbox = await mod.instantiate();
     sandbox.execute('x = 1;');
-    using code = sandbox.compile('x++', { returnValue: true });
-    expect(sandbox.execute(code)).toBe(1);
-    expect(sandbox.execute(code)).toBe(2);
-    expect(sandbox.execute(code)).toBe(3);
-    expect(sandbox.execute(code)).toBe(4);
+    expect(sandbox.execute('x++', { returnValue: true })).toBe(1);
+    expect(sandbox.execute('x++', { returnValue: true })).toBe(2);
+    expect(sandbox.execute('x++', { returnValue: true })).toBe(3);
+    expect(sandbox.execute('x++', { returnValue: true })).toBe(4);
 });
 
 test.for(fileVariants)(`call default import [%s]`, async (wasmFile) => {
@@ -108,7 +107,7 @@ test.for(fileVariants)(`call export [%s]`, async (wasmFile) => {
                 calls.push(a);
                 return a + '-test';
             },
-        }, 0);`, {fileName: 'test.js'});
+        }, 0);`, { fileName: 'test.js' });
     let res = sandbox.exports.test('one');
     expect(res).toBe('one-test');
     res = sandbox.exports.test(2);
