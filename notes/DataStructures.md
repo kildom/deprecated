@@ -88,6 +88,8 @@ Value types:
         * if less than 3, it is NULL-terminated
         * cannot contain NULL characters
     * useful for minimized Javascript
+    * may be enabled only for RAM size optimization
+    * may fit 4 of 7-bit characters
 * String
     * content: head index
     * head
