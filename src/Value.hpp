@@ -211,7 +211,8 @@ using Exception = prv::Variant::Exception;
 Exception::Boolean::T getReady();
 Exception::Integer::T getValue();
 
-bool isException(Exception::T value);
+template<uint64_t MASK> requires (MASK & (1 << 18)) // Type must also contain Exception
+bool isException(CheckedValue<MASK> value);
 
 namespace Value {
     prv::Variant::None::T None(0);
