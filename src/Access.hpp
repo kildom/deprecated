@@ -16,23 +16,23 @@ struct Table
     void (*walk)(MUES_PARAMS Head::Base* head);
     bool (*dispose)(MUES_PARAMS Head::Base* head);
     // Proxy-like callbacks
-    Any::Exception::T (*getPrototypeOf)(MUES_PARAMS Value::T obj);
+    AnyJs::Exception::T (*getPrototypeOf)(MUES_PARAMS Value::T obj);
     Boolean::Exception::T (*setPrototypeOf)(MUES_PARAMS Value::T obj, Value::T proto);
     Boolean::Exception::T (*isExtensible)(MUES_PARAMS Value::T obj);
     Boolean::Exception::T (*preventExtensions)(MUES_PARAMS Value::T obj);
     Object::Undefined::Exception::T (*getOwnPropertyDescriptor)(
-        MUES_PARAMS Value::T obj, Value::Or<Value::StringT, Value::SymbolT> property);
+        MUES_PARAMS Value::T obj, String::Symbol::T property);
     Object::Undefined::Exception::T (*defineProperty)(
-        MUES_PARAMS Value::T obj, Value::Or<Value::StringT, Value::SymbolT> property, Value::ObjectT descriptor);
-    Boolean::Exception::T (*has)(MUES_PARAMS Value::T obj, Value::Or<Value::StringT, Value::SymbolT> property);
-    Any::Exception::T (*get)(
-        MUES_PARAMS Value::T obj, Value::Or<Value::StringT, Value::SymbolT> property, Value::T receiver);
-    Boolean::Exception::T (*set)(MUES_PARAMS Value::T obj, Value::Or<Value::StringT, Value::SymbolT> property,
+        MUES_PARAMS Value::T obj, String::Symbol::T property, Value::ObjectT descriptor);
+    Boolean::Exception::T (*has)(MUES_PARAMS Value::T obj, String::Symbol::T property);
+    AnyJs::Exception::T (*get)(
+        MUES_PARAMS Value::T obj, String::Symbol::T property, Value::T receiver);
+    Boolean::Exception::T (*set)(MUES_PARAMS Value::T obj, String::Symbol::T property,
         Value::T value, Value::T receiver);
     Boolean::Exception::T (*deleteProperty)(
-        MUES_PARAMS Value::T obj, Value::Or<Value::StringT, Value::SymbolT> property);
+        MUES_PARAMS Value::T obj, String::Symbol::T property);
     Object::Exception::T (*ownKeys)(MUES_PARAMS Value::T obj);
-    Any::Exception::T (*apply)(MUES_PARAMS Value::T obj);  // arguments and "this" are passed over the stack
+    AnyJs::Exception::T (*apply)(MUES_PARAMS Value::T obj);  // arguments and "this" are passed over the stack
     Object::Exception::T (*construct)(
         MUES_PARAMS Value::T obj, Value::T newTarget);  // arguments are passed over the stack
     // Operators
@@ -70,7 +70,7 @@ void instrSub(MUES_NO_PARAMS)
 
 const Access::Table* fromNC(MUES_PARAMS Value::T value);
 
-const Access::Table* fromNC(MUES_PARAMS Head::Any* head);
+const Access::Table* fromNC(MUES_PARAMS Head::AnyJs* head);
 
 static inline const Access::Table* fromNC(Block::Base* block)
 {
