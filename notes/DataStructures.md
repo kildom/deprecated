@@ -87,6 +87,9 @@ Value types:
         * up to 3 bytes of string
         * if less than 3, it is NULL-terminated
         * cannot contain NULL characters
+        * other approach (maybe simpler) to length: use 2 highest unused bits:
+          `c[0] = x; x >>= 8; c[1] = x; x >>= 8; c[2] = x; x >>= 8; c[3] = 0; len = x & 3` or
+          `int32_t tmp = x & 0xFFFFFF; c = (char*)&tmp; len = (x >> 24) & 3`
     * useful for minimized Javascript
     * may be enabled only for RAM size optimization
     * may fit 4 of 7-bit characters
