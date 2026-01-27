@@ -109,8 +109,11 @@ struct CheckedValue
     // When converting from other CheckedValue assert that:
     // * it is expected type
     // * OTHER_MASK & ~MASK == 0 // other type is not wider that current
-    template<uint64_t OTHER_MASK>
+    template<uint64_t OTHER_MASK> requires is_assignable(T_MASK, OTHER_MASK) // C++20 only
     CheckedValue(const CheckedValue<OTHER_MASK>& other);
+    // C++17: template <uint64_t OTHER_MASK, typename = std::enable_if_t<is_assignable(T_MASK, OTHER_MASK)>>
+    template<uint64_t OTHER_MASK> requires is_assignable(T_MASK, OTHER_MASK)
+    CheckedValue operator=(const CheckedValue<OTHER_MASK>& other);
 
     // Nothing to check if converting to uint32_t
     operator uint32_t() const;
