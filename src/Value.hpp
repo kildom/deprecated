@@ -92,48 +92,146 @@ static inline constexpr Value::T getType(Value::T value)
 
 namespace prv {
 
-template<int X = 0>
+template<uint64_t T_MASK>
+struct CheckedValue
+{
+    static constexpr uint64_t MASK = T_MASK;
+    // The type is plain 32-bit type, so it can be also used everywhere Value::T (uint32_t) is used.
+    uint32_t value;
+
+    // CheckedValue(); use default: value will be uninitialized as in production build
+    CheckedValue(const CheckedValue&);
+
+    // When converting from uint32_t assert that it is expected type
+    CheckedValue(uint32_t);
+    CheckedValue operator=(uint32_t);
+
+    // When converting from other CheckedValue assert that:
+    // * it is expected type
+    // * OTHER_MASK & ~MASK == 0 // other type is not wider that current
+    template<uint64_t OTHER_MASK>
+    CheckedValue(const CheckedValue<OTHER_MASK>& other);
+
+    // Nothing to check if converting to uint32_t
+    operator uint32_t() const;
+};
+
+// Remove bits from current type
+#if TYPE_ASSERTS
+template<uint64_t T_MASK>
+CheckedValue<T_MASK & ~(1 << 2)> removeBoolean(const CheckedValue<T_MASK>& value);
+template<uint64_t T_MASK>
+CheckedValue<T_MASK & ~(1 << 18)> removeException(const CheckedValue<T_MASK>& value);
+// ...
+#else
+static inline constexpr uint32_t removeBoolean(uint32_t x) { return x; }
+static inline constexpr uint32_t removeException(uint32_t x) { return x; }
+// ...
+#endif
+
+template<int X, uint64_t MASK>
 struct Dummy
 {
 };
 
-template<>
-struct Dummy<0>
+template<uint64_t MASK>
+struct Dummy<0, MASK>
 {
 private:
 
-    template<int X = 0>
-    struct TypeContainer: public Dummy<X>
+    template<int X, uint64_t Y>
+    struct TypeContainer: public Dummy<X, Y>
     {
+        #if TYPE_ASSERTS
+        template <uint64_t OTHER_MASK>
+        static CheckedValue<OTHER_MASK & ~Y> remove(const CheckedValue<OTHER_MASK>&);
+        #else
+        static inline constexpr uint32_t remove(uint32_t x) { return x; }
+        #endif
     };
 
 public:
 
-    using T = unsigned;
-    using Any = TypeContainer<0>;
-    using None = TypeContainer<0>;
-    using Boolean = TypeContainer<0>;
-    using Integer = TypeContainer<0>;
-    using FinallyHandler = TypeContainer<0>;
-    using Double = TypeContainer<0>;
-    using Symbol = TypeContainer<0>;
-    using Accessor = TypeContainer<0>;
-    using Scope = TypeContainer<0>;
-    using NativeHead = TypeContainer<0>;
-    using Object = TypeContainer<0>;
-    using String = TypeContainer<0>;
-    using BigInt = TypeContainer<0>;
-    using NativeBlock = TypeContainer<0>;
-    using Empty = TypeContainer<0>;
-    using EndOfList = TypeContainer<0>;
-    using Undefined = TypeContainer<0>;
-    using Null = TypeContainer<0>;
-    using Exception = TypeContainer<0>;
+#if TYPE_ASSERTS
+    using T = CheckedValue<MASK>;
+#else
+    using T = uint32_t;
+#endif
+    using AnyJs = TypeContainer<0, MASK | (/* more flags */1 << 0)>;
+    using None = TypeContainer<0, MASK | (1 << 1)>;
+    using Boolean = TypeContainer<0, MASK | (1 << 2)>;
+    using Integer = TypeContainer<0, MASK | (1 << 3)>;
+    using FinallyHandler = TypeContainer<0, MASK | (1 << 4)>;
+    using Double = TypeContainer<0, MASK | (1 << 5)>;
+    using Symbol = TypeContainer<0, MASK | (1 << 6)>;
+    using Accessor = TypeContainer<0, MASK | (1 << 7)>;
+    using Scope = TypeContainer<0, MASK | (1 << 8)>;
+    using NativeHead = TypeContainer<0, MASK | (1 << 9)>;
+    using Object = TypeContainer<0, MASK | (1 << 10)>;
+    using String = TypeContainer<0, MASK | (1 << 11)>;
+    using BigInt = TypeContainer<0, MASK | (1 << 12)>;
+    using NativeBlock = TypeContainer<0, MASK | (1 << 13)>;
+    using Empty = TypeContainer<0, MASK | (1 << 14)>;
+    using EndOfList = TypeContainer<0, MASK | (1 << 15)>;
+    using Undefined = TypeContainer<0, MASK | (1 << 16)>;
+    using Null = TypeContainer<0, MASK | (1 << 17)>;
+    using Exception = TypeContainer<0, MASK | (1 << 18)>;
 };
+
+using Variant = prv::Dummy<0, 0>;
 
 }  // namespace prv
 
-using Variant = prv::Dummy<0>;
+
+
+using AnyJs = prv::Variant::AnyJs; // any valid JS value, except e.g. FinallyHandler, Exception, EndOfList, ...
+using None = prv::Variant::None;
+using Boolean = prv::Variant::Boolean;
+using Integer = prv::Variant::Integer;
+using FinallyHandler = prv::Variant::FinallyHandler;
+using Double = prv::Variant::Double;
+using Symbol = prv::Variant::Symbol;
+using Accessor = prv::Variant::Accessor;
+using Scope = prv::Variant::Scope;
+using NativeHead = prv::Variant::NativeHead;
+using Object = prv::Variant::Object;
+using String = prv::Variant::String;
+using BigInt = prv::Variant::BigInt;
+using NativeBlock = prv::Variant::NativeBlock;
+using Empty = prv::Variant::Empty;
+using EndOfList = prv::Variant::EndOfList;
+using Undefined = prv::Variant::Undefined;
+using Null = prv::Variant::Null;
+using Exception = prv::Variant::Exception;
+
+
+Exception::Boolean::T getReady();
+Exception::Integer::T getValue();
+
+bool isException(Exception::T value);
+
+namespace Value {
+    prv::Variant::None::T None(0);
+    prv::Variant::Null::T Null(0x20);
+    bool getBool(Boolean::T);
+};
+
+// TODO: Remove Variant prefix, so use only Exception::Integer::Null::T
+// This can be done by defining all type as alias, e.g. use Exception = Variant::Exception
+Exception::Integer::Null::T example() {
+    // BT - build-time assert
+    // RT - run-time assert
+    auto isReady = getReady(); // getReady returns Exception::Boolean and isReady will have that type
+    if (isException(isReady)) { // "if exception", RT: if value==None, assert that exception is set, BT: type has Exception
+        return Value::None;
+    }
+    auto isReadyNoEx = Exception::remove(isReady); // BT: type has exception, RT: if value is None, check if it is allowed by resulting type
+    if (Value::getBool(isReadyNoEx)) { // BT: Check if type is exactly Boolean, RT: Check if type is Boolean
+        return getValue(); // BT: Check if getValue return value is type or subtype of this function return value, RT: The same check
+    } else {
+        return Value::Null; // BT: Check if Null can be returned
+    }
+}
 
 }  // namespace mues
 
