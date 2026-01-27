@@ -92,7 +92,7 @@ Value types:
           `int32_t tmp = x & 0xFFFFFF; c = (char*)&tmp; len = (x >> 24) & 3`
     * useful for minimized Javascript
     * may be enabled only for RAM size optimization
-    * may fit 4 of 7-bit characters
+    * may fit 4 of 7-bit characters: `x &= 0xFFFFFFF; len = !x ? x : (32-clz(x)+6)/7; c[0] = x & 0x7F; x >>= 7; c[1] = x & 0x7F; x >>= 7; c[2] = x & 0x7F; x >>= 7; c[3] = x & 0x7F; c[4] = 0;`
 * String
     * content: head index
     * head
