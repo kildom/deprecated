@@ -1,25 +1,23 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { AstWithLabel } from "./BreakStatement";
+import { AstStatement } from "./Statement";
 import { AstExpression } from "./Expression";
-import { AstNode } from "./Node";
-import { AstProgram } from "./Program";
-import { AstStatement} from "./Statement";
+import { AstSwitchCase } from "./SwitchCase";
+import { AstSwitchStatementContainers } from './helpers/SwitchStatementHelper';
 
-export class AstSwitchStatement extends AstWithLabel implements AstStatement {
-    type!: 'SwitchStatement';
-    discriminant!: AstExpression;
-    cases!: AstSwitchCase[];
-    parent!: AstProgram;
+export class AstSwitchStatement extends AstStatement {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#switchstatement
 
-    generate(gen: BytecodeGenerator): void {
-        // TODO
-    }
-}
+    declare type: "SwitchStatement";
 
-export class AstSwitchCase extends AstNode {
-    type!: 'SwitchCase';
-    test!: AstExpression | null;
-    consequent!: AstStatement[];
-    parent!: AstSwitchStatement;
+    declare discriminant: AstExpression;
+    declare cases: AstSwitchCase[];
 
+    declare container: AstSwitchStatementContainers;
+
+    declare components: (AstExpression | AstSwitchCase)[];
+
+
+};
+
+export function isAstSwitchStatement(node: any): node is AstSwitchStatement {
+    return node instanceof AstSwitchStatement;
 }

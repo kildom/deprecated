@@ -1,18 +1,29 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { AstPattern } from "./common";
-import { AstExpression, ExpressionParent } from "./Expression";
 import { AstNode } from "./Node";
+import { AstExpressionIntf, AstExpression, AstExpressionSymbol } from "./Expression";
+import { AstPattern } from "./Pattern";
+import { AstAssignmentExpressionContainers } from './helpers/AssignmentExpressionHelper';
 
-export type AstAssignmentOperator = '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '>>>=' | '|=' | '^=' | '&=' | /* since ES2016: */ '**=' | /* since ES2021: */ '||=' | '&&=' | '??=';
+export class AstAssignmentExpression extends AstNode implements AstExpressionIntf {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#assignmentexpression
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2015.md#expressions
 
-export class AstAssignmentExpression extends AstNode implements AstExpression {
-    type!: 'AssignmentExpression';
-    operator!: AstAssignmentOperator;
-    left!: AstPattern;
-    right!: AstExpression;
-    parent!: ExpressionParent;
+    declare type: "AssignmentExpression";
 
-    generate(gen: BytecodeGenerator): void {
-        throw new Error("Method not implemented.");
-    }
+    declare operator: 
+        | "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "<<=" | ">>=" | ">>>="
+        | "|=" | "^=" | "&=" | "**=" | "||=" | "&&=" | "??=";
+    declare left: AstPattern;
+    declare right: AstExpression;
+
+    declare container: AstAssignmentExpressionContainers;
+
+    declare components: (AstPattern | AstExpression)[];
+
+
+
+    [AstExpressionSymbol]: true = true;
+};
+
+export function isAstAssignmentExpression(node: any): node is AstAssignmentExpression {
+    return node instanceof AstAssignmentExpression;
 }

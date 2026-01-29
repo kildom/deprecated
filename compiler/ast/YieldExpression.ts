@@ -1,14 +1,24 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { AstExpression, ExpressionParent } from "./Expression";
 import { AstNode } from "./Node";
+import { AstExpressionIntf, AstExpression, AstExpressionSymbol } from "./Expression";
+import { AstYieldExpressionContainers } from './helpers/YieldExpressionHelper';
 
-export class AstYieldExpression extends AstNode implements AstExpression {
-    type!: 'YieldExpression';
-    argument!: AstExpression | null;
-    delegate!: boolean;
-    parent!: ExpressionParent;
+export class AstYieldExpression extends AstNode implements AstExpressionIntf {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2015.md#yieldexpression
 
-    generate(gen: BytecodeGenerator): void {
-        throw new Error("Method not implemented.");
-    }
+    declare type: "YieldExpression";
+
+    declare argument: AstExpression | null;
+    declare delegate: boolean;
+
+    declare container: AstYieldExpressionContainers;
+
+    declare components: (AstExpression)[];
+
+
+
+    [AstExpressionSymbol]: true = true;
+};
+
+export function isAstYieldExpression(node: any): node is AstYieldExpression {
+    return node instanceof AstYieldExpression;
 }

@@ -1,42 +1,23 @@
-import { DumpSink } from "../DumpSink";
-import { AstPattern } from "./common";
-import { AstIdentifier } from "./Identifier";
-import { AstMemberExpression } from "./MemberExpression";
-import { AstNode } from "./Node";
-import { AstProperty } from "./Property";
+import { AstPattern } from "./Pattern";
+import { AstAssignmentProperty } from "./AssignmentProperty";
 import { AstRestElement } from "./RestElement";
+import { AstObjectPatternContainers } from './helpers/ObjectPatternHelper';
 
-export interface AstAssignmentProperty extends AstProperty {
-    type: "Property"; // inherited
-    value: AstPattern;
-    kind: "init";
-    method: false;
-}
+export class AstObjectPattern extends AstPattern {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2015.md#objectpattern
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2018.md#patterns
 
-export class AstObjectPattern extends AstNode {    // since ES2015
-    type!: 'ObjectPattern';
-    properties!: (AstAssignmentProperty | AstRestElement)[];    // since ES2018
-    //          AstAssignmentProperty[];
+    declare type: "ObjectPattern";
 
-    public dump(out: DumpSink): void {
-        super.dump(out);
-        out.log('properties').sub(this.properties);
-    }
+    declare properties: (AstAssignmentProperty | AstRestElement)[];
 
-    getPatternLeafs(): (AstMemberExpression | AstIdentifier)[] {
-        console.log('------', this.properties);
-        return this.properties
-            .reduce((arr, e) => {
-                // console.log(e instanceof AstRestElement);
-                // console.log(e instanceof AstProperty);
-                // console.log((e as any).value);
-                // console.log(Object.getPrototypeOf((e as any).value));
-                if (e instanceof AstRestElement) {
-                    return arr.concat(e.getPatternLeafs());
-                } else {
-                    return arr.concat(e.value.getPatternLeafs());
-                }
-            }, [] as (AstMemberExpression | AstIdentifier)[]);
-    }
+    declare container: AstObjectPatternContainers;
 
+    declare components: (AstAssignmentProperty | AstRestElement)[];
+
+
+};
+
+export function isAstObjectPattern(node: any): node is AstObjectPattern {
+    return node instanceof AstObjectPattern;
 }

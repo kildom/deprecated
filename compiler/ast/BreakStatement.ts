@@ -1,54 +1,21 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { CompileError } from "../Errors";
+import { AstStatement } from "./Statement";
 import { AstIdentifier } from "./Identifier";
-import { AstNode } from "./Node";
-import { AstProgram } from "./Program";
-import { AstStatement} from "./Statement";
+import { AstBreakStatementContainers } from './helpers/BreakStatementHelper';
 
-export class AstBreakStatement extends AstNode implements AstStatement {
-    type!: 'BreakStatement';
-    label!: AstIdentifier | null;
-    parent!: AstProgram;
+export class AstBreakStatement extends AstStatement {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#breakstatement
 
-    generate(gen: BytecodeGenerator): void {
-        // TODO
-    }
-}
+    declare type: "BreakStatement";
 
-export class AstContinueStatement extends AstNode implements AstStatement {
-    type!: 'ContinueStatement';
-    label!: AstIdentifier | null;
-    parent!: AstProgram;
+    declare label: AstIdentifier | null;
+
+    declare container: AstBreakStatementContainers;
+
+    declare components: (AstIdentifier)[];
 
 
-    generate(gen: BytecodeGenerator): void {
-        // TODO
-    }
-}
+};
 
-export class AstLabeledStatement extends AstNode implements AstStatement {
-    type!: 'LabeledStatement';
-    label!: AstIdentifier;
-    body!: AstStatement;
-    parent!: AstProgram;
-
-    protected initialize(): void {
-        if (this.body instanceof AstWithLabel) {
-            this.body.setLabel(this.label.name);
-        } else {
-            throw new CompileError(this, 'Unexpected label');
-        }
-    }
-
-    generate(gen: BytecodeGenerator): void {
-        this.body.generate(gen);
-    }
-}
-
-export class AstWithLabel extends AstNode {
-    label?: string;
-
-    setLabel(label: string): void {
-        this.label = label;
-    }
+export function isAstBreakStatement(node: any): node is AstBreakStatement {
+    return node instanceof AstBreakStatement;
 }

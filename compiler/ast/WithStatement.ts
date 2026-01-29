@@ -1,18 +1,22 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { AstExpression } from "./Expression";
-import { AstNode } from "./Node";
-import { AstProgram } from "./Program";
 import { AstStatement } from "./Statement";
+import { AstExpression } from "./Expression";
+import { AstWithStatementContainers } from './helpers/WithStatementHelper';
 
-export class AstWithStatement extends AstNode implements AstStatement {
-    type!: 'WithStatement';
-    object!: AstExpression;
-    body!: AstStatement;
-    parent!: AstProgram;
+export class AstWithStatement extends AstStatement {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#withstatement
 
-    generate(gen: BytecodeGenerator): void {
-        this.object.generate(gen);
-        this.body.generate(gen);
-        gen.emitPop();
-    }
+    declare type: "WithStatement";
+
+    declare object: AstExpression;
+    declare body: AstStatement;
+
+    declare container: AstWithStatementContainers;
+
+    declare components: (AstExpression | AstStatement)[];
+
+
+};
+
+export function isAstWithStatement(node: any): node is AstWithStatement {
+    return node instanceof AstWithStatement;
 }

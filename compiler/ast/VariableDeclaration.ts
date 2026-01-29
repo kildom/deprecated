@@ -1,103 +1,27 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { DumpSink } from "../DumpSink";
-import { AstBlockStatement, AstBlockStatementBase } from "./BlockStatement";
-import { AstExpression } from "./Expression";
-import { AstForInStatementBase } from "./ForInStatement";
-import { AstFunction, AstFunctionBase } from "./Function";
-import { AstIdentifier } from "./Identifier";
-import { AstForStatement } from "./ForStatement";
-import { AstNode } from "./Node";
-import { AstProgram } from "./Program";
 import { AstStatement } from "./Statement";
-import { AstPattern } from "./common";
-import { collectVariables } from "../utils";
+import { AstDeclarationIntf, AstDeclarationSymbol } from "./Declaration";
+import { AstVariableDeclarator } from "./VariableDeclarator";
+import { AstVariableDeclarationContainers } from './helpers/VariableDeclarationHelper';
 
-export class AstVariableDeclarator extends AstNode {
-    type!: 'VariableDeclarator';
-    id!: AstPattern;
-    init!: AstExpression | null;
-    parent!: AstVariableDeclaration;
+export class AstVariableDeclaration extends AstStatement implements AstDeclarationIntf {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#variabledeclaration
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2015.md#variabledeclaration
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2026.md#variabledeclaration
 
-    get kind() {
-        return this.parent.kind;
-    }
+    declare type: "VariableDeclaration";
 
-    public scanCollectVariables() {
-        super.scanCollectVariables();
-        let found = this.walkParents((parent: AstNode) => {
-            if (parent instanceof AstFunctionBase ||
-                (this.kind !== 'var' && (parent instanceof AstBlockStatementBase || parent instanceof AstForInStatementBase || parent instanceof AstForStatement))) {
-                collectVariables(parent, this.id.getPatternLeafs());
-                return true;
-            }
-        });
-        if (!found) {
-            throw new Error('Internal error: No scope to put a variable.');
-        }
-    }
+    declare declarations: AstVariableDeclarator[];
+    declare kind: "var" | "let" | "const" | "using" | "await using";
 
-    public dump(out: DumpSink): void {
-        super.dump(out);
-        out
-            .log('id').sub(this.id as AstNode) // TODO:
-            .log('init').sub(this.init);
-    }
+    declare container: AstVariableDeclarationContainers;
 
-    /*processPattern(id: AstPattern | null, path: (number | string)[], stage: scanCollectVariablesStage): void {
-        if (id === null) {
-            // do nothing
-        } else if (id.type == 'Identifier') {
-            this.processIdentifier(id, path, stage);
-        } else if (id.type == 'ArrayPattern') {
-            for (let i = 0; i < id.elements.length; i++) {
-                this.processPattern(id.elements[i], [...path, i], stage);
-            }
-        } else if (id.type == 'ObjectPattern') {
-            throw new Error('Not implemented'); // TODO: implement object patterns
-        }
-    }
-
-    processIdentifier(id: AstIdentifier, path: (string | number)[], stage: scanCollectVariables) {
-        throw new Error("Method not implemented.");
-    }
-
-    scanCollectVariables(stage: scanCollectVariables): void {
-        let parent: AstNode = this.parent.parent;
-        let namespace: AstFunction | AstBlockStatementBase | AstForStatement | AstForInStatementBase;
-        while (true) {
-            if (this.parent.kind == 'var' && (parent instanceof AstFunction)) {
-                namespace = parent;
-                break;
-            } else if (parent instanceof AstBlockStatement) {
-
-            }
-            parent = (parent as any).parent as AstNode;
-            if (!parent) {
-                throw new Error("Internal error. Parent chain invalid.");
-            }
-        }
-        this.processPattern(this.id, [], stage);
-        //this.init?.scanCollectVariables(stage);
-    }*/
-
-}
-
-export class AstVariableDeclaration extends AstNode implements AstStatement {
-    type!: 'VariableDeclaration';
-    declarations!: AstVariableDeclarator[];
-    kind!: 'var' | 'let' | 'const';    // since ES2015
-    //    'var';
-    parent!: AstProgram;
+    declare components: (AstVariableDeclarator)[];
 
 
-    generate(gen: BytecodeGenerator): void {
-        throw new Error("Method not implemented.");
-    }
 
-    dump(out: DumpSink): void {
-        super.dump(out);
-        out
-            .log('kind:', this.kind)
-            .log('declarations:').sub(this.declarations);
-    }
+    [AstDeclarationSymbol]: true = true;
+};
+
+export function isAstVariableDeclaration(node: any): node is AstVariableDeclaration {
+    return node instanceof AstVariableDeclaration;
 }

@@ -1,20 +1,41 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { DumpSink } from "../DumpSink";
-import { AstBlockStatementBase } from "./BlockStatement";
 import { AstNode } from "./Node";
-import { AstProgram } from "./Program";
+import { AstStatementContainers, AstStatementComponents } from './helpers/StatementHelper';
+
+export class AstStatement extends AstNode {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#statements
+
+    declare type:
+        | "ExpressionStatement"
+        | "BlockStatement"
+        | "StaticBlock"
+        | "EmptyStatement"
+        | "DebuggerStatement"
+        | "WithStatement"
+        | "ReturnStatement"
+        | "LabeledStatement"
+        | "BreakStatement"
+        | "ContinueStatement"
+        | "IfStatement"
+        | "SwitchStatement"
+        | "ThrowStatement"
+        | "TryStatement"
+        | "WhileStatement"
+        | "DoWhileStatement"
+        | "ForStatement"
+        | "ForInStatement"
+        | "ForOfStatement"
+        | "FunctionDeclaration"
+        | "VariableDeclaration"
+        | "ClassDeclaration";
 
 
-export interface AstStatement extends AstNode {
-    parent: AstProgram | AstBlockStatementBase;
-    generate(gen: BytecodeGenerator): void;
-    dump(out: DumpSink): void;
-}
+    declare container: AstStatementContainers;
 
-export class AstEmptyStatement extends AstNode implements AstStatement {
+    declare components: AstStatementComponents[];
 
-    type!: 'EmptyStatement';
-    parent!: AstProgram;
 
-    generate(gen: BytecodeGenerator): void {}
+};
+
+export function isAstStatement(node: any): node is AstStatement {
+    return node instanceof AstStatement;
 }

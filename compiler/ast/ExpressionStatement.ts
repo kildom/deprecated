@@ -1,37 +1,22 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { DumpSink } from "../DumpSink";
+import { AstStatement } from "./Statement";
 import { AstExpression } from "./Expression";
-import { AstFunctionBase } from "./Function";
-import { AstNode } from "./Node";
-import { AstProgram } from "./Program";
-import { AstStatement} from "./Statement";
+import { AstLiteral } from "./Literal";
+import { AstExpressionStatementContainers } from './helpers/ExpressionStatementHelper';
 
-export class AstExpressionStatement extends AstNode implements AstStatement {
-    type!: 'ExpressionStatement';
-    expression!: AstExpression;
-    directive?: string;
-    parent!: AstProgram;
+export class AstExpressionStatement extends AstStatement {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#expressionstatement
 
-    generate(gen: BytecodeGenerator) {
-        this.expression.generate(gen);
-        gen.emitPop();
-    }
+    declare type: "ExpressionStatement";
 
-    dump(out: DumpSink): void {
-        super.dump(out);
-        out
-            .log('directive:', this.directive)
-            .log('expression:').sub(this.expression);
-    }
+    declare expression: AstExpression;
 
-    public scanPostInit(): void {
-        if (this.directive === 'use strict') {
-            this.walkParents(parent => {
-                if (parent instanceof AstFunctionBase) {
-                    parent.strict = true;
-                    return true;
-                }
-            });
-        }
-    }
+    declare container: AstExpressionStatementContainers;
+
+    declare components: (AstExpression | AstLiteral)[];
+
+
+};
+
+export function isAstExpressionStatement(node: any): node is AstExpressionStatement {
+    return node instanceof AstExpressionStatement;
 }

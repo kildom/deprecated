@@ -34,7 +34,7 @@ Processing:
       * Roll back rest parameter
   * Keep "return address"
   * Remove "number of arguments"
-  * For the future: for "--optimize=speed" option, move microscopes from function object to stack.
+  * For the future: for "--optimize=speed" option, move ClosureEnvironments from function object to stack.
 
 | Global stack |
 |--------------|

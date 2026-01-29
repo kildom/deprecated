@@ -1,32 +1,23 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { DumpSink } from "../DumpSink";
-import { AstPattern, AstPatternInterface } from "./common";
-import { AstCallExpression } from "./CallExpression";
-import { AstExpression } from "./Expression";
-import { AstExpressionStatement } from "./ExpressionStatement";
-import { AstFunction } from "./Function";
-import { AstMemberExpression } from "./MemberExpression";
-import { AstNode } from "./Node";
-import { AstProgram } from "./Program";
-import { AstWithStatement } from "./WithStatement";
+import { AstPattern } from "./Pattern";
+import { AstExpressionIntf, AstExpressionSymbol } from "./Expression";
+import { AstIdentifierContainers } from './helpers/IdentifierHelper';
 
-export class AstIdentifier extends AstNode implements AstExpression, AstPatternInterface {
-    type!: 'Identifier';
-    name!: string;
-    parent!: AstMemberExpression | AstExpressionStatement | AstCallExpression;
+export class AstIdentifier extends AstPattern implements AstExpressionIntf {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#identifier
 
-    protected initialize(): void {
-    }
+    declare type: "Identifier";
 
-    generate(gen: BytecodeGenerator): void {
-    }
+    declare name: string;
 
-    dump(out: DumpSink): void {
-        super.dump(out);
-        out.log('name:', this.name);
-    }
+    declare container: AstIdentifierContainers;
 
-    getPatternLeafs(): (AstMemberExpression | AstIdentifier)[] {
-        return [this];
-    }
+    declare components: never[];
+
+
+
+    [AstExpressionSymbol]: true = true;
+};
+
+export function isAstIdentifier(node: any): node is AstIdentifier {
+    return node instanceof AstIdentifier;
 }

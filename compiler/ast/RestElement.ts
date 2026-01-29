@@ -1,22 +1,20 @@
-import { DumpSink } from "../DumpSink";
-import { AstPattern } from "./common";
-import { AstIdentifier } from "./Identifier";
-import { AstMemberExpression } from "./MemberExpression";
-import { AstNode } from "./Node";
+import { AstPattern } from "./Pattern";
+import { AstRestElementContainers } from './helpers/RestElementHelper';
 
-export class AstRestElement extends AstNode {
-    type!: 'RestElement';
-    argument!: AstPattern;
+export class AstRestElement extends AstPattern {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2015.md#restelement
+
+    declare type: "RestElement";
+
+    declare argument: AstPattern;
+
+    declare container: AstRestElementContainers;
+
+    declare components: (AstPattern)[];
 
 
-    getPatternLeafs(): (AstMemberExpression | AstIdentifier)[] {
-        return this.argument.getPatternLeafs();
-    }
+};
 
-    public dump(out: DumpSink): void {
-        super.dump(out);
-        out
-            .log('argument').sub(this.argument);
-    }
-
+export function isAstRestElement(node: any): node is AstRestElement {
+    return node instanceof AstRestElement;
 }

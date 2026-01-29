@@ -1,28 +1,25 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { AstPattern } from "./common";
-import { AstWithLabel } from "./BreakStatement";
-import { AstExpression } from "./Expression";
-import { AstNode } from "./Node";
-import { AstProgram } from "./Program";
-import { AstStatement} from "./Statement";
+import { AstStatement } from "./Statement";
 import { AstVariableDeclaration } from "./VariableDeclaration";
-import { Variable, VariablesContainer } from "../Namespace";
+import { AstPattern } from "./Pattern";
+import { AstExpression } from "./Expression";
+import { AstForInStatementContainers, AstForInStatementComponents } from './helpers/ForInStatementHelper';
+
+export class AstForInStatement extends AstStatement {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#forinstatement
+
+    declare type: "ForInStatement" | "ForOfStatement";
+
+    declare left: AstVariableDeclaration | AstPattern;
+    declare right: AstExpression;
+    declare body: AstStatement;
+
+    declare container: AstForInStatementContainers;
+
+    declare components: AstForInStatementComponents[];
 
 
-export class AstForInStatementBase extends AstWithLabel implements AstStatement, VariablesContainer {
-    type!: 'ForInStatement' | 'ForOfStatement';
-    left!: AstVariableDeclaration | AstPattern;
-    right!: AstExpression;
-    body!: AstStatement;
-    parent!: AstProgram;
+};
 
-    variables: Variable[] = [];
-
-    generate(gen: BytecodeGenerator): void {
-        throw new Error("Method not implemented.");
-    }
-}
-
-export class AstForInStatement extends AstForInStatementBase {
-    type!: 'ForInStatement';
+export function isAstForInStatement(node: any): node is AstForInStatement {
+    return node instanceof AstForInStatement;
 }

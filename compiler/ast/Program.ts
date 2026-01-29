@@ -1,43 +1,23 @@
-
 import { AstNode } from "./Node";
-import { AstStatement} from "./Statement";
-import { AstImportOrExportDeclaration, AstPattern } from "./common";
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { DumpSink } from "../DumpSink";
-import { AstIdentifier } from "./Identifier";
-import { AstExpression } from "./Expression";
-import { AstFunctionBase } from "./Function";
+import { AstStatement } from "./Statement";
+import { AstImportOrExportDeclaration } from "./ImportOrExportDeclaration";
+
+export class AstProgram extends AstNode {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#programs
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2015.md#programs
+
+    declare type: "Program";
+
+    declare body: (AstStatement | AstImportOrExportDeclaration)[];
+    declare sourceType: "script" | "module";
+
+    declare container: null;
+
+    declare components: (AstStatement | AstImportOrExportDeclaration)[];
 
 
-export class AstProgram extends AstFunctionBase {
-    type!: 'Program';
-    body!: (AstStatement | AstImportOrExportDeclaration)[];
-    sourceType!: 'script' | 'module';
+};
 
-    constructor() {
-        super();
-        this.id = null;
-        this.params = [];
-        this.generator = false;
-        this.async = true;
-    }
-
-    protected initialize() {
-        if (this.sourceType === 'script') {
-            throw new Error(`Script mode not supported.`);
-        }
-    }
-
-    public generate(gen: BytecodeGenerator) {
-        for (const statement of this.body) {
-            statement.generate(gen);
-        }
-    }
-
-    public dump(out: DumpSink): void {
-        super.dump(out);
-        out.log('sourceType:', this.sourceType);
-        out.log('body:');
-        out.sub(this.body);
-    }
+export function isAstProgram(node: any): node is AstProgram {
+    return node instanceof AstProgram;
 }

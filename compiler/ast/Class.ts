@@ -1,64 +1,25 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { AstExpression, ExpressionParent } from "./Expression";
-import { AstFunctionExpression } from "./Function";
-import { AstIdentifier } from "./Identifier";
-import { AstMemberExpression } from "./MemberExpression";
 import { AstNode } from "./Node";
-import { AstProgram } from "./Program";
-import { AstStatement} from "./Statement";
-import { AstStaticBlock } from "./StaticBlock";
+import { AstIdentifier } from "./Identifier";
+import { AstExpression } from "./Expression";
+import { AstClassBody } from "./ClassBody";
+import { AstClassContainers } from './helpers/ClassHelper';
 
-export class AstClass extends AstNode {    // since ES2015
-    id!: AstIdentifier | null;
-    superClass!: AstExpression | null;
-    body!: AstClassBody;
-}
+export class AstClass extends AstNode {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2015.md#classes
 
-export class AstClassBody extends AstNode {    // since ES2015
-    type!: 'ClassBody';
-    body!: (AstMethodDefinition | AstPropertyDefinition | AstStaticBlock)[];    // since ES2022
-    //    AstMethodDefinition[];
-}
+    declare type: "ClassDeclaration" | "ClassExpression";
 
-export class AstMethodDefinition extends AstNode {    // since ES2015
-    type!: 'MethodDefinition';
-    key!: AstExpression | AstPrivateIdentifier;    // since ES2022
-    //   AstExpression;
-    value!: AstFunctionExpression;
-    kind!: 'constructor' | 'method' | 'get' | 'set';
-    computed!: boolean;
-    static!: boolean;
-}
+    declare id: AstIdentifier | null;
+    declare superClass: AstExpression | null;
+    declare body: AstClassBody;
 
-export class AstClassDeclaration extends AstClass implements AstStatement {
-    type!: 'ClassDeclaration';
-    id!: AstIdentifier;
-    parent!: AstProgram;
+    declare container: AstClassContainers;
 
-    generate(gen: BytecodeGenerator): void {
-        throw new Error("Method not implemented.");
-    }
-}
+    declare components: (AstIdentifier | AstExpression | AstClassBody)[];
 
-export class AstClassExpression extends AstClass implements AstExpression {
-    type!: 'ClassExpression';
-    parent!: ExpressionParent;
 
-    generate(gen: BytecodeGenerator): void {
-        throw new Error("Method not implemented.");
-    }
-}
+};
 
-export class AstPropertyDefinition extends AstNode {    // since ES2022
-    type!: 'PropertyDefinition';
-    key!: AstExpression | AstPrivateIdentifier;
-    value!: AstExpression | null;
-    computed!: boolean;
-    static!: boolean;
-}
-
-export class AstPrivateIdentifier extends AstNode {    // since ES2022
-    type!: 'PrivateIdentifier';
-    name!: string;
-    parent!: AstMemberExpression;
+export function isAstClass(node: any): node is AstClass {
+    return node instanceof AstClass;
 }

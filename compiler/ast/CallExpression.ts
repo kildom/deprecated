@@ -1,94 +1,31 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { DumpSink } from "../DumpSink";
-import { AstChainElement } from "./common";
-import { AstExpression } from "./Expression";
-import { AstExpressionStatement } from "./ExpressionStatement";
-import { AstMemberExpression } from "./MemberExpression";
 import { AstNode } from "./Node";
-import { AstSpreadElement } from "./SpreadElement";
+import { AstExpressionIntf, AstExpression, AstExpressionSymbol } from "./Expression";
+import { AstChainElementIntf, AstChainElementSymbol } from "./ChainElement";
 import { AstSuper } from "./Super";
+import { AstSpreadElement } from "./SpreadElement";
+import { AstCallExpressionContainers } from './helpers/CallExpressionHelper';
 
-export class AstCallExpression extends AstNode implements AstExpression {
-    type!: 'CallExpression';
-    callee!: AstExpression | AstSuper;
-    arguments!: (AstExpression | AstSpreadElement)[];
-    // from AstChainElement
-    optional!: boolean;
-    parent!: AstCallExpression | AstExpressionStatement | AstMemberExpression;
+export class AstCallExpression extends AstNode implements AstExpressionIntf, AstChainElementIntf {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#callexpression
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2015.md#expressions
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2020.md#chainexpression
 
-    generate(gen: BytecodeGenerator) {
-        if (this.callee instanceof AstMemberExpression) {
-            this.callee.generateAccessPair(gen, true); // object | object | member_name
-            gen.emitGet();                             // object | member
-            if (this.optional) {
-                let gen2 = gen.newBlock();
-                let blockLabel = gen2.newLabel();
-                gen2.emitSwap();
-                gen2.emitPop();
-                gen2.emitBranch(); // TODO: Top of chain stack
-                gen.emitBranchIfNullish(blockLabel);
-            }
-            this.generateArguments(gen);               // object | member | ...args | args count
-            gen.emitCallMember();               // result
-        } else {
-            this.callee.generate(gen);     // callable
-            if (this.optional) {
-                gen.emitBranchIfNullish(); // TODO: Top of chain stack
-            }
-            this.generateArguments(gen);   // callable | ...args | args count
-            gen.emitCall();               // result
-        }
-    }
+    declare type: "CallExpression";
 
-    generateArguments(gen: BytecodeGenerator) {
-        let i = 0;
-        while (i < this.arguments.length) {
-            let arg = this.arguments[i];
-            if (arg instanceof AstSpreadElement) {
-                break;
-            } else {
-                arg.generate(gen);
-            }
-            i++;
-        }
-        gen.emitPushInt(i);
-        let normalArgCount = 0;
-        while (i < this.arguments.length) {
-            let arg = this.arguments[i];
-            if (arg instanceof AstSpreadElement) {
-                arg.argument.generate(gen);
-                gen.emitSpread();
-            } else {
-                arg.generate(gen);
-                gen.emitSwap();
-                normalArgCount++;
-            }
-            i++;
-        }
-        if (normalArgCount > 0) {
-            gen.emitPushInt(normalArgCount);
-            gen.emitAdd();
-        }
-    }
+    declare optional: boolean;
+    declare callee: AstExpression | AstSuper;
+    declare arguments: (AstExpression | AstSpreadElement)[];
 
-    dump(out: DumpSink): void {
-        super.dump(out);
-        out
-            .log('optional:', this.optional)
-            .log('callee:').sub(this.callee)
-            .log('arguments:').sub(this.arguments);
-    }
+    declare container: AstCallExpressionContainers;
 
-    /*scanCollectVariables(stage: scanCollectVariables): void {
-        if (!(this.callee instanceof AstSuper)) {
-            this.callee.scanCollectVariables(stage);
-        }
-        for (let arg of this.arguments) {
-            if (arg instanceof AstSpreadElement) {
-                arg.argument.scanCollectVariables(stage);
-            } else {
-                arg.scanCollectVariables(stage);
-            }
-        }
-    }*/
+    declare components: (AstExpression | AstSuper | AstSpreadElement)[];
+
+
+
+    [AstExpressionSymbol]: true = true;
+    [AstChainElementSymbol]: true = true;
+};
+
+export function isAstCallExpression(node: any): node is AstCallExpression {
+    return node instanceof AstCallExpression;
 }

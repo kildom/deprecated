@@ -99,7 +99,7 @@ Design:
   * PENDING - this object need to be traveled (e.g. owner changed), ignored if ROOTED is not set
   * CONTAINER - this object is a container that can hold references to other objects (set once when object is allocated)
   * DYNAMIC - first entry in object head is pointer to table of methods (including traversal method)
-  * VALUES_ONLY - all entries in object head are simple values (e.g. micro scope)
+  * VALUES_ONLY - all entries in object head are simple values (e.g. Closure Environments)
   * ALLOCATED, ROOTED i PENDING są zawsze ustawiane przy allokacji
   * ROOTED może zostać zastąpiony kilkoma bitami przy generacyjnym GC
 * Root dla GC, to lista

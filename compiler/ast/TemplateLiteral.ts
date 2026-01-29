@@ -1,34 +1,25 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { AstExpression, ExpressionParent } from "./Expression";
 import { AstNode } from "./Node";
+import { AstExpressionIntf, AstExpression, AstExpressionSymbol } from "./Expression";
+import { AstTemplateElement } from "./TemplateElement";
+import { AstTemplateLiteralContainers } from './helpers/TemplateLiteralHelper';
 
-export class AstTemplateElement extends AstNode {
-    type!: 'TemplateElement';
-    tail!: boolean;
-    value!: {
-        cooked: string | null;
-        raw: string;
-    };
-}
+export class AstTemplateLiteral extends AstNode implements AstExpressionIntf {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2015.md#templateliteral
 
-export class AstTemplateLiteral extends AstNode implements AstExpression {
-    type!: 'TemplateLiteral';
-    quasis!: AstTemplateElement[];
-    expressions!: AstExpression[];
-    parent!: ExpressionParent;
+    declare type: "TemplateLiteral";
 
-    generate(gen: BytecodeGenerator): void {
-        throw new Error("Method not implemented.");
-    }
-}
+    declare quasis: AstTemplateElement[];
+    declare expressions: AstExpression[];
 
-export class AstTaggedTemplateExpression extends AstNode implements AstExpression {
-    type!: 'TaggedTemplateExpression';
-    tag!: AstExpression;
-    quasi!: AstTemplateLiteral;
-    parent!: ExpressionParent;
+    declare container: AstTemplateLiteralContainers;
 
-    generate(gen: BytecodeGenerator): void {
-        throw new Error("Method not implemented.");
-    }
+    declare components: (AstTemplateElement | AstExpression)[];
+
+
+
+    [AstExpressionSymbol]: true = true;
+};
+
+export function isAstTemplateLiteral(node: any): node is AstTemplateLiteral {
+    return node instanceof AstTemplateLiteral;
 }

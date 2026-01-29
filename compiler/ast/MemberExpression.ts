@@ -1,53 +1,33 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { DumpSink } from "../DumpSink";
-import { AstCallExpression } from "./CallExpression";
-import { AstExpression } from "./Expression";
-import { AstExpressionStatement } from "./ExpressionStatement";
-import { AstIdentifier } from "./Identifier";
-import { AstNode } from "./Node";
+import { AstPattern } from "./Pattern";
+import { AstExpressionIntf, AstExpression, AstExpressionSymbol } from "./Expression";
+import { AstChainElementIntf, AstChainElementSymbol } from "./ChainElement";
 import { AstSuper } from "./Super";
+import { AstPrivateIdentifier } from "./PrivateIdentifier";
+import { AstMemberExpressionContainers } from './helpers/MemberExpressionHelper';
 
-export class AstMemberExpression extends AstNode implements AstExpression {
-    type!: 'MemberExpression';
-    object!: AstExpression | AstSuper;
-    property!: AstExpression;// TODO: | AstPrivateIdentifier;
-    computed!: boolean;
-    // from AstChainElement
-    optional!: boolean; // TODO: Support chain elements
-    parent!: AstMemberExpression | AstCallExpression | AstExpressionStatement;
+export class AstMemberExpression extends AstPattern implements AstExpressionIntf, AstChainElementIntf {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#memberexpression
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2015.md#expressions
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2020.md#chainexpression
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2022.md#privateidentifier
 
-    generateAccessPair(gen: BytecodeGenerator, duplicateObj: boolean = false) {
-        this.object.generate(gen);
-        if (this.optional) {
-            gen.emitBranchIfNullish(); // TODO: Top of chain stack
-        }
-        if (duplicateObj) {
-            gen.emitDup();
-        }
-        if (this.computed) {
-            this.property.generate(gen);
-        } else if (this.property instanceof AstIdentifier) {
-            gen.emitPushString(this.property.name);
-        } else {
-            throw new Error('TODO: The message');
-        }
-    }
+    declare type: "MemberExpression";
 
-    generate(gen: BytecodeGenerator): void {
-        this.generateAccessPair(gen);
-        gen.emitGet();
-    }
+    declare optional: boolean;
+    declare object: AstExpression | AstSuper;
+    declare property: AstExpression | AstPrivateIdentifier;
+    declare computed: boolean;
 
-    dump(out: DumpSink): void {
-        super.dump(out);
-        out
-            .log('object:').sub(this.object)
-            .log('property:').sub(this.property)
-            .log('computed:', this.computed)
-            .log('optional:', this.optional);
-    }
+    declare container: AstMemberExpressionContainers;
 
-    getPatternLeafs(): (AstMemberExpression | AstIdentifier)[] {
-        return [this];
-    }
+    declare components: (AstExpression | AstSuper | AstPrivateIdentifier)[];
+
+
+
+    [AstExpressionSymbol]: true = true;
+    [AstChainElementSymbol]: true = true;
+};
+
+export function isAstMemberExpression(node: any): node is AstMemberExpression {
+    return node instanceof AstMemberExpression;
 }

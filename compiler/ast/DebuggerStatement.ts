@@ -1,16 +1,19 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { AstNode } from "./Node";
-import { AstProgram } from "./Program";
 import { AstStatement } from "./Statement";
+import { AstDebuggerStatementContainers } from './helpers/DebuggerStatementHelper';
+
+export class AstDebuggerStatement extends AstStatement {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#debuggerstatement
+
+    declare type: "DebuggerStatement";
 
 
-export class AstDebuggerStatement extends AstNode implements AstStatement {
-    type!: 'DebuggerStatement';
-    parent!: AstProgram;
+    declare container: AstDebuggerStatementContainers;
+
+    declare components: never[];
 
 
+};
 
-    generate(gen: BytecodeGenerator): void {
-        gen.emitDebug();
-    }
+export function isAstDebuggerStatement(node: any): node is AstDebuggerStatement {
+    return node instanceof AstDebuggerStatement;
 }

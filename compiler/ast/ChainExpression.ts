@@ -1,25 +1,24 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { DumpSink } from "../DumpSink";
-import { AstChainElement } from "./common";
-import { AstCallExpression } from "./CallExpression";
-import { AstExpression } from "./Expression";
-import { AstExpressionStatement } from "./ExpressionStatement";
-import { AstMemberExpression } from "./MemberExpression";
 import { AstNode } from "./Node";
+import { AstExpressionIntf, AstExpressionSymbol } from "./Expression";
+import { AstChainElement } from "./ChainElement";
+import { AstChainExpressionContainers } from './helpers/ChainExpressionHelper';
 
-export class AstChainExpression extends AstNode implements AstExpression {
-    parent!: AstCallExpression | AstMemberExpression | AstExpressionStatement;
-    type!: 'ChainExpression';
-    expression!: AstChainElement;
+export class AstChainExpression extends AstNode implements AstExpressionIntf {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2020.md#chainexpression
 
-    generate(gen: BytecodeGenerator): void {
-        let skipLabel = gen.newLabel();
-        this.expression.generate(gen);
-        gen.emitLabel(skipLabel);
-    }
+    declare type: "ChainExpression";
 
-    dump(out: DumpSink) {
-        super.dump(out);
-        out.log('expression:').sub(this.expression);
-    }
+    declare expression: AstChainElement;
+
+    declare container: AstChainExpressionContainers;
+
+    declare components: (AstChainElement)[];
+
+
+
+    [AstExpressionSymbol]: true = true;
+};
+
+export function isAstChainExpression(node: any): node is AstChainExpression {
+    return node instanceof AstChainExpression;
 }

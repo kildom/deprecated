@@ -1,0 +1,33 @@
+import { AstProgram } from "../Program";
+import { AstFunction } from "../Function";
+import { AstBlockStatement } from "../BlockStatement";
+import { AstWithStatement } from "../WithStatement";
+import { AstLabeledStatement } from "../LabeledStatement";
+import { AstIfStatement } from "../IfStatement";
+import { AstSwitchCase } from "../SwitchCase";
+import { AstTryStatement } from "../TryStatement";
+import { AstCatchClause } from "../CatchClause";
+import { AstWhileStatement } from "../WhileStatement";
+import { AstDoWhileStatement } from "../DoWhileStatement";
+import { AstForStatement } from "../ForStatement";
+import { AstForInStatement } from "../ForInStatement";
+import { AstFunctionDeclaration } from "../FunctionDeclaration";
+import { AstFunctionExpression } from "../FunctionExpression";
+import { AstForOfStatement } from "../ForOfStatement";
+import { AstArrowFunctionExpression } from "../ArrowFunctionExpression";
+import { AstClassBody } from "../ClassBody";
+import { AstExportNamedDeclaration } from "../ExportNamedDeclaration";
+import { AstAnonymousDefaultExportedFunctionDeclaration } from "../AnonymousDefaultExportedFunctionDeclaration";
+import { AstExportDefaultDeclaration } from "../ExportDefaultDeclaration";
+import { AstStaticBlock } from "../StaticBlock";
+import { AstExpression } from "../Expression";
+import { AstLiteral } from "../Literal";
+import { AstStatement } from "../Statement";
+import { AstIdentifier } from "../Identifier";
+import { AstVariableDeclaration } from "../VariableDeclaration";
+import { AstPattern } from "../Pattern";
+import { AstVariableDeclarator } from "../VariableDeclarator";
+
+export type AstStatementContainers = AstProgram | AstFunction | AstBlockStatement | AstWithStatement | AstLabeledStatement | AstIfStatement | AstSwitchCase | AstTryStatement | AstCatchClause | AstWhileStatement | AstDoWhileStatement | AstForStatement | AstForInStatement | AstFunctionDeclaration | AstFunctionExpression | AstForOfStatement | AstArrowFunctionExpression | AstClassBody | AstExportNamedDeclaration | AstAnonymousDefaultExportedFunctionDeclaration | AstExportDefaultDeclaration | AstStaticBlock;
+
+export type AstStatementComponents = AstExpression | AstLiteral | AstStatement | AstIdentifier | AstSwitchCase | AstBlockStatement | AstCatchClause | AstVariableDeclaration | AstPattern | AstVariableDeclarator | AstClassBody;

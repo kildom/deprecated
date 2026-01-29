@@ -1,46 +1,29 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { DumpSink } from "../DumpSink";
-import { AstDeclaration } from "./common";
-import { AstIdentifier } from "./Identifier";
+import { AstImportOrExportDeclaration } from "./ImportOrExportDeclaration";
+import { AstDeclaration } from "./Declaration";
+import { AstExportSpecifier } from "./ExportSpecifier";
 import { AstLiteral } from "./Literal";
-import { AstModuleSpecifierBase } from "./ModuleSpecifier";
-import { AstNode } from "./Node";
+import { AstImportAttribute } from "./ImportAttribute";
 import { AstProgram } from "./Program";
-import { AstStatement} from "./Statement";
+import { AstExportNamedDeclarationComponents } from './helpers/ExportNamedDeclarationHelper';
 
-export class AstExportSpecifier extends AstModuleSpecifierBase {    // since ES2015
-    type!: 'ExportSpecifier';
-    exported!: AstIdentifier | AstLiteral;    // since ES2022
-    //        AstIdentifier;
-    local!: AstIdentifier | AstLiteral;    // since ES2022
+export class AstExportNamedDeclaration extends AstImportOrExportDeclaration {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2015.md#exportnameddeclaration
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2025.md#exportnameddeclaration
 
-    public dump(out: DumpSink): void {
-        super.dump(out);
-        out
-            .log('exported').sub(this.exported)
-            .log('local').sub(this.local);
-    }
+    declare type: "ExportNamedDeclaration";
+
+    declare declaration: AstDeclaration | null;
+    declare specifiers: AstExportSpecifier[];
+    declare source: AstLiteral | null;
+    declare attributes: AstImportAttribute[] | null;
+
+    declare container: AstProgram;
+
+    declare components: AstExportNamedDeclarationComponents[];
+
+
+};
+
+export function isAstExportNamedDeclaration(node: any): node is AstExportNamedDeclaration {
+    return node instanceof AstExportNamedDeclaration;
 }
-
-export class AstExportNamedDeclaration extends AstNode implements AstStatement {
-    type!: 'ExportNamedDeclaration';
-    declaration!: AstDeclaration | null;
-    specifiers!: AstExportSpecifier[];
-    source!: AstLiteral | null;
-    parent!: AstProgram;
-
-
-    generate(gen: BytecodeGenerator): void {
-        throw new Error("Method not implemented.");
-    }
-
-    public dump(out: DumpSink): void {
-        super.dump(out);
-        out
-            .log('declaration').sub(this.declaration)
-            .log('specifiers').sub(this.specifiers)
-            .log('source').sub(this.source);
-
-    }
-}
-

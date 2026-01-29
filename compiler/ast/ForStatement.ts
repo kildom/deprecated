@@ -1,23 +1,25 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { Variable, VariablesContainer } from "../Namespace";
-import { AstWithLabel } from "./BreakStatement";
-import { AstExpression } from "./Expression";
-import { AstNode } from "./Node";
-import { AstProgram } from "./Program";
-import { AstStatement} from "./Statement";
+import { AstStatement } from "./Statement";
 import { AstVariableDeclaration } from "./VariableDeclaration";
+import { AstExpression } from "./Expression";
+import { AstForStatementContainers } from './helpers/ForStatementHelper';
 
-export class AstForStatement extends AstWithLabel implements AstStatement, VariablesContainer {
-    type!: 'ForStatement';
-    init!: AstVariableDeclaration | AstExpression | null;
-    test!: AstExpression | null;
-    update!: AstExpression | null;
-    body!: AstStatement;
-    parent!: AstProgram;
+export class AstForStatement extends AstStatement {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#forstatement
 
-    variables: Variable[] = [];
+    declare type: "ForStatement";
 
-    generate(gen: BytecodeGenerator): void {
-        // TODO:
-    }
+    declare init: AstVariableDeclaration | AstExpression | null;
+    declare test: AstExpression | null;
+    declare update: AstExpression | null;
+    declare body: AstStatement;
+
+    declare container: AstForStatementContainers;
+
+    declare components: (AstVariableDeclaration | AstExpression | AstStatement)[];
+
+
+};
+
+export function isAstForStatement(node: any): node is AstForStatement {
+    return node instanceof AstForStatement;
 }

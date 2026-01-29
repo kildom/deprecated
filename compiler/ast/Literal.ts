@@ -1,49 +1,29 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { DumpSink } from "../DumpSink";
-import { AstCallExpression } from "./CallExpression";
-import { AstExpression } from "./Expression";
-import { AstExpressionStatement } from "./ExpressionStatement";
-import { AstMemberExpression } from "./MemberExpression";
 import { AstNode } from "./Node";
+import { AstExpressionIntf, AstExpressionSymbol } from "./Expression";
+import { AstLiteralContainers } from './helpers/LiteralHelper';
 
+export class AstLiteral extends AstNode implements AstExpressionIntf {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#literal
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es2020.md#literal
 
-export class AstLiteral extends AstNode implements AstExpression {
-    type!: 'Literal';
-    value!: string | boolean | null | number | RegExp | bigint;
-    raw!: string;
-    regex?: {
-        pattern: string; flags: string;
+    declare type: "Literal";
+
+    declare value: string | boolean | null | number | RegExp | bigint;
+    declare bigint: string;
+    declare regex: {
+        pattern: string;
+        flags: string;
     };
-    bigint?: string;
-    parent!: AstMemberExpression | AstExpressionStatement | AstCallExpression;
 
-    generate(gen: BytecodeGenerator): void {
-        switch (typeof this.value) {
-            case 'string':
-                gen.emitPushString(this.value);
-                break;
-            case 'boolean':
-                gen.emitPushBool(this.value);
-                break;
-            case 'number':
-                gen.emitPushNumber(this.value);
-                break;
-            case 'bigint':
-                gen.emitPushBitInt(this.value);
-                break;
-            case 'object':
-                if (this.value === null) {
-                    gen.emitPushNull();
-                } else {
-                    gen.emitPushRegExp(this.value);
-                }
-                break;
-        }
-    }
+    declare container: AstLiteralContainers;
 
-    public dump(out: DumpSink): void {
-        super.dump(out);
-        out.log('raw:', this.raw);
-    }
+    declare components: never[];
 
+
+
+    [AstExpressionSymbol]: true = true;
+};
+
+export function isAstLiteral(node: any): node is AstLiteral {
+    return node instanceof AstLiteral;
 }

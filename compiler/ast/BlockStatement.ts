@@ -1,29 +1,20 @@
-import { BytecodeGenerator } from "../BytecodeGenerator";
-import { DumpSink } from "../DumpSink";
-import { Variable, VariablesContainer } from "../Namespace";
-import { AstNode } from "./Node";
-import { AstProgram } from "./Program";
-import { AstStatement} from "./Statement";
+import { AstStatement } from "./Statement";
+import { AstBlockStatementContainers } from './helpers/BlockStatementHelper';
 
-export class AstBlockStatementBase extends AstNode implements AstStatement, VariablesContainer {
-    type!: 'BlockStatement' | 'StaticBlock';
-    body!: AstStatement[];
-    parent!: AstProgram;
+export class AstBlockStatement extends AstStatement {
+    // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#blockstatement
 
-    variables: Variable[] = [];
+    declare type: "BlockStatement" | "StaticBlock";
 
-    generate(gen: BytecodeGenerator): void {
-        throw new Error("Method not implemented.");
-    }
+    declare body: AstStatement[];
 
-    public dump(out: DumpSink): void {
-        super.dump(out);
-        out.log('variables:', this.variables);
-        out.log('body:');
-        out.sub(this.body);
-    }
-}
+    declare container: AstBlockStatementContainers;
 
-export class AstBlockStatement extends AstBlockStatementBase {
-    type!: 'BlockStatement';
+    declare components: (AstStatement)[];
+
+
+};
+
+export function isAstBlockStatement(node: any): node is AstBlockStatement {
+    return node instanceof AstBlockStatement;
 }

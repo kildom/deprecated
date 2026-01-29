@@ -72,7 +72,7 @@ Value types:
 * Accessor
     * content: head index
     * head: getter value, setter value
-* Microscope 
+* ClosureEnvironment - renamed it from MicroScope (Environment - place where variables are stored, Closure - holds function and its context when it was created).
     * content: head index
     * head: two values
 * FunctionState ???
@@ -132,7 +132,7 @@ Flags:
 * Reference counter: 16-bits
 * Head index: ROM flag + 15-bits (32K elements, 192KB)
 * Block offset: ROM flag + 15-bits (32K offsets, 128KB allocable)
-* One value in microscope
+* One value in ClosureEnvironment
 * Length (string/array): 16-bits
 * String hash: 16-bit
 * FLOATING values instead of double
@@ -142,7 +142,7 @@ Value types:
     * head:
         * getter head index,
         * setter head index
-* Microscope 
+* ClosureEnvironment 
     * head: ONE value
 * Double
     * content: head index
