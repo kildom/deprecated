@@ -4,11 +4,14 @@ import { AstProgram } from "./ast/Program";
 import { AstNode } from "./ast/Node";
 import { typeTable } from "./ast/typeTable";
 import { Dump } from "./dump";
+import { assertNever } from "./utils";
+import { AstFunction } from "./ast/Function";
 
 
 let sourceCode = `
-    
-    say?.("Hello, World!", /a/g, 0x6544ffn)?.test();
+    import { say } from "console";
+    say?.("Hello, World!", /a/g, 12)?.test();
+    function f(a, b = 2, ...rest) { }
 `;
 
 
@@ -24,6 +27,16 @@ export class NodeConverter {
 
 export class Application {
 
+
+    errors: {
+        node: AstNode;
+        message: string;
+    }[] = [];
+
+    error(node: AstNode, message: string) {
+        throw new Error("Method not implemented.");
+    }
+
 }
 
 let nextUid = 100000;
@@ -37,16 +50,16 @@ function allNonStandardPropertyNames(obj: any): string[] {
     return [...names];
 }
 
-function convert(node: any, app: Application, program: AstProgram, container: AstNode | null = null, field: string): void {
+function convert(node: any, app: Application, program: AstProgram, func: AstFunction | null, container: AstNode | null = null, field: string): void {
     if (node === null || typeof node != 'object') {
         // Noting to do.
     } else if (node instanceof Array) {
         for (let i = 0; i < node.length; i++) {
-            convert(node[i], app, program, container, field);
+            convert(node[i], app, program, func, container, field);
         }
     } else if (!(node.type in typeTable)) {
         for (let key of allNonStandardPropertyNames(node)) {
-            convert(node[key], app, program, container, field);
+            convert(node[key], app, program, func, container, field);
         }
     } else if (node.app && node.uid && node.program) {
         // Already converted.
@@ -70,7 +83,7 @@ function convert(node: any, app: Application, program: AstProgram, container: As
         }
         let propertiesToConvert = Object.getOwnPropertyNames(node)
             .filter(name => name !== 'start' && name !== 'end' && name !== 'loc'
-                && name !== 'sourceFile' && name !== 'sourceType' && name !== 'type');
+                && name !== 'sourceFile' && name !== 'type');
         let candidates = typeTable[node.type];
         let baseClass: any = null;
         for (let candidate of candidates) {
@@ -86,10 +99,11 @@ function convert(node: any, app: Application, program: AstProgram, container: As
         nodeTyped.app = app;
         nodeTyped.uid = nextUid++;
         nodeTyped.program = program;
+        nodeTyped.func = func;
         nodeTyped.components = [];
         nodeTyped.loc = {
-            start: {...nodeTyped.loc.start, column: nodeTyped.loc.start.column + 1 },
-            end: {...nodeTyped.loc.end, column: nodeTyped.loc.end.column + 1 },
+            start: { ...nodeTyped.loc.start, column: nodeTyped.loc.start.column + 1 },
+            end: { ...nodeTyped.loc.end, column: nodeTyped.loc.end.column + 1 },
         };
         delete node.start;
         delete node.end;
@@ -101,7 +115,8 @@ function convert(node: any, app: Application, program: AstProgram, container: As
         }
 
         for (let key of propertiesToConvert) {
-            convert(node[key], app, program, node, `${node.type}.${key}`);
+            let subFunc = nodeTyped instanceof AstFunction ? nodeTyped as AstFunction : func;
+            convert(node[key], app, program, subFunc, node, `${node.type}.${key}`);
         }
 
         let initList: any[] = [];
@@ -116,10 +131,42 @@ function convert(node: any, app: Application, program: AstProgram, container: As
     }
 }
 
+function convertProgramToFunctionBody(program: acorn.Program) {
+
+    const importOrExports = new Set<string>([
+        'ImportDeclaration',
+        'ExportNamedDeclaration',
+        'ExportDefaultDeclaration',
+        'ExportAllDeclaration',
+    ]);
+
+    let body: any[] = [];
+    let importExport: any[] = [];
+
+    for (let item of program.body) {
+        if (importOrExports.has(item.type)) {
+            importExport.push(item);
+        } else {
+            body.push(item);
+        }
+    }
+
+    (program as any).body = {
+        type: "BlockStatement",
+        loc: {
+            start: { ...program.loc!.start },
+            end: { ...program.loc!.end },
+        },
+        sourceFile: (program as any).sourceFile,
+        body: body,
+    };
+    (program as any).importExport = importExport;
+}
+
 function main() {
 
 
-    let program = acorn.Parser.parse(sourceCode, {
+    let astRoot = acorn.Parser.parse(sourceCode, {
         ecmaVersion: 2026,
         sourceType: "module",
         allowAwaitOutsideFunction: true,
@@ -128,12 +175,28 @@ function main() {
         locations: true,
     });
 
-    convert(program, new Application(), program as any, null, 'root');
+    console.log(JSON.stringify(astRoot, null, 4));
+
+    convertProgramToFunctionBody(astRoot);
+
+    console.log(JSON.stringify(astRoot, null, 4));
+
+    let app = new Application();
+
+    convert(astRoot, app, astRoot as any, null, null, 'root');
+
+    let program = astRoot as unknown as AstProgram;
+    program.setupPass();
+    program.collectVariablesPass();
 
     //console.log(JSON.stringify(program, null, 4));
 
     let d = new Dump([program as unknown as AstProgram]);
     d.dump();
+
+    for (let err of app.errors) {
+        console.error(`Error: ${err.node.sourceFile}:${err.node.loc.start.line}:${err.node.loc.start.column}: ${err.message}`);
+    }
 
 
 }

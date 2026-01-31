@@ -1,3 +1,5 @@
+import { AstIdentifier } from "./Identifier";
+import { AstMemberExpression } from "./MemberExpression";
 import { AstNode } from "./Node";
 import { AstPatternContainers, AstPatternComponents } from './helpers/PatternHelper';
 
@@ -17,6 +19,9 @@ export class AstPattern extends AstNode {
 
     declare components: AstPatternComponents[];
 
+    getPatternLeafs(): (AstMemberExpression | AstIdentifier)[] {
+        throw new Error('Subclasses must implement this.');
+    }
 
 };
 

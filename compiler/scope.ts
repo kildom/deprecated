@@ -1,7 +1,10 @@
+import { AstIdentifier } from "./ast/Identifier";
+import { AstMemberExpression } from "./ast/MemberExpression";
+import { AstNode } from "./ast/Node";
 import { Variable } from "./variable";
 
 
-export interface Scope {
+export interface Scope extends AstNode {
     /** Variables declared in this scope. */
     variables: { [name: string]: Variable };
     /** Defined how this scope behaves. */
@@ -25,4 +28,31 @@ export const ScopeSymbol = Symbol('Scope');
 
 export function isScope(obj: any): obj is Scope {
     return obj && obj[ScopeSymbol] === true;
+}
+
+export function findParentScope(base: AstNode): Scope | null {
+    let parent = base.container;
+    while (parent) {
+        if (isScope(parent)) {
+            return parent;
+        }
+        parent = parent.container;
+    }
+    return null;
+}
+
+export function collectVariables(parent: Scope, ids: (AstMemberExpression | AstIdentifier)[]) {
+    let usedNames = new Set<string>();
+    for (let id of ids) {
+        if (id instanceof AstMemberExpression) {
+            parent.app.error(id, 'Member expression is not allowed here.');
+            continue;
+        }
+        if (usedNames.has(id.name)) {
+            parent.app.error(id, 'Identifier already declared.');
+            continue;
+        }
+        usedNames.add(id.name);
+        parent.variables.push(new Variable(id.name));
+    };
 }

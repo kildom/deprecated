@@ -1,7 +1,10 @@
+import { DumpOutput } from "../dump";
+import { findParentScope, Scope, ScopeSymbol } from "../scope";
+import { empty } from "../utils";
 import { AstStatement } from "./Statement";
 import { AstBlockStatementContainers } from './helpers/BlockStatementHelper';
 
-export class AstBlockStatement extends AstStatement {
+export class AstBlockStatement extends AstStatement implements Scope {
     // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#blockstatement
 
     declare type: "BlockStatement" | "StaticBlock";
@@ -11,6 +14,26 @@ export class AstBlockStatement extends AstStatement {
     declare container: AstBlockStatementContainers;
 
     declare components: (AstStatement)[];
+
+    variables = empty<Scope['variables']>();
+    scopeOptions: Scope['scopeOptions'] = {
+        parent: null,
+        isWith: false,
+        letDeclarations: true,
+        varDeclarations: false,
+    };
+    [ScopeSymbol]: true = true;
+
+    setupPass() {
+        super.setupPass();
+        this.scopeOptions.parent = findParentScope(this);
+    }
+
+    dump(out: DumpOutput) {
+        super.dump(out);
+        out('variables', this.variables);
+        out("scopeOptions", this.scopeOptions, [false, true]);
+    }
 
 
 };

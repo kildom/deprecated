@@ -1,5 +1,6 @@
 import { DumpOutput } from '../dump';
 import { Application } from '../main';
+import { AstFunction } from './Function';
 import { AstNodeContainers, AstNodeComponents } from './helpers/NodeHelper';
 import { AstProgram } from './Program';
 
@@ -80,9 +81,10 @@ export class AstNode {
         | "PrivateIdentifier"
         | "ImportAttribute";
 
-    declare app: Application;
     declare uid: number;
+    declare app: Application;
     declare program: AstProgram;
+    declare func: AstFunction | null;
 
     declare container: AstNodeContainers;
 
@@ -97,9 +99,22 @@ export class AstNode {
     declare astDumpFields?: string[];
     declare dumpFields?: string[];
 
+    setupPass() {
+        for (let component of this.components) {
+            component.setupPass();
+        }
+    }
+
+    collectVariablesPass() {
+        for (let component of this.components) {
+            component.collectVariablesPass();
+        }
+    }
+
     dump(out: DumpOutput) {
         out('loc', `${this.sourceFile}:${this.loc.start.line}:${this.loc.start.column} - ${this.loc.end.line}:${this.loc.end.column}`);
         out('program', this.program, true, true);
+        out('func', this.func, true, true);
         out('container', this.container, true, true);
         for (let field of this.astDumpFields || []) {
             out(field, (this as any)[field], false, false);
@@ -115,3 +130,7 @@ export class AstNode {
 export function isAstNode(node: any): node is AstNode {
     return node instanceof AstNode;
 }
+
+export interface SetupPassOptions {
+
+};

@@ -1,3 +1,9 @@
+
+# Expected limitation forever (at least in the near future)
+
+* No eval or eval-like functionality,
+* Only modules are implemented, no scripts, no sloppy mode,
+
 # Minimum viable product
 
 * Classic GC, no refcounting, not incremental, not generational (but keep in mind that it can be added later)

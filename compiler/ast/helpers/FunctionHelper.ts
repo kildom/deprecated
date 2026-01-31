@@ -47,7 +47,8 @@ import { AstStaticBlock } from "../StaticBlock";
 import { AstIdentifier } from "../Identifier";
 import { AstPattern } from "../Pattern";
 import { AstExpression } from "../Expression";
+import { AstImportOrExportDeclaration } from "../ImportOrExportDeclaration";
 
 export type AstFunctionContainers = AstProgram | AstExpressionStatement | AstBlockStatement | AstWithStatement | AstReturnStatement | AstLabeledStatement | AstIfStatement | AstSwitchStatement | AstSwitchCase | AstThrowStatement | AstWhileStatement | AstDoWhileStatement | AstForStatement | AstForInStatement | AstVariableDeclarator | AstArrayExpression | AstProperty | AstUnaryExpression | AstUpdateExpression | AstBinaryExpression | AstAssignmentExpression | AstLogicalExpression | AstMemberExpression | AstConditionalExpression | AstCallExpression | AstNewExpression | AstSequenceExpression | AstForOfStatement | AstSpreadElement | AstArrowFunctionExpression | AstYieldExpression | AstTemplateLiteral | AstTaggedTemplateExpression | AstAssignmentProperty | AstAssignmentPattern | AstClass | AstMethodDefinition | AstClassDeclaration | AstClassExpression | AstExportNamedDeclaration | AstAnonymousDefaultExportedClassDeclaration | AstExportDefaultDeclaration | AstAwaitExpression | AstImportExpression | AstPropertyDefinition | AstStaticBlock;
 
-export type AstFunctionComponents = AstIdentifier | AstPattern | AstBlockStatement | AstExpression;
+export type AstFunctionComponents = AstIdentifier | AstPattern | AstBlockStatement | AstExpression | AstImportOrExportDeclaration;

@@ -83,3 +83,67 @@ FuncDataSet 2
       original reference.
 3. Allocate
     * Variables are placed in 
+
+
+```
+
+Top level scopes examples:
+
+// AstProgram is a top level function, so these works as in normal function.
+// If not used in closures, they will be removed after exiting the top level code.
+// Access instructions:
+// JS, muES - from stack
+//     GetLocal varIndex / SetLocal varIndex
+// JS, muES - outer scopes
+//     GetFunctionData closureEnvironmentIndexInFunctionData
+//     GetEnvByIndex varIndex / SetEnvByIndex varIndex
+let x; var y; const z;
+
+// Looks like global using is never destroyed, so it can work as `const` in top level context.
+using x = f();
+
+// Exported variables are place in module object - non-extensible object with null prototype.
+// Module object can be special object with its own access functions table.
+// Access instructions:
+// JS - get
+//     GetModuleProperty moduleIndex, name
+// JS - set
+//     SetModuleProperty moduleIndex, name
+// muES - get
+//     GetModule index
+//     GetPropertyByIndex index
+// muES - set
+//     GetModule index
+//     Swap // Or get module before value
+//     SetPropertyByIndex index
+export let a = 1;
+
+// In sloppy mode, undeclared variables are created in globalThis object.
+// In strict mode, it throws error. If globalThis is not extensible that error
+// is detectable at compile time.
+// JS - set
+//     SetGlobalThisProperty name
+// muES - set
+//     GetModule 0 // in muES, globalThis is placed in the module array index 0
+//     Swap // Or get globalThis before value
+//     SetPropertyByName name
+//     OR if globalThis is not extensible:
+//     SetPropertyByIndex index
+g = 99;
+
+// In both modes, undeclared variables are searched in globalThis object, but not
+// created - ReferenceError instead. If globalThis is not extensible that error
+// is detectable at compile time.
+// JS - get
+//     GetGlobalThisPropertyWithError name
+// muES - get
+//     PushString name
+//     Call $muesGetGlobalThisPropertyWithError
+f(g_undeclared);
+
+// If properties of globalThis and Math are read-only, then this can be optimized:
+Math.floor(x / 3);
+// JS, muES
+//     IntDiv 3
+
+```

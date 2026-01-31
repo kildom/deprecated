@@ -1,4 +1,4 @@
-"use strict";
+//"use strict";
 
 function def(x) {
     console.log('get def', x);
@@ -12,3 +12,18 @@ function f(x=def(k)) {
 }
 
 f()
+
+
+console.log('globalVar', globalThis.globalVar);
+
+eval(`
+function ff() {
+    "use strict";
+    console.log('this in ff', globalVar);
+}
+    `);
+
+globalVar = 12;
+
+ff();
+

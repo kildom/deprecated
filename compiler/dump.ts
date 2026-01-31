@@ -6,7 +6,7 @@ import { AstProgram } from "./ast/Program";
 
 const INDENT = '  ';
 
-export type DumpOutput = (name: string, value: any, inline?: boolean, std?: boolean) => void;
+export type DumpOutput = (name: string, value: any, asLink?: boolean | boolean[], std?: boolean) => void;
 
 
 export class Dump {
@@ -28,7 +28,7 @@ export class Dump {
     dump() {
 
         for (let program of this.programs) {
-            program.dump((name: string, value: any, asLink: boolean = true, std = false) => {
+            program.dump((name: string, value: any, asLink: boolean | boolean[] = true, std = false) => {
                 if (!std || !this.skipStd) {
                     this.print(name, value, asLink, '');
                 }
@@ -37,7 +37,20 @@ export class Dump {
 
     }
 
-    print(name: string, value: any, asLink: boolean, indent: string) {
+    print(name: string, value: any, asLinkArr: boolean | boolean[], indent: string) {
+        let asLink: boolean;
+        let asLinkNext: boolean | boolean[];
+        if (typeof asLinkArr === 'boolean') {
+            asLink = asLinkArr;
+            asLinkNext = asLink;
+        } else {
+            asLink = asLinkArr[0];
+            if (asLinkArr.length > 1) {
+                asLinkNext = asLinkArr.slice(1);
+            } else {
+                asLinkNext = asLink;
+            }
+        }
         if (typeof (value) !== 'object' || value === null || value instanceof RegExp) {
             let text = '';
             if (typeof (value) === 'string' && value.match(/^[ -\x7F]+$/)) {
@@ -53,7 +66,7 @@ export class Dump {
             } else {
                 console.log(`${indent}${chalk.gray(name)}:`);
                 for (let i = 0; i < value.length; i++) {
-                    this.print(`[${i}]`, value[i], asLink, indent + INDENT);
+                    this.print(`[${i}]`, value[i], asLinkNext, indent + INDENT);
                 }
             }
         } else if (value instanceof AstNode) {
@@ -63,7 +76,7 @@ export class Dump {
             } else {
                 this.dumpedNodes.add(value);
                 console.log(`${indent}${chalk.gray(name)}: ${value.type}::${chalk.blue(value.uid)}`);
-                value.dump((subName: string, subValue: any, subAsLink: boolean = true, subStd: boolean = false) => {
+                value.dump((subName: string, subValue: any, subAsLink: boolean | boolean[] = true, subStd: boolean = false) => {
                     if (!subStd || !this.skipStd) {
                         this.print(subName, subValue, subAsLink, indent + INDENT);
                     }
@@ -84,7 +97,7 @@ export class Dump {
                 this.dumpedObjects.add(value);
                 console.log(`${indent}${chalk.gray(name)}: @${id}`);
                 for (let name in value) {
-                    this.print(`[${name}]`, value[name], asLink, indent + INDENT);
+                    this.print(`[${name}]`, value[name], asLinkNext, indent + INDENT);
                 }
             }
         }

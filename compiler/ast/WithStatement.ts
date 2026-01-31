@@ -2,6 +2,7 @@ import { AstStatement } from "./Statement";
 import { AstExpression } from "./Expression";
 import { AstWithStatementContainers } from './helpers/WithStatementHelper';
 
+
 export class AstWithStatement extends AstStatement {
     // https://github.com/estree/estree/blob/96fee942ecc2b3b9d3c34163ec142b75daf4cca1/es5.md#withstatement
 
@@ -14,6 +15,9 @@ export class AstWithStatement extends AstStatement {
 
     declare components: (AstExpression | AstStatement)[];
 
+    initialize() {
+        this.app.error(this, "Only partial sloppy mode is supported. The 'with' statement is not supported.");
+    }
 
 };
 
