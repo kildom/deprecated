@@ -67,6 +67,11 @@ Etapy tworzenia plotu:
         poprzedniego białego pixela.
         Całość trzeba powtarzać aż nie będzie białych pixeli, które mają odległość
         większą niż zadana.
+    * JSZCZE INNA ALTERNATYWA (pozwala ładnie odwzorować litery z bardzo cienkimi liniami):
+      * Jeżeli usuwamy pixel, to sprawdzamy sąsiadujące, jeżeli to jest usuwanie "końcówki"
+        linii, to przechodzimy jeszcze kilka pixeli (może 0.1 * R) po danej linii i sprawdzamy,
+        czy jest ona maksymalnie cienka. Jeżeli tak jest, to nie usuwamy tej końcówki.
+        WADA: to działa dobrze dla cienkich linii, ale nie zadziała dobrze dla kątów ostrych.
 * Usuwanie trwa aż usuniemy wszystkie pixele z odległością
   mniejszą niż promień frezowania.
 * Teraz idziemy od tyłu listy (od największej odległości)
