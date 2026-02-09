@@ -14,5 +14,8 @@
     "mupdf": "^1.26.4",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.1"
   }
 }
