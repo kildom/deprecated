@@ -6,3 +6,5 @@ __pycache__
 *.pyc
 *.pyo
 *.pyd
+/src/ext/Botan/
+/src/ext/sqlite3mc/

@@ -31,12 +31,12 @@ public:
      * @param offset The offset in the buffer to start writing data to.
      * @param length The maximum number of bytes to read. If negative, it means to read as much data as possible up to
      *               the buffer size.
-     * @return       The number of bytes actually read, or -1 if an error occurs. If read would block or the connection
-     *               is closed, it should return 0.
+     * @return       The number of bytes actually read. If read would block, or the connection
+     *               is closed, or an error occurs, it should return 0.
      */
     int read(bytes &buffer, int offset = 0, int length = -1)
     {
-        return SocketOs::read(buffer, offset, length);
+        return SocketOs::read(buffer, offset, length); // TODO: SocketOs should never return -1
     }
 
     /** @brief Write data to the socket.
@@ -47,12 +47,12 @@ public:
      * @param offset The offset in the data to start writing from.
      * @param length The maximum number of bytes to write. If negative, it means to write as much data as possible up to
      *               the data size.
-     * @return       Current size of buffered data that has not been sent yet, or -1 if an error occurs.
-     *               If the connection is closed, it should return 0.
+     * @return       Current size of buffered data that has not been sent yet.
+     *               If the connection is closed or an error occurs, it should return 0.
      */
-    int write(const bytes &data, int offset = 0, int length = -1)
+    size_t write(const bytes &data, int offset = 0, int length = -1)
     {
-        return SocketOs::write(data, offset, length);
+        return SocketOs::write(data, offset, length); // TODO: SocketOs should never return -1
     }
 
     /** @brief Close the socket.
@@ -65,7 +65,17 @@ public:
      */
     void close()
     {
-        return SocketOs::close();
+        SocketOs::close();
+    }
+
+    /** @brief Report fatal error in received data.
+     *
+     * This function can be called if incoming data is malformed or violates the protocol in some way.
+     * It will propagate this error to server implementation, close the socket and trigger appropriate callbacks.
+     */
+    void error(const string &message)
+    {
+        SocketOs::error(message); // TODO: Implement this in SocketOs
     }
 };
 

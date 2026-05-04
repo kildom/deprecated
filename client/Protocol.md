@@ -95,7 +95,7 @@ Associated data for the AES-128-CCM is the message length (as 32-bit little-endi
 Frame format:
 - uint32 begin_marker; // fixed value to identify the beginning of a message
 - uint32 length; // length of entire message including header, body and tag
-- byte[length] encrypted_body; // encrypted message body, structure depends on the message type
+- byte[length - 20] encrypted_body; // encrypted message body, structure depends on the message type
 - byte[12] tag; // authentication tag
 
 encrypted_body:
