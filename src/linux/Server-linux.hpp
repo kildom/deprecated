@@ -14,9 +14,10 @@ class Socket;
 class SocketOs: public SharedBase {
 protected:
     SocketOs() = default;
-    int read(bytes &buffer, int offset, int length);
-    int write(const bytes &data, int offset, int length);
+    size_t read(uint8_t* buffer, size_t length);
+    size_t write(const uint8_t *buffer, size_t length);
     void close();
+    void error(const string &message);
 
 private:
     struct State;

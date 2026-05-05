@@ -1,5 +1,6 @@
 #pragma once
 
+#include <any>
 #include <memory>
 
 #include "Utils.hpp"
@@ -17,7 +18,7 @@ public:
 
     /** @brief A placeholder for user-defined data associated with the socket.
      */
-    AnyContainer userData;
+    std::any userData;
 
     /** @brief Read data from the socket into the provided buffer.
      * 
@@ -26,33 +27,28 @@ public:
      * Normally, this function should be called from onData callback of ServerListener.
      * If not all data can be read at once, onData will be triggered again until all data is read.
      * 
-     * @param buffer The buffer to read data into. The buffer should be resized to the desired length before calling
-     *               this function.
-     * @param offset The offset in the buffer to start writing data to.
-     * @param length The maximum number of bytes to read. If negative, it means to read as much data as possible up to
-     *               the buffer size.
+     * @param buffer The buffer to read data into.
+     * @param length The maximum number of bytes to read.
      * @return       The number of bytes actually read. If read would block, or the connection
      *               is closed, or an error occurs, it should return 0.
      */
-    int read(bytes &buffer, int offset = 0, int length = -1)
+    size_t read(uint8_t* buffer, size_t length)
     {
-        return SocketOs::read(buffer, offset, length); // TODO: SocketOs should never return -1
+        return SocketOs::read(buffer, length);
     }
 
     /** @brief Write data to the socket.
      * 
      * This call is always non-blocking. If not all data can be written at once, the rest will be buffered.
      * 
-     * @param data   The data to write to the socket.
-     * @param offset The offset in the data to start writing from.
-     * @param length The maximum number of bytes to write. If negative, it means to write as much data as possible up to
-     *               the data size.
+     * @param buffer The data to write to the socket.
+     * @param length The maximum number of bytes to write.
      * @return       Current size of buffered data that has not been sent yet.
-     *               If the connection is closed or an error occurs, it should return 0.
+     *               If the connection is closed or an error occurs, it returns 0.
      */
-    size_t write(const bytes &data, int offset = 0, int length = -1)
+    size_t write(const uint8_t *buffer, size_t length)
     {
-        return SocketOs::write(data, offset, length); // TODO: SocketOs should never return -1
+        return SocketOs::write(buffer, length);
     }
 
     /** @brief Close the socket.

@@ -2,6 +2,8 @@
 
 #include <cstring>
 
+#include <botan/exceptn.h>
+
 #include "Utils.hpp"
 #include "Server.hpp"
 #include "EncryptedSocket.hpp"
@@ -30,6 +32,7 @@ EncryptedSocket::EncryptedSocket(const SP<Socket> &socket) :
     dec->set_key(zeroKey.data(), zeroKey.size());
 }
 
+EncryptedSocket::~EncryptedSocket() = default;
 
 size_t EncryptedSocket::read(uint8_t* &buffer)
 {
@@ -39,14 +42,12 @@ size_t EncryptedSocket::read(uint8_t* &buffer)
     }
 
     if (headerSize < 8) {
-        auto res = socket->read((uint8_t*)&header + headerSize, 8 - headerSize); // TODO: read should not return -1 or error (it should return 0 and error will be handled by callbacks)
+        auto res = socket->read((uint8_t*)&header + headerSize, 8 - headerSize);
         headerSize += res;
 
         if (headerSize == 0) {
             return 0;
         }
-        
-        state = READING;
 
         if (headerSize < 8) {
             return 0;
@@ -89,7 +90,7 @@ void EncryptedSocket::outputStart(size_t sizeHint)
 {
     if (headerSize != 0) {
         socket->error("Invalid command sequence!");
-        return 0;
+        return;
     }
 
     if (sizeHint == 0) {
@@ -133,7 +134,7 @@ size_t EncryptedSocket::outputWrite(const BytesView& data, size_t sizeHint)
     return outputDataSize;
 }
 
-int EncryptedSocket::outputFinish()
+size_t EncryptedSocket::outputFinish()
 {
     header.marker = OUTGOING_BEGIN_MARKER;
     header.size = outputDataSize + 12;
@@ -146,7 +147,7 @@ int EncryptedSocket::outputFinish()
     outputDataSize = 0;
     enc->finish(dataVector, 8);
 
-    return socket->write(dataVector); // TODO: write should not return -1 or error (it should return 0 and error will be handled by callbacks)
+    return socket->write(dataVector.data(), dataVector.size());
 }
 
 void EncryptedSocket::setKey(const BytesView& newKey)

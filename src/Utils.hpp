@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <memory>
 
@@ -41,6 +42,13 @@ public:
         return nullptr;
     }
 
+    const T* data() const noexcept {
+        if (buffer) {
+            return buffer->data() + offset;
+        }
+        return nullptr;
+    }
+
     BasicStringView<T> prepareAppend(size_t appendSize, int growFactor = 8) {
         if (!buffer) {
             buffer = std::make_shared<std::basic_string<T>>(appendSize);
@@ -55,7 +63,7 @@ public:
         return BasicStringView<T>(buffer, offset + size, appendSize);
     }
 
-    void append(const BasicStringView<T> &other) {
+    void append(const BasicStringView<T> &other, int growFactor = 8) {
         auto appendSize = other.size;
         if (!buffer) {
             buffer = std::make_shared<std::basic_string<T>>(appendSize);

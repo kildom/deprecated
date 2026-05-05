@@ -596,30 +596,20 @@ void ServerOs::stop()
 	wakePoller();
 }
 
-int SocketOs::read(bytes &buffer, int offset, int length)
+size_t SocketOs::read(uint8_t *buffer, size_t length)
 {
 	if (!state || state->closed || state->fd < 0) {
 		return 0;
 	}
 
-	if (offset < 0 || offset > static_cast<int>(buffer.size())) {
-		return -1;
-	}
-
-	int max_len = static_cast<int>(buffer.size()) - offset;
-	if (length >= 0 && length < max_len) {
-		max_len = length;
-	}
-	if (max_len <= 0) {
+	if (length == 0) {
 		return 0;
 	}
 
-	uint8_t *ptr = reinterpret_cast<uint8_t *>(&buffer[static_cast<size_t>(offset)]);
-
 	while (true) {
-		const ssize_t n = ::recv(state->fd, ptr, static_cast<size_t>(max_len), 0);
+		const ssize_t n = ::recv(state->fd, buffer, length, 0);
 		if (n > 0) {
-			return static_cast<int>(n);
+			return static_cast<size_t>(n);
 		}
 		if (n == 0) {
 			if (state->owner) {
@@ -642,32 +632,21 @@ int SocketOs::read(bytes &buffer, int offset, int length)
 				state->owner->queueClose(it->second, errnoToString("socket recv failed"));
 			}
 		}
-		return -1;
+		return 0;
 	}
 }
 
-int SocketOs::write(const bytes &data, int offset, int length)
+size_t SocketOs::write(const uint8_t *buffer, size_t length)
 {
 	if (!state || state->closed || state->fd < 0) {
 		return 0;
 	}
 
-	if (offset < 0 || offset > static_cast<int>(data.size())) {
-		return -1;
+	if (length == 0) {
+		return state->pendingWrite.size();
 	}
 
-	int max_len = static_cast<int>(data.size()) - offset;
-	if (length >= 0 && length < max_len) {
-		max_len = length;
-	}
-	if (max_len < 0) {
-		return -1;
-	}
-	if (max_len == 0) {
-		return static_cast<int>(state->pendingWrite.size());
-	}
-
-	state->pendingWrite.append(data.data() + offset, static_cast<size_t>(max_len));
+	state->pendingWrite.append(buffer, length);
 
 	if (state->owner) {
 		auto it = state->owner->sockets.find(state->fd);
@@ -680,7 +659,7 @@ int SocketOs::write(const bytes &data, int offset, int length)
 		return 0;
 	}
 
-	return static_cast<int>(state->pendingWrite.size());
+	return state->pendingWrite.size();
 }
 
 void SocketOs::close()
@@ -695,6 +674,20 @@ void SocketOs::close()
 	}
 
 	state->owner->queueClose(it->second, std::nullopt);
+}
+
+void SocketOs::error(const string &message)
+{
+	if (!state || state->closed || state->fd < 0 || !state->owner) {
+		return;
+	}
+
+	auto it = state->owner->sockets.find(state->fd);
+	if (it == state->owner->sockets.end()) {
+		return;
+	}
+
+	state->owner->queueClose(it->second, message);
 }
 
 #endif // defined(__linux__) || defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
