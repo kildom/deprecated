@@ -98,10 +98,10 @@ return true;
 
 int runScenario(const Options &options)
 {
-SP<ScenarioListenerBase> listener = options.scenario->createListener();
-Server server(options.bindSpec, std::static_pointer_cast<ServerListener>(listener));
+  SP<ScenarioListenerBase> listener = options.scenario->createListener();
+  Server server;
 
-if (!server.start()) {
+  if (!server.start(options.bindSpec, std::static_pointer_cast<ServerListener>(listener))) {
 ResultDocument document;
 document.scenario = options.scenario->name;
 document.platform = platformName();

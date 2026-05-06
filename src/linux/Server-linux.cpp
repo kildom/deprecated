@@ -89,8 +89,7 @@ struct SocketOs::State {
 	std::optional<string> closeError;
 };
 
-ServerOs::ServerOs(const string &bindSpec, const WP<ServerListener> &listener)
-	: bindSpec(bindSpec), listener(listener)
+ServerOs::ServerOs()
 {
 }
 
@@ -451,11 +450,14 @@ void ServerOs::acceptNewConnections(const SP<ServerListener> &listenerSp)
 	}
 }
 
-bool ServerOs::start()
+bool ServerOs::start(const string &bindSpec, const WP<ServerListener> &listener)
 {
 	if (started) {
 		return false;
 	}
+
+	this->bindSpec = bindSpec;
+	this->listener = listener;
 
 	if (!setupListener()) {
 		cleanupFds();

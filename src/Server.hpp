@@ -84,7 +84,7 @@ public:
  * 
  * All callback are called from one thread, from within the Server::poll function.
  */
-class ServerListener
+class ServerListener: public SharedBase
 {
 public:
     virtual ~ServerListener() = default;
@@ -129,23 +129,16 @@ class Server: public ServerOs
 {
 public:
 
-    /** @brief Construct a new Server object.
+    /** @brief Start the server.
      * 
      * @param bindSpec The binding specification for the server. This is in format "host:port".
      * @param listener The listener for server events. If the listener is destroyed while the server is still running,
      *                 the server will stop.
-     */
-    Server(const string &bindSpec, const WP<ServerListener>& listener):
-        ServerOs(bindSpec, listener)
-    { }
-
-    /** @brief Start the server.
-     * 
      * @return True if the server started successfully, false otherwise.
      */
-    bool start()
+    bool start(const string &bindSpec, const WP<ServerListener>& listener)
     {
-        return ServerOs::start();
+        return ServerOs::start(bindSpec, listener);
     }
 
     /** @brief Poll the server for events.

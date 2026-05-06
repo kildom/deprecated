@@ -2,6 +2,31 @@
 
 # SQLiteNode server protocol
 
+> # TODO: Changes before further development:
+>
+> - One users file
+> - User has full access to all databases
+> - Global lock - first transaction locks access to all databases
+> - Cannot promote read-only lock to write lock - it would cause deadlocks,
+> - No automatic logging of write queries, application must do it on its own
+>   (may have logging of errors, warnings, and other events, but without database content).
+> - Ability to access multiple databases in one connection or transaction.
+> - Write lock completely cuts out other connections from accessing the database,
+>   so it can be used even for managing databases on file level, e.g. for password change.
+> - Write lock also locks users file.
+> - All databases share the same password. If admin changes the password it will be changed for all databases.
+> - Since changing password is a heavy operation and critical, it should be done by copying all databases
+>   to new temp directory, changing password there, and then renaming directories (everything in single write lock).
+> - The password change operation may send progress updates (to investigate how fast change password operation is).
+> - The password change operation may interrupt to allow server to handle other requests.
+> - When inside transaction, client must do operations continuously. If there is a long pause,
+>   connection is closed and transaction is rolled back. This is to prevent locking the database for too long.
+>   Because of that, client application cannot block on user input while inside transaction.
+> - Server should send BUSY response periodically while client is waiting for transaction.
+> - Database password should be encrypted with AES-128-GCM to verify its correctness before
+>   trying to open the database file with it.
+
+
 ## Access control
 
 Access control is based on user user name and password or certificate.

@@ -1,4 +1,14 @@
 
+> # TODO:
+> Consider using C# and use pre-built 'sqlite3mc_x64.dll' file:
+> - Async/await simpler than C++ coroutines
+> - Simpler memory management
+> - No need to build SQLiteMC and Botan
+> - Async/await support in sockets
+> - Easier GUI
+> - Easier to add administration tools on server side (no need for admin users)
+> - Easier to do automatic backups
+
 # SQLiteNode
 
 SQLiteNode is a lightweight database server built on SQLite, providing remote authenticated access, encrypted database files, nested transactions, and comprehensive write/audit logging.

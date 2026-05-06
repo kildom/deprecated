@@ -4,6 +4,7 @@
 #include <cstring>
 #include <string>
 #include <memory>
+#include <concepts>
 
 
 template <typename T>
@@ -14,6 +15,31 @@ using UP = std::unique_ptr<T>;
 
 template <typename T>
 using WP = std::weak_ptr<T>;
+
+
+template <typename T>
+struct BasicStringParseHelper {};
+
+template <>
+struct BasicStringParseHelper<uint32_t> {
+    static uint32_t parse(const BytesView &source) {
+        if (source.size < 4) {
+            //throw std::runtime_error("Not enough data to parse uint32_t");
+        }
+        return *(uint32_t*)source.data();
+    }
+};
+
+template <typename T>
+requires std::integral<T>
+struct BasicStringParseHelper<T> {
+    static T parse(const BytesView &source) {
+        if (source.size < sizeof(T)) {
+            // throw
+        }
+        return *(T*)source.data();
+    }
+};
 
 template <typename T>
 class BasicStringView
@@ -78,6 +104,11 @@ public:
         std::memmove(buffer->data() + offset + size, other.data(), appendSize);
         size += appendSize;
     }
+
+    template<typename U>
+    U parse() {
+        return BasicStringParseHelper<U>::parse(*this);
+    }
 };
 
 using bytes = std::basic_string<std::uint8_t>;
@@ -89,6 +120,11 @@ using StringView = BasicStringView<char>;
 class SharedBase : public std::enable_shared_from_this<SharedBase>  {
 public:
     virtual ~SharedBase() = default;
+
+    template <typename T = SharedBase>
+    SP<T> shared_from_this() {
+        return std::static_pointer_cast<T>(std::enable_shared_from_this<SharedBase>::shared_from_this());
+    }
 };
 
 
@@ -184,3 +220,10 @@ public:
     }
 
 };
+
+/** @brief Returns the number of milliseconds of the current monotonic time.
+ * 
+ * This clock counts running time, so if the system goes to sleep, the returned value does not increase
+ * during that time.
+ */
+uint64_t getRunTimeMs();

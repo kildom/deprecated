@@ -30,13 +30,13 @@ private:
 class ServerOs: public SharedBase
 {
 public:
-    ServerOs(const string &bindSpec, const WP<ServerListener>& listener);
+    ServerOs();
     ~ServerOs();
 
     ServerOs(const ServerOs&) = delete;
     ServerOs& operator=(const ServerOs&) = delete;
 
-    bool start();
+    bool start(const string &bindSpec, const WP<ServerListener>& listener);
     bool poll(int timeoutMs);
     void stop();
 
