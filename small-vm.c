@@ -9,7 +9,8 @@ struct vm_t {
                   //       This way we can remove tracking of the references on stack for GC.
                   //       Additional benefit: simpler type checking, since all primive types  can be treted the same, and
                   //       all reference types can be treted the same, we need to track only stacks sizes.
-                  //       Actually there is one more special type: return address of locall call - How to handle that? How to verify on runtime?
+                  //       Actually, there is one more special type: return address of locall call - How to handle that? How to verify on runtime?
+                  //       Maybe it should be a reference to a special object containing return address, expected stack sizes, and owning method.
                   //       Downside: the bytecode must be transformed - instructions that manipulate stack
                   //       without type information must be replaced, e.g. pop, dup, swap, etc.
                   //       Maybe do one step further: seperate spaces for primitive and reference local variables:
