@@ -7,8 +7,13 @@ struct vm_t {
     uint8_t* pc;
     uint32_t* sp; // TODO: Should be 2 stacks: one for primitive values and one for references.
                   //       This way we can remove tracking of the references on stack for GC.
+                  //       Additional benefit: simpler type checking, since all primive types  can be treted the same, and
+                  //       all reference types can be treted the same, we need to track only stacks sizes.
                   //       Downside: the bytecode must be transformed - instructions that manipulate stack
                   //       without type information must be replaced, e.g. pop, dup, swap, etc.
+                  //       Maybe do one step further: seperate spaces for primitive and reference local variables:
+                  //       when transforming bytecode, the local variable is identified by index AND kind (ref or primitive).
+                  //       Unused locals will be removed.
     uint32_t* locals;
     uint32_t* const_pool;
 };
