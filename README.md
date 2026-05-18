@@ -15,6 +15,7 @@
 >   - Queries returning table name, row id, and optionally columns that shows all locked records, e.g.
 >     `SELECT "my_table", id FROM my_table WHERE parent=3829` - will lock all records with parent `3829` (all columns).
 >     `SELECT "my_table", id, "name", "description" FROM my_table WHERE parent=1234` - will lock columns "name" and "description" in all records with parent `1234`.
+>   - Skipping id, locks entire table for adding rows, e.g. `SELECT "my_table"` will lock inserting rows into table.
 > - When user wants to lock some data, it should first execute self lock queries and existing lock queries.
 >   If some columns are matching, lock is not allowed. Application may show "user information" in message
 >   explaining why lock was not possible.
@@ -27,9 +28,10 @@
 > - When user subscribes for notifications it provides queries like in locking, e.g.
 >   `SELECT "my_table", id FROM my_table WHERE parent=3829` - subscribe for changes in all records with parent `3829` (in any column).
 >   `SELECT "my_table", id, "name", "description" FROM my_table WHERE parent=1234` - subscribe for changes in columns "name" and "description" in all records with parent `1234`.
+>   `SELECT "my_table"` - subscribe for inserting rows to table.
 > - Each registered query get notification token.
 > - When user does any changes, he should track all updated columns. Then, he should execute queries in all subscribers,
->   if there are matching columns, he should notify other by sending theirs notifications tokens.
+>   if there are matching columns, he should notify others by sending theirs notifications tokens.
 
 
 # SQLiteNode
