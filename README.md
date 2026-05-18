@@ -8,6 +8,29 @@
 > - Easier GUI
 > - Easier to add administration tools on server side (no need for admin users)
 > - Easier to do automatic backups
+>
+> Data locking feature
+> - Use can add lock on specific data by providing:
+>   - User information
+>   - Queries returning table name, row id, and optionally columns that shows all locked records, e.g.
+>     `SELECT "my_table", id FROM my_table WHERE parent=3829` - will lock all records with parent `3829` (all columns).
+>     `SELECT "my_table", id, "name", "description" FROM my_table WHERE parent=1234` - will lock columns "name" and "description" in all records with parent `1234`.
+> - When user wants to lock some data, it should first execute self lock queries and existing lock queries.
+>   If some columns are matching, lock is not allowed. Application may show "user information" in message
+>   explaining why lock was not possible.
+> - The user should be notifications about any change in locking queries.
+> - There should be also a function "Check Lock" that only checks if lock would be possible.
+>   With combination with notifications, application can provide live status if the data that is showing is editable (locked) or not.
+>
+> Update notification feature
+> - Works similar to data locking
+> - When user subscribes for notifications it provides queries like in locking, e.g.
+>   `SELECT "my_table", id FROM my_table WHERE parent=3829` - subscribe for changes in all records with parent `3829` (in any column).
+>   `SELECT "my_table", id, "name", "description" FROM my_table WHERE parent=1234` - subscribe for changes in columns "name" and "description" in all records with parent `1234`.
+> - Each registered query get notification token.
+> - When user does any changes, he should track all updated columns. Then, he should execute queries in all subscribers,
+>   if there are matching columns, he should notify other by sending theirs notifications tokens.
+
 
 # SQLiteNode
 
