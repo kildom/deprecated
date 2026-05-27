@@ -24,6 +24,12 @@ void instr_exec(struct vm_t* vm) {
     uint32_t value32;
     uint32_t size = 0;
 
+#ifdef INSTR_TREE_OPTIMIZED
+
+    INSTR_TREE_OPTIMIZED
+
+#else
+    
     switch (instruction) {
         case 0x00: // nop
             break;
@@ -426,6 +432,8 @@ void instr_exec(struct vm_t* vm) {
             break;
         // Other instructions are not possible after the verification
     }
+
+#endif
 
     return;
 
