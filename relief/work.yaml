@@ -1,0 +1,61 @@
+
+
+input: ../roza.png
+output: ../roza.nc
+width: 100
+depth: 7
+tools:
+  - name: rough
+    index: 1
+    type: flat
+    diameter: 3.175
+    overlay: 10%
+    speed:
+      xy: 1000
+      z: 300
+  - name: flat
+    index: 1
+    type: flat
+    diameter: 3.175
+    overlay: 30%
+    speed:
+      xy: 500
+      z: 200
+  - name: fine
+    index: 2
+    type: ball
+    diameter: 1
+    overlay: 50%
+    speed:
+      xy: 300
+      z: 100
+jobs:
+  - name: Roughing
+    type: spiral
+    tool: rough
+    strict_boundary: false
+    allowance: 0.3
+    stepdown: 1.5
+  - name: Flattening
+    type: flat-surface
+    tool: flat
+    strict_boundary: false
+    tolerance: 0.05
+    allowance:
+      xy: 0.2
+      z: 0
+  - name: Cutting
+    type: cut-boundary
+    tool: flat
+    depth: 12
+    stepdown: 1
+    tabs:
+      count: 4
+      depth: 8
+      width: 10
+      slope: 0.5
+  - name: Finishing
+    type: waterline
+    tool: fine
+    strict_boundary: false
+    stepdown: 0.4

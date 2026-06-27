@@ -8,16 +8,8 @@ from work import Work
 
 class ToolFlat(Tool):
 
-    def __init__(self, work: Work, diameter_mm: float, overlay_mm: float, depth_offset_mm: float = 0.0):
-        self.work = work
-        self.radius_mm = diameter_mm / 2
-        self.radius = int(round(self.radius_mm * work.pixels_per_mm))
-        self.work_radius_mm = self.radius_mm - 0.5 * overlay_mm
-        self.work_radius = int(round(self.work_radius_mm * work.pixels_per_mm))
-        self.depth_offset = depth_offset_mm * work.pixels_per_mm
-        self.base_tool = self
-        assert self.radius > 2
-        assert self.work_radius > 1 and self.work_radius < self.radius
+    def __init__(self, work: Work, diameter_mm: float, overlay_mm: float, name: 'str|None' = None):
+        super().__init__(work, diameter_mm, overlay_mm, name)
 
         # Generate height map of tool
         map_size = self.radius * 2 + 1
@@ -42,12 +34,13 @@ class ToolFlat(Tool):
                 distance = math.sqrt(dx * dx + dy * dy)
                 self.work_mask[y, x] = (map_radius >= distance)
 
-    def create_tool_with_margin(self, margin_mm: float) -> 'Tool':
+    def create_tool_with_allowance(self, horizontal_allowance: float, vertical_allowance: float) -> 'Tool':
         result = ToolBull(
             self.work,
-            2 * self.radius_mm + 2 * margin_mm,
-            margin_mm,
-            2 * (self.radius_mm - self.work_radius_mm + margin_mm),
-            margin_mm)
+            2 * self.radius_mm + 2 * horizontal_allowance,
+            2 * (self.radius_mm - self.work_radius_mm + horizontal_allowance),
+            horizontal_allowance,
+            vertical_allowance)
         result.base_tool = self.base_tool
+        result.base_tool_offset = vertical_allowance
         return result
